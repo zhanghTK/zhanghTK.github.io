@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  
+  
+    
+    <entry>
+      <title><![CDATA[ThreadLocal小记]]></title>
+      <url>https://zhanghtk.github.io/2016/09/11/ThreadLocal%E5%B0%8F%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<h1 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h1><p>最近《Java并发编程实战》第三章谈及了对象共享的问题。对共享的可变数据最简单粗暴的做法当然是同步，但是同步的缺点也很明显，代码复杂可维护性降低。针对这个问题，书上谈及到了通过线程封闭避免同步，其中的ThreadLocal类就是帮助维持线程封闭性的。</p>
+<p>之前对ThreadLocal的认识非常简单，就是把一个变量绑定到线程上。参照网上的例子自己也实现了类似功能的例子ThreadLocalVariable(<a href="https://github.com/zhanghTK/HelloJava/blob/master/src/main/java/tk/zhangh/java/thread/ThreadLocalVariable.java)，但总的来说没什么体会。今天参照别人的文章看了一下ThreadLocal的实现，发现还是有蛮多注意点的。" target="_blank" rel="external">https://github.com/zhanghTK/HelloJava/blob/master/src/main/java/tk/zhangh/java/thread/ThreadLocalVariable.java)，但总的来说没什么体会。今天参照别人的文章看了一下ThreadLocal的实现，发现还是有蛮多注意点的。</a></p>
+<p>看JDK之前想当然的以为ThreadLocal应该就是简单对<code>Map&lt;Thread, Object&gt;</code>做一个封装，然而实际并没有这么简单。参照了网上一些文章的说法，早期的ThreadLocal确实是这样实现的。但是这样实现存在一些问题：</p>
+<ol>
+<li>线程安全问题，如果使用线程安全的Map实现那么就会带来性能问题，当有大量的线程使用ThreadLocal，伴随着线程生命周期ThreadLocal也需要频繁向底层的Map添加删除数据。</li>
+<li>内存回收问题，用Thread当key，除非手动调用remove，否则即使线程退出了会导致：1)该Thread对象无法回收；2)该线程在所有ThreadLocal中对应的value也无法回收。</li>
+</ol>
+<p>ThreadLocal实际给出了不同的实现方式。首先绑定到线程的变量没有维护在ThreadLocal内，而是维护在各个Thread类实例内——在Thread类内使用了ThreadLocal的静态内部类<code>ThreadLocalMap</code>实例去维护需要绑定到线程的变量。这样原本需要维护在ThreadLocal内的数据现在就分散到了各个线程内去维护。</p>
+<p>在Thread中ThreadLocalMap的声明长这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 真的就只是声明了一下，什么都没干    </span></div><div class="line">ThreadLocal.ThreadLocalMap threadLocals = <span class="keyword">null</span>;</div></pre></td></tr></table></figure>
+<p>ThreadLocal一共只有五个非私有的方法，首先是两个并没有什么卵用的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 构造，什么都没干</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadLocal</span><span class="params">()</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">// 设置ThreadLocal的初始值，protected很明显是希望子类重写</span></div><div class="line"><span class="function"><span class="keyword">protected</span> T <span class="title">initialValue</span><span class="params">()</span> </span>&#123;<span class="keyword">return</span> <span class="keyword">null</span>&#125;</div></pre></td></tr></table></figure>
+<p>看看其余三个方法的实现（JDK8）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> T <span class="title">get</span><span class="params">()</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread();</div><div class="line">    <span class="comment">// 从线程里获取ThreadLocalMap</span></div><div class="line">    ThreadLocalMap map = getMap(t);</div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="comment">// 根据ThreadLocal实例获取Entity</span></div><div class="line">        <span class="comment">// 一会看ThreadLocal的实现</span></div><div class="line">        <span class="comment">// 暂时可以看做类似Map&lt;ThreadLocal,Object&gt;</span></div><div class="line">        <span class="comment">// 注意key类型是ThreadLocal，不是Thread</span></div><div class="line">        ThreadLocalMap.Entry e = map.getEntry(<span class="keyword">this</span>);</div><div class="line">        <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</div><div class="line">            T result = (T)e.value;</div><div class="line">            <span class="keyword">return</span> result;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 如果获得的map为null或者从map通过key获取的value为空时获取一个初始值</span></div><div class="line">    <span class="comment">// setInitialValue方法里调用了initialValue方法</span></div><div class="line">    <span class="comment">// 宝宝不管，反正宝宝想要有值，宝宝不想为null</span></div><div class="line">    <span class="keyword">return</span> setInitialValue();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(T value)</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread();</div><div class="line">    ThreadLocalMap map = getMap(t);</div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>)</div><div class="line">        <span class="comment">// 没什么说的set进去</span></div><div class="line">        map.set(<span class="keyword">this</span>, value);</div><div class="line">    <span class="keyword">else</span></div><div class="line">        <span class="comment">// 当map不存在时，使用初始值创建一个</span></div><div class="line">        createMap(t, value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">()</span> </span>&#123;</div><div class="line">     ThreadLocalMap m = getMap(Thread.currentThread());</div><div class="line">     <span class="keyword">if</span> (m != <span class="keyword">null</span>)</div><div class="line">         <span class="comment">// 没什么说的，remove掉</span></div><div class="line">         m.remove(<span class="keyword">this</span>);</div><div class="line"> &#125;</div><div class="line"></div><div class="line"><span class="function">ThreadLocalMap <span class="title">getMap</span><span class="params">(Thread t)</span> </span>&#123;</div><div class="line">    <span class="comment">// 你给我一个线程，我换你一个map</span></div><div class="line">    <span class="keyword">return</span> t.threadLocals;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>ThreadLocal所有的操作都是围绕着内部类ThreadLocalMap的，ThreadLocal只是让ThreadLocalMap更加容易访问。咦，有点耳熟，没错外观模式。</p>
+<p>下面看一下ThreadLocal的静态内部类ThreadLocalMap，JDK文档对它的描述主要集中在一下几点：</p>
+<ol>
+<li>是什么：定制的hash map用于维护本地线程变量</li>
+<li>可见性：ThreadLocal之外没有任何方法可访问，Thread类使用它定义了私有属性</li>
+<li>特殊性：为了管理大对象、长生命周期对象，使用WeakReference包装ThreadLocal对象作为key</li>
+</ol>
+<p>前面两点没什么好说的，主要是第三点：key使用了弱引用类型管理（关于弱引用可以先参考<a href="https://github.com/zhanghTK/HelloJava/blob/master/src/main/java/tk/zhangh/java/jvm/reference/ReferenceTest.java，后面我会单独写文章记录Java引用的使用，先挖个坑）。" target="_blank" rel="external">https://github.com/zhanghTK/HelloJava/blob/master/src/main/java/tk/zhangh/java/jvm/reference/ReferenceTest.java，后面我会单独写文章记录Java引用的使用，先挖个坑）。</a></p>
+<p><img src="http://img.blog.csdn.net/20160121000731607" alt="image"></p>
+<p>图片来自互联网，实线表示强引用，虚线表示弱引用。</p>
+<p>简而言之，一个对象在没有强引用引用，只有弱引用引用时，当GC发生这个对象就会被标记回收。将ThreadLocal对象设置成弱引用作为key的好处是显而易见：当ThreadLocal没有任何强引用引用时，只有ThreadLocalMap的Entry对它存在弱引用，这样GC的时候这个ThreadLocal对象就可以被回收了。但是这又带来了一个问题：Entry的key可能被回收了，但留下了一个并没有什么卵用的value。只要线程生命周期不结束，那么这个value对象始终保持了一个强引用链条：</p>
+<p>Thread Ref -&gt; Thread -&gt; ThreadLocalMap -&gt; Entry -&gt; value</p>
+<p>当内存有大量驻留的线程时，因为强引用存在，GC始终无法回收，就导致了内存泄漏。</p>
+<p>真对这个问题ThreadLocalMap在实现的时候也采取了一些防护措施，比如ThreadLocalMap的get（set，remove方法也类似，限于篇幅不展开了）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> Entry <span class="title">getEntry</span><span class="params">(ThreadLocal&lt;?&gt; key)</span> </span>&#123;</div><div class="line">    <span class="comment">// hash函数获取索引位置</span></div><div class="line">    <span class="keyword">int</span> i = key.threadLocalHashCode &amp; (table.length - <span class="number">1</span>);</div><div class="line">    Entry e = table[i];</div><div class="line">    <span class="keyword">if</span> (e != <span class="keyword">null</span> &amp;&amp; e.get() == key)</div><div class="line">        <span class="comment">// 命中了</span></div><div class="line">        <span class="keyword">return</span> e;</div><div class="line">    <span class="keyword">else</span></div><div class="line">        <span class="comment">// miss了</span></div><div class="line">        <span class="keyword">return</span> getEntryAfterMiss(key, i, e);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> Entry <span class="title">getEntryAfterMiss</span><span class="params">(ThreadLocal&lt;?&gt; key, <span class="keyword">int</span> i, Entry e)</span> </span>&#123;</div><div class="line">    Entry[] tab = table;</div><div class="line">    <span class="keyword">int</span> len = tab.length;</div><div class="line">		</div><div class="line">    <span class="comment">// 遍历table</span></div><div class="line">    <span class="keyword">while</span> (e != <span class="keyword">null</span>) &#123;</div><div class="line">        ThreadLocal&lt;?&gt; k = e.get();</div><div class="line">        <span class="keyword">if</span> (k == key)</div><div class="line">            <span class="comment">// 找到了</span></div><div class="line">            <span class="keyword">return</span> e;</div><div class="line">        <span class="keyword">if</span> (k == <span class="keyword">null</span>)</div><div class="line">            <span class="comment">// 发现key为空（也就是上面描述的内存泄漏的情况），做删除</span></div><div class="line">            expungeStaleEntry(i);</div><div class="line">        <span class="keyword">else</span></div><div class="line">            <span class="comment">// 找下一个Entty位置</span></div><div class="line">            i = nextIndex(i, len);</div><div class="line">        e = tab[i];</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在get的过程中凡是碰到了key为null的Entry，这个Entry就会被擦除，从而避免内存泄漏。类似的思路在set，remove方法中都有实现。针对内存泄漏问题ThreadLocal实际是需要手动触发函数删除key为null的Entry，所以当不要再需要一个变量当定到线程时手动的remove还是很有必要的。</p>
+<p>最后，在网上看到对ThreadLocal有多种说法：ThreadLocal为解决多线程程序的并发问题提供了一种新的思路；ThreadLocal的目的是为了解决多线程访问资源时的共享问题。</p>
+<p>关于第一种说法我觉得是部分正确的，ThreadLocal将需要共享的对象封闭在了线程内确实解决了并发的一部分问题，但并不是万能的。比如重写initialValue方法时返回的是一个全局共享的对象，那实际上ThreadLocal只是把这个全局共享的对象又封装到了Thread对象里，ThreadLocal本身并没有做类似深拷贝的操作，因此这个变量依然是线程不安全的（逸出）。</p>
+<p>关于第二种说法，我觉得问题就比较大了。ThreadLocal根本不是为了线程间共享，实际是为了将状态封闭在线程内以确保线程安全。这样做确实带来了访问共享状态的便利，但这个状态的共享是在单个线程内的，而不是线程之间的。比如在action中将session对象绑定在线程内，在service、dao里都可以方便的共享，但所有的共享都是在单个的线程内部，而不是在多个的线程之间共享。</p>
+<p>参考资料：</p>
+<p>《Java并发编程实战》</p>
+<p>JDK8帮助手册</p>
+<p><a href="http://qifuguang.me/2015/09/02/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E4%B8%83]%E8%A7%A3%E5%AF%86ThreadLocal/" target="_blank" rel="external">http://qifuguang.me/2015/09/02/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E4%B8%83]%E8%A7%A3%E5%AF%86ThreadLocal/</a></p>
+<p><a href="http://my.oschina.net/xianggao/blog/392440#navbar-header" target="_blank" rel="external">http://my.oschina.net/xianggao/blog/392440#navbar-header</a></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[《函数式编程思维》读书笔记]]></title>
+      <url>https://zhanghtk.github.io/2016/08/27/%E3%80%8A%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B%E6%80%9D%E7%BB%B4%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<p><img src="http://i2.buimg.com/4851/efe49260863d5566.png" alt="函数式编程思维.png"></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[Java内存区域]]></title>
+      <url>https://zhanghtk.github.io/2016/08/14/Java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/</url>
+      <content type="html"><![CDATA[<p><img src="https://ooo.0o0.ooo/2016/08/14/57b08be587b3a.png" alt="Java内存区域.png"></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[HTML与CSS小记]]></title>
+      <url>https://zhanghtk.github.io/2016/07/31/HTML%E4%B8%8ECSS%E5%B0%8F%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<p><img src="https://ooo.0o0.ooo/2016/07/31/579dd779d1389.png" alt="jjj"></p>
+]]></content>
+    </entry>
+    
+  
+  
+</search>
