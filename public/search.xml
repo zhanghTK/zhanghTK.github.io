@@ -4,6 +4,13 @@
   
     
     <entry>
+      <title><![CDATA[《Java并发编程实战》读书笔记]]></title>
+      <url>https://zhanghtk.github.io/2016/09/29/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<p>右键-&gt;新标签页中打开图片-&gt;放大预览<br><img src="https://ooo.0o0.ooo/2016/09/29/57eca40868441.png" alt="Java并发编程实战.png"></p>
+]]></content>
+    </entry>
+    
+    <entry>
       <title><![CDATA[ThreadLocal小记]]></title>
       <url>https://zhanghtk.github.io/2016/09/11/ThreadLocal%E5%B0%8F%E8%AE%B0/</url>
       <content type="html"><![CDATA[<h1 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h1><p>最近《Java并发编程实战》第三章谈及了对象共享的问题。对共享的可变数据最简单粗暴的做法当然是同步，但是同步的缺点也很明显，代码复杂可维护性降低。针对这个问题，书上谈及到了通过线程封闭避免同步，其中的ThreadLocal类就是帮助维持线程封闭性的。</p>
