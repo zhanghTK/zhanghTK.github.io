@@ -94,7 +94,7 @@
 <meta property="og:description" content="概述记一次使用Builder模式简化多参数接口方法调用的过程。
 问题系统中统一的邮件发送服务接口大概长着个样子：
 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/**    * 不帶附件的邮件发送    * 未使用建造者模式的原始方法（不良代码）    * @para">
-<meta property="og:updated_time" content="2016-10-16T04:04:40.000Z">
+<meta property="og:updated_time" content="2016-10-16T04:06:52.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="使用Builder模式改进多参数方法">
 <meta name="twitter:description" content="概述记一次使用Builder模式简化多参数接口方法调用的过程。
@@ -360,7 +360,7 @@
 <p>调用的时候光是创建这些参数就够麻烦的了，还要考虑哪些参数是必填的以及参数的正确位置。更糟糕的是参数传错位置你会发现很有可能并没有显式的暴露出问题，邮件还是发送了只是发送到错误的相关人员那里。</p>
 <p>其他人看到方法调用也无法清晰知道这个到底是要发什么邮件，给哪些人。</p>
 <p>这应该就是坏代码的味道吧。</p>
-<h1 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h1><p>简单的改进思路就是把参数做成一个modle封装起来，以后传递model给方法。就像这样：</p>
+<h2 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h2><p>简单的改进思路就是把参数做成一个modle封装起来，以后传递model给方法。就像这样：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * 邮件发送通用接口</div><div class="line"> * <span class="doctag">@param</span> email 邮件发送参数对象</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(EmailSendMain email)</span></span>&#123;</div><div class="line">	logger.info(<span class="string">"send email:"</span> + email);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>但是问题还是没有根本解决，对象的构造还是需要多个参数的构造方法，可能还需要重载。</p>
 <p>比较容易想到的改进是使用Java Bean模式。简化构造方法字段，构造方法只传入必要的字段，使用setter方法设置其他值。我就是这么肤浅的想到这个地步了。</p>
@@ -379,7 +379,7 @@
 <p>问题圆满解决，支持可选参数的链式结构调用，创建过程也确保了一致性，使用不可变类也没问题。</p>
 <p>如果说缺点，其实不难看出EmailSendMain的字段和它的内部类Builder字段完全重复了。为了创建EmailSendMain的对象将必须先创建Builder也会带来轻微的性能问题。创建的调用过程虽然看起来更清晰，但也更加冗长。</p>
 <p>但是Builder模式还是创建多参数类的不错选择，尤其是大多数参数是可选。</p>
-<h1 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h1><p>这篇文章的思路是根据《Effective Java》得来的，文章只提到书中建议的第二条，实际关于上面使用到的内部类，泛型，在书中的建议都让我有了更多的认识。我就不赘述了，连上8天班我要去偷懒了。</p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><p>这篇文章的思路是根据《Effective Java》得来的，文章只提到书中建议的第二条，实际关于上面使用到的内部类，泛型，在书中的建议都让我有了更多的认识。我就不赘述了，连上8天班我要去偷懒了。</p>
 <p>写这篇文章的时候看到有个系列专门讲Java方法参数太多的问题</p>
 <p>传送门：<a href="https://dzone.com/articles/too-many-parameters-java" target="_blank" rel="external">https://dzone.com/articles/too-many-parameters-java</a></p>
 <p>以及翻译：<a href="http://www.importnew.com/6518.html" target="_blank" rel="external">http://www.importnew.com/6518.html</a></p>
@@ -543,7 +543,7 @@
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题"><span class="nav-number">2.</span> <span class="nav-text">问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#改进"><span class="nav-number"></span> <span class="nav-text">改进</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#扩展"><span class="nav-number"></span> <span class="nav-text">扩展</span></a></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题"><span class="nav-number">2.</span> <span class="nav-text">问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#改进"><span class="nav-number">3.</span> <span class="nav-text">改进</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展"><span class="nav-number">4.</span> <span class="nav-text">扩展</span></a></li></ol></div>
             
           </div>
         </section>
