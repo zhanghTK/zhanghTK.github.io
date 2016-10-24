@@ -281,6 +281,136 @@
             
               
                 
+                <a class="post-title-link" href="/2016/10/24/HTTPS小记/" itemprop="url">
+                  HTTPS小记
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-10-24T23:58:06+08:00" content="2016-10-24">
+              2016-10-24
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/其它/" itemprop="url" rel="index">
+                    <span itemprop="name">其它</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/10/24/HTTPS小记/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/24/HTTPS小记/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          背景最近好像跟HTTPS较上劲了，前几天的职级答辩问到了相关问题，最近维护的系统升级也碰到相关问题。
+自己对HTTPS了解的并不多，今天简单了解了一下，在此做个记录。
+首先有几个基本概念，TCP/IP协议，HTTP一些，对称/非对称加密，证书，公钥/私钥。
+TCP/TP：
+
+传输层协议，主要解决数据
+          ...
+
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2016/10/24/HTTPS小记/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/10/22/自下而上的开发实践/" itemprop="url">
                   自下而上的开发实践
                 </a>
@@ -491,8 +621,9 @@
       
         
           
-          背景一个报表程序需要初始化报表参数。具体的参数分为三种类型，都实现了Parameter类型，具体的初始化过程由子类实现：
-对实现的依赖123456789101112131415161718192021222324252627282930313233343536373839public class P
+          背景一个报表程序需要初始化报表参数。具体的参数分为三种类型，都实现了Parameter类型，具体的初始化过程由子类实现。
+对报表参数初始化的过程，从对具体实现过程的依赖，依次经历对接口、对数据结构，最终对行为依赖，不断抽象依赖，实现更大程度的复用。
+对实现的依赖1234567891011121314
           ...
 
           <div class="post-more-link text-center">
@@ -617,8 +748,10 @@
       
         
           
-          看似没有问题的问题先看一个简单代码
-123456789101112131415161718192021222324252627282930313233public class Wallet &#123;    private double value;     public double getTo
+          背景以服务员，客户，钱包为载体，模拟一个付款过程，阐述不恰当的封装行为。
+说明合理封装的一般过程以及不合理封装所表现的一般形式，介绍迪米特法则相关的基本内容，遵循迪米特法则对问题代码进行重构。
+看似没有问题的问题先看一个简单代码，分别描述钱包、客户、服务员：
+12345678910111213141
           ...
 
           <div class="post-more-link text-center">
@@ -743,9 +876,13 @@
       
         
           
-          概述记一次使用Builder模式简化多参数接口方法调用的过程。
-问题系统中统一的邮件发送服务接口大概长着个样子：
-12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/** 
+          概述记一次工作当中对多参数方法重构。
+
+使用对象封装对多参数，简化方法调用
+使用Builder（创建者）模式简化多属性对象的创建
+
+问题业务系统中统一的邮件发送服务接口在改造前大概长着个样子：
+12345678910111213141516171819202122232425262728293031
           ...
 
           <div class="post-more-link text-center">
@@ -1450,7 +1587,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-count">10</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -1458,7 +1595,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>

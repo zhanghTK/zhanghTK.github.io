@@ -4,11 +4,104 @@
   
     
     <entry>
+      <title><![CDATA[HTTPS小记]]></title>
+      <url>https://zhanghtk.github.io/2016/10/24/HTTPS%E5%B0%8F%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近好像跟HTTPS较上劲了，前几天的职级答辩问到了相关问题，最近维护的系统升级也碰到相关问题。</p>
+<p>自己对HTTPS了解的并不多，今天简单了解了一下，在此做个记录。</p>
+<p>首先有几个基本概念，TCP/IP协议，HTTP一些，对称/非对称加密，证书，公钥/私钥。</p>
+<p>TCP/TP：</p>
+<ul>
+<li>传输层协议，主要解决数据如何在网络中传输</li>
+</ul>
+<p>HTTP：</p>
+<ul>
+<li>应用层协议，主要解决如何包装数据，依赖TCP/IP协议</li>
+</ul>
+<p>对称加密：</p>
+<ul>
+<li>加密密钥能够从解密密钥中推算出来，同时解密密钥也可以从加密密钥中推算出来</li>
+</ul>
+<p>非对称加密：</p>
+<ul>
+<li>加密和解密过程使用了不同的密钥。分为公钥和私钥，它们可以互相解密。</li>
+<li>公钥加密，私钥解密</li>
+<li>私钥数字签名，公钥验证</li>
+</ul>
+<p>证书：</p>
+<ul>
+<li>我理解主要是两个作用：验证证书持有者身份、提供证书持有者公钥</li>
+</ul>
+<h2 id="为什么用HTTPS"><a href="#为什么用HTTPS" class="headerlink" title="为什么用HTTPS"></a>为什么用HTTPS</h2><p>因为HTTP不安全。</p>
+<ol>
+<li>HTTP使用的是明文传输，容易被窃取</li>
+<li>无法验证报文完整性，可能被篡改</li>
+<li>无法验证通信双方的身份</li>
+</ol>
+<p>为了对HTTP提供安全保障，就依赖：</p>
+<h3 id="SSL与TLS"><a href="#SSL与TLS" class="headerlink" title="SSL与TLS"></a>SSL与TLS</h3><p>SSL（Secure Socket Layer，安全套接字层）</p>
+<p>TLS（Transport Layer Security，传输层安全协议）</p>
+<p>TLS可以理解为SSL的增强版。</p>
+<p>HTTP直接与TCP通信，而在HTTPS中首先与SSL通信，SSL再与TCP通信。我觉得可以理解成HTTPS = HTTP + SSL。</p>
+<p>不论HTTP还是HTTPS，所有的通信、加解密都是最终都是建立在TCP/IP之上的。</p>
+<h2 id="加密思路"><a href="#加密思路" class="headerlink" title="加密思路"></a>加密思路</h2><ol>
+<li>客户端向服务器端索要并验证公钥；</li>
+<li>双方协商生成”对话密钥”；</li>
+<li>双方采用”对话密钥”进行加密通信；</li>
+</ol>
+<p>在通信过程中其实双方使用的还是对称的加密算法，但是为了让这个对称的加密算法足够安全。首先使用非对称的算法来获取对话密钥，之后再用对话密钥来对通信的内容加密解密。</p>
+<p>所以关键问题就变成了：</p>
+<h2 id="对话密钥的创建"><a href="#对话密钥的创建" class="headerlink" title="对话密钥的创建"></a>对话密钥的创建</h2><p>我没有仔细阅读相关协议，在网上查了一些资料，下面的内容是根据自己的理解写的。</p>
+<p>简单描述一次对话密钥的获取过程：</p>
+<blockquote>
+<p>C：我想跟服务器A说悄悄话，我支持1,2,3版本的协议。我先跟你说个秘密X。</p>
+<p>S：我是服务器A。我们用3版本的协议说话吧，我也给你说个秘密Y。我再给你个公钥，使用它加密后的信息就只有我能听懂了。</p>
+<p>C：让我先看看你是不是服务器A。（确认是服务器A）那我再给你说个秘密Z，这次用你给我的公钥对Z加密，确保其他人都不知道。以后我们用X,Y,Z这三个秘密来验证彼此的消息。我要跟你确认的就这些。</p>
+<p>S：好的，以后我们用X,Y,Z这三个秘密来验证彼此的消息。我要确认的也就这些内容。网上把上面四个步骤描述</p>
+</blockquote>
+<p>网上把上述的四个步骤描述为：</p>
+<ul>
+<li>客户端发出请求<ul>
+<li>支持的协议版本，比如TLS 1.0版</li>
+<li>一个随机数</li>
+<li>支持的加密方法，比如RSA公钥加密</li>
+<li>支持的压缩方法</li>
+</ul>
+</li>
+<li>服务器回应<ul>
+<li>协议的版本</li>
+<li>加密的算法</li>
+<li>生成随机数</li>
+<li>服务器证书</li>
+</ul>
+</li>
+<li>客户端回应<ul>
+<li>对服务器下发的证书进行验证</li>
+<li>再次产生一个随机数（第三个随机数）</li>
+<li>使用服务器证书中的公钥进行加密</li>
+<li>发送编码改变的消息</li>
+<li>发送整个前面所有消息的hash值</li>
+<li>根据三个随机数生成对话密钥</li>
+</ul>
+</li>
+<li>服务器最终回应<ul>
+<li>使用私钥解密接收到第三个随机数</li>
+<li>验证数据完整性</li>
+<li>使用跟客户端同样的方式生成对话密钥</li>
+<li>告知客户端已经切换到协商过的加密套件状态</li>
+<li>服务端发送消息验证加解密是否成功</li>
+</ul>
+</li>
+</ul>
+<p>如果服务器需要对客户端的身份进行认证，那么在第一次服务器回应中可以向客户端索取证书。客户端提供证书后，服务器通过验证客户端证书，从而验证客户端的身份。</p>
+]]></content>
+    </entry>
+    
+    <entry>
       <title><![CDATA[自下而上的开发实践]]></title>
       <url>https://zhanghtk.github.io/2016/10/22/%E8%87%AA%E4%B8%8B%E8%80%8C%E4%B8%8A%E7%9A%84%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/</url>
       <content type="html"><![CDATA[<h2 id="两种开发思路"><a href="#两种开发思路" class="headerlink" title="两种开发思路"></a>两种开发思路</h2><p><strong>自上而下</strong>：设计先行，根据设计开发</p>
 <p><strong>自下而上</strong>：开发先行，给予开发重构</p>
-<h3 id="关注点分离"><a href="#关注点分离" class="headerlink" title="关注点分离"></a>关注点分离</h3><p>类似于文章段落的划分，代码拆分的简单过程可以概括为：</p>
+<h2 id="关注点分离"><a href="#关注点分离" class="headerlink" title="关注点分离"></a>关注点分离</h2><p>类似于文章段落的划分，代码拆分的简单过程可以概括为：</p>
 <ul>
 <li>分行<ul>
 <li>方法真实逻辑与业务支撑逻辑的划分</li>
@@ -93,7 +186,8 @@
     <entry>
       <title><![CDATA[从依赖实现到依赖行为]]></title>
       <url>https://zhanghtk.github.io/2016/10/22/%E4%BB%8E%E4%BE%9D%E8%B5%96%E5%AE%9E%E7%8E%B0%E5%88%B0%E4%BE%9D%E8%B5%96%E8%A1%8C%E4%B8%BA/</url>
-      <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>一个报表程序需要初始化报表参数。具体的参数分为三种类型，都实现了<code>Parameter</code>类型，具体的初始化过程由子类实现：</p>
+      <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>一个报表程序需要初始化报表参数。具体的参数分为三种类型，都实现了<code>Parameter</code>类型，具体的初始化过程由子类实现。</p>
+<p>对报表参数初始化的过程，从对具体实现过程的依赖，依次经历对接口、对数据结构，最终对行为依赖，不断抽象依赖，实现更大程度的复用。</p>
 <h2 id="对实现的依赖"><a href="#对实现的依赖" class="headerlink" title="对实现的依赖"></a>对实现的依赖</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ParameterCollector</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, </span></span></div><div class="line">                                ParameterGraph parameterGraph) &#123;</div><div class="line">        <span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">            <span class="keyword">if</span> (para <span class="keyword">instanceof</span> SimpleParameter) &#123;</div><div class="line">                SimpleParameter simplePara = (SimpleParameter) para;</div><div class="line">                String[] values = request.getParameterValues(para.getName());</div><div class="line">                simplePara.setValue(values);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">if</span> (para <span class="keyword">instanceof</span> ItemParameter) &#123;</div><div class="line">                    ItemParameter itemPara = (ItemParameter) para;</div><div class="line">                    <span class="keyword">for</span> (Item item : itemPara.getItems()) &#123;</div><div class="line">                        String[] values = request.getParameterValues(item.getName());</div><div class="line">                        item.setValues(values);</div><div class="line">                    &#125;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    TableParameter tablePara = (TableParameter) para;</div><div class="line">                    String[] rows =</div><div class="line">                            request.getParameterValues(tablePara.getRowName());</div><div class="line">                    String[] columns =</div><div class="line">                            request.getParameterValues(tablePara.getColumnName());</div><div class="line">                    String[] dataCells =</div><div class="line">                            request.getParameterValues(tablePara.getDataCellName());</div><div class="line"></div><div class="line">                    <span class="keyword">int</span> columnSize = columns.length;</div><div class="line">                    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; rows.length; i++) &#123;</div><div class="line">                        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; columns.length; j++) &#123;</div><div class="line">                            TableParameterElement element = <span class="keyword">new</span> TableParameterElement();</div><div class="line">                            element.setRow(rows[i]);</div><div class="line">                            element.setColumn(columns[j]);</div><div class="line">                            element.setDataCell(dataCells[columnSize * i + j]);</div><div class="line">                            tablePara.addElement(element);</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>坏代码的味道：</p>
 <ol>
@@ -107,7 +201,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ParameterCollector</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, </span></span></div><div class="line">                                ParameterGraph parameterGraph) &#123;</div><div class="line">        Map parmaeters = getParameterMap();           </div><div class="line">        <span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">            para.fillParamter(parmaeters);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>进一步重构后的代码虽然避免了对ServletHttpRequest的依赖，但是无法避免的对Map进行了依赖。</p>
 <p>对类似Map这样具体的数据结构依赖，让人无法清晰知道方法参数含义并不是好的编码风格。</p>
-<h3 id="对行为的依赖"><a href="#对行为的依赖" class="headerlink" title="对行为的依赖"></a>对行为的依赖</h3><p>在回头看最初的代码，与Servlet API强耦合的是这样一句<code>request.getParameterValues(para.getName())</code></p>
+<h2 id="对行为的依赖"><a href="#对行为的依赖" class="headerlink" title="对行为的依赖"></a>对行为的依赖</h2><p>在回头看最初的代码，与Servlet API强耦合的是这样一句<code>request.getParameterValues(para.getName())</code></p>
 <p>依赖的到底是什么？站在函数式编程的角度，依赖的其实是一种行为：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">string -&gt;  request.getParameterValues(string)</div></pre></td></tr></table></figure>
 <p>在Java语法中为了传递一个方法，必须让方法附属在一个接口上，像这样：</p>
@@ -143,7 +237,9 @@
     <entry>
       <title><![CDATA[迪米特法则——合理的封装]]></title>
       <url>https://zhanghtk.github.io/2016/10/22/%E8%BF%AA%E7%B1%B3%E7%89%B9%E6%B3%95%E5%88%99%E2%80%94%E2%80%94%E5%90%88%E7%90%86%E7%9A%84%E5%B0%81%E8%A3%85/</url>
-      <content type="html"><![CDATA[<h2 id="看似没有问题的问题"><a href="#看似没有问题的问题" class="headerlink" title="看似没有问题的问题"></a>看似没有问题的问题</h2><p>先看一个简单代码</p>
+      <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>以服务员，客户，钱包为载体，模拟一个付款过程，阐述不恰当的封装行为。</p>
+<p>说明合理封装的一般过程以及不合理封装所表现的一般形式，介绍迪米特法则相关的基本内容，遵循迪米特法则对问题代码进行重构。</p>
+<h2 id="看似没有问题的问题"><a href="#看似没有问题的问题" class="headerlink" title="看似没有问题的问题"></a>看似没有问题的问题</h2><p>先看一个简单代码，分别描述钱包、客户、服务员：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Wallet</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">double</span> value;</div><div class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getTotalMoney</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> value;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTotalMoney</span><span class="params">(<span class="keyword">double</span> newValue)</span> </span>&#123;</div><div class="line">        value = newValue;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addMoney</span><span class="params">(<span class="keyword">double</span> deposit)</span> </span>&#123;</div><div class="line">        value += deposit;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subtractMoney</span><span class="params">(<span class="keyword">double</span> debit)</span> </span>&#123;</div><div class="line">        value -= debit;</div><div class="line">    &#125;</div><div class="line">	<span class="comment">// 省略其它字段，方法</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> Wallet myWallet;</div><div class="line">	<span class="comment">// 省略其它字段，方法</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Paperboy</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> Customer myCustomer;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">(<span class="keyword">double</span> payment)</span> </span>&#123;</div><div class="line">    Wallet theWallet = myCustomer.getWallet();</div><div class="line">    <span class="keyword">if</span> (theWallet.getTotalMoney() &gt; payment) &#123;</div><div class="line">        theWallet.subtractMoney(payment);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">//money not enough</span></div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>一眼看过去，没毛病。几个基本的简单类在Paperboy的pay方法中实现了简单的业务逻辑，但翻译成“人类语言”就有点问题了：</p>
 <p>业务的第一步造作：通过客户获取其钱包。</p>
@@ -178,8 +274,12 @@
     <entry>
       <title><![CDATA[使用Builder模式改进多参数方法]]></title>
       <url>https://zhanghtk.github.io/2016/10/16/%E4%BD%BF%E7%94%A8Builder%E6%A8%A1%E5%BC%8F%E6%94%B9%E8%BF%9B%E5%A4%9A%E5%8F%82%E6%95%B0%E6%96%B9%E6%B3%95/</url>
-      <content type="html"><![CDATA[<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>记一次使用Builder模式简化多参数接口方法调用的过程。</p>
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>系统中统一的邮件发送服务接口大概长着个样子：</p>
+      <content type="html"><![CDATA[<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>记一次工作当中对多参数方法重构。</p>
+<ol>
+<li>使用对象封装对多参数，简化方法调用</li>
+<li>使用Builder（创建者）模式简化多属性对象的创建</li>
+</ol>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>业务系统中统一的邮件发送服务接口在改造前大概长着个样子：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">    * 不帶附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良代码）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line"></div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 带附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    * <span class="doctag">@param</span> docName                       文档名称</div><div class="line">    * <span class="doctag">@param</span> fileName                      文件名称(单个文件)</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons, String docName, String fileName)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 带附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良代码）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    * <span class="doctag">@param</span> docName                       文档名称</div><div class="line">    * <span class="doctag">@param</span> fileNames                     文件名称(多个文件,文件名称列表)</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons, String docName, List&lt;String&gt; fileNames)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
 <p>接口有个重要的内容注释中并没有说明：参数中“模板”和“收件人”是必填的，而其他参数是非必填的。</p>
 <p>接口的可配置程度还是不错的，但是调用的过程就比较痛苦了。</p>

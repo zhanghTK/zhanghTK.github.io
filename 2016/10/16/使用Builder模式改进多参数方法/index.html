@@ -84,22 +84,34 @@
 
 
 
-<meta name="description" content="概述记一次使用Builder模式简化多参数接口方法调用的过程。
-问题系统中统一的邮件发送服务接口大概长着个样子：
-12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/**    * 不帶附件的邮件发送    * 未使用建造者模式的原始方法（不良代码）    * @para">
+<meta name="description" content="概述记一次工作当中对多参数方法重构。
+
+使用对象封装对多参数，简化方法调用
+使用Builder（创建者）模式简化多属性对象的创建
+
+问题业务系统中统一的邮件发送服务接口在改造前大概长着个样子：
+12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/**    * 不帶附件的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="使用Builder模式改进多参数方法">
 <meta property="og:url" content="https://zhanghtk.github.io/2016/10/16/使用Builder模式改进多参数方法/index.html">
 <meta property="og:site_name" content="zhanghTk">
-<meta property="og:description" content="概述记一次使用Builder模式简化多参数接口方法调用的过程。
-问题系统中统一的邮件发送服务接口大概长着个样子：
-12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/**    * 不帶附件的邮件发送    * 未使用建造者模式的原始方法（不良代码）    * @para">
-<meta property="og:updated_time" content="2016-10-22T11:27:44.000Z">
+<meta property="og:description" content="概述记一次工作当中对多参数方法重构。
+
+使用对象封装对多参数，简化方法调用
+使用Builder（创建者）模式简化多属性对象的创建
+
+问题业务系统中统一的邮件发送服务接口在改造前大概长着个样子：
+12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/**    * 不帶附件的">
+<meta property="og:updated_time" content="2016-10-24T15:51:20.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="使用Builder模式改进多参数方法">
-<meta name="twitter:description" content="概述记一次使用Builder模式简化多参数接口方法调用的过程。
-问题系统中统一的邮件发送服务接口大概长着个样子：
-12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/**    * 不帶附件的邮件发送    * 未使用建造者模式的原始方法（不良代码）    * @para">
+<meta name="twitter:description" content="概述记一次工作当中对多参数方法重构。
+
+使用对象封装对多参数，简化方法调用
+使用Builder（创建者）模式简化多属性对象的创建
+
+问题业务系统中统一的邮件发送服务接口在改造前大概长着个样子：
+12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/**    * 不帶附件的">
 
 
 
@@ -351,8 +363,12 @@
       
 
       
-        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>记一次使用Builder模式简化多参数接口方法调用的过程。</p>
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>系统中统一的邮件发送服务接口大概长着个样子：</p>
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>记一次工作当中对多参数方法重构。</p>
+<ol>
+<li>使用对象封装对多参数，简化方法调用</li>
+<li>使用Builder（创建者）模式简化多属性对象的创建</li>
+</ol>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>业务系统中统一的邮件发送服务接口在改造前大概长着个样子：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">    * 不帶附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良代码）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line"></div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 带附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    * <span class="doctag">@param</span> docName                       文档名称</div><div class="line">    * <span class="doctag">@param</span> fileName                      文件名称(单个文件)</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons, String docName, String fileName)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 带附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良代码）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    * <span class="doctag">@param</span> docName                       文档名称</div><div class="line">    * <span class="doctag">@param</span> fileNames                     文件名称(多个文件,文件名称列表)</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons, String docName, List&lt;String&gt; fileNames)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
 <p>接口有个重要的内容注释中并没有说明：参数中“模板”和“收件人”是必填的，而其他参数是非必填的。</p>
 <p>接口的可配置程度还是不错的，但是调用的过程就比较痛苦了。</p>
@@ -503,7 +519,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-count">10</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -511,7 +527,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
