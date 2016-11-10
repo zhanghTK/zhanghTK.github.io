@@ -68,7 +68,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Java,设计模式," />
+  <meta name="keywords" content="Java," />
 
 
 
@@ -84,25 +84,22 @@
 
 
 
-<meta name="description" content="背景以服务员，客户，钱包为载体，模拟一个付款过程，阐述不恰当的封装行为。
-说明合理封装的一般过程以及不合理封装所表现的一般形式，介绍迪米特法则相关的基本内容，遵循迪米特法则对问题代码进行重构。
-看似没有问题的问题先看一个简单代码，分别描述钱包、客户、服务员：
-123456789101112131415161718192021222324252627282930313233public class">
+<meta name="description" content="记录临摹一个IoC容器的过程，使用对象容器进行控制反转，将对象间依赖关系的管理交给容器。
+代码在这里，API参照了Spring IoC部分，实现的具体过程参照了tiny-spring和ioc-sample。先看看如何使用：
+像Spring一样用1234567&amp;lt;beans&amp;gt;    &amp;lt;bean name=&quot;helloWorldOutputService&quot;          class">
 <meta property="og:type" content="article">
-<meta property="og:title" content="迪米特法则——合理的封装">
-<meta property="og:url" content="https://zhanghtk.github.io/2016/10/22/迪米特法则——合理的封装/index.html">
+<meta property="og:title" content="IoC容器的简单实现">
+<meta property="og:url" content="https://zhanghtk.github.io/2016/11/10/IoC容器的简单实现/index.html">
 <meta property="og:site_name" content="zhanghTk">
-<meta property="og:description" content="背景以服务员，客户，钱包为载体，模拟一个付款过程，阐述不恰当的封装行为。
-说明合理封装的一般过程以及不合理封装所表现的一般形式，介绍迪米特法则相关的基本内容，遵循迪米特法则对问题代码进行重构。
-看似没有问题的问题先看一个简单代码，分别描述钱包、客户、服务员：
-123456789101112131415161718192021222324252627282930313233public class">
-<meta property="og:updated_time" content="2016-10-24T15:45:31.000Z">
+<meta property="og:description" content="记录临摹一个IoC容器的过程，使用对象容器进行控制反转，将对象间依赖关系的管理交给容器。
+代码在这里，API参照了Spring IoC部分，实现的具体过程参照了tiny-spring和ioc-sample。先看看如何使用：
+像Spring一样用1234567&amp;lt;beans&amp;gt;    &amp;lt;bean name=&quot;helloWorldOutputService&quot;          class">
+<meta property="og:updated_time" content="2016-11-10T15:49:40.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="迪米特法则——合理的封装">
-<meta name="twitter:description" content="背景以服务员，客户，钱包为载体，模拟一个付款过程，阐述不恰当的封装行为。
-说明合理封装的一般过程以及不合理封装所表现的一般形式，介绍迪米特法则相关的基本内容，遵循迪米特法则对问题代码进行重构。
-看似没有问题的问题先看一个简单代码，分别描述钱包、客户、服务员：
-123456789101112131415161718192021222324252627282930313233public class">
+<meta name="twitter:title" content="IoC容器的简单实现">
+<meta name="twitter:description" content="记录临摹一个IoC容器的过程，使用对象容器进行控制反转，将对象间依赖关系的管理交给容器。
+代码在这里，API参照了Spring IoC部分，实现的具体过程参照了tiny-spring和ioc-sample。先看看如何使用：
+像Spring一样用1234567&amp;lt;beans&amp;gt;    &amp;lt;bean name=&quot;helloWorldOutputService&quot;          class">
 
 
 
@@ -123,9 +120,9 @@
 
 
 
-  <link rel="canonical" href="https://zhanghtk.github.io/2016/10/22/迪米特法则——合理的封装/"/>
+  <link rel="canonical" href="https://zhanghtk.github.io/2016/11/10/IoC容器的简单实现/"/>
 
-  <title> 迪米特法则——合理的封装 | zhanghTk </title>
+  <title> IoC容器的简单实现 | zhanghTk </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -288,7 +285,7 @@
             
             
               
-                迪米特法则——合理的封装
+                IoC容器的简单实现
               
             
           </h1>
@@ -300,8 +297,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-10-22T18:55:36+08:00" content="2016-10-22">
-              2016-10-22
+            <time itemprop="dateCreated" datetime="2016-11-10T23:44:15+08:00" content="2016-11-10">
+              2016-11-10
             </time>
           </span>
 
@@ -314,8 +311,8 @@
               <span class="post-meta-item-text">分类于</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/设计模式/" itemprop="url" rel="index">
-                    <span itemprop="name">设计模式</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -330,8 +327,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2016/10/22/迪米特法则——合理的封装/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/22/迪米特法则——合理的封装/" itemprop="commentsCount"></span>
+                <a href="/2016/11/10/IoC容器的简单实现/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/11/10/IoC容器的简单实现/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -354,37 +351,137 @@
       
 
       
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>以服务员，客户，钱包为载体，模拟一个付款过程，阐述不恰当的封装行为。</p>
-<p>说明合理封装的一般过程以及不合理封装所表现的一般形式，介绍迪米特法则相关的基本内容，遵循迪米特法则对问题代码进行重构。</p>
-<h2 id="看似没有问题的问题"><a href="#看似没有问题的问题" class="headerlink" title="看似没有问题的问题"></a>看似没有问题的问题</h2><p>先看一个简单代码，分别描述钱包、客户、服务员：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Wallet</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">double</span> value;</div><div class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getTotalMoney</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> value;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTotalMoney</span><span class="params">(<span class="keyword">double</span> newValue)</span> </span>&#123;</div><div class="line">        value = newValue;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addMoney</span><span class="params">(<span class="keyword">double</span> deposit)</span> </span>&#123;</div><div class="line">        value += deposit;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subtractMoney</span><span class="params">(<span class="keyword">double</span> debit)</span> </span>&#123;</div><div class="line">        value -= debit;</div><div class="line">    &#125;</div><div class="line">	<span class="comment">// 省略其它字段，方法</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> Wallet myWallet;</div><div class="line">	<span class="comment">// 省略其它字段，方法</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Paperboy</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> Customer myCustomer;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">(<span class="keyword">double</span> payment)</span> </span>&#123;</div><div class="line">    Wallet theWallet = myCustomer.getWallet();</div><div class="line">    <span class="keyword">if</span> (theWallet.getTotalMoney() &gt; payment) &#123;</div><div class="line">        theWallet.subtractMoney(payment);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">//money not enough</span></div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>一眼看过去，没毛病。几个基本的简单类在Paperboy的pay方法中实现了简单的业务逻辑，但翻译成“人类语言”就有点问题了：</p>
-<p>业务的第一步造作：通过客户获取其钱包。</p>
-<p>等等这样真的好吗?现实生活中仿佛讲不通啊，程序设计中其实违反了迪米特法则。</p>
-<p>听到迪米特法则那一瞬间，我想到的是各种设计模式概念，尴尬的是就是想不起迪米特到底是个啥!</p>
-<h2 id="迪米特法则"><a href="#迪米特法则" class="headerlink" title="迪米特法则"></a>迪米特法则</h2><p>迪米特法则（最小知识法则，强调专注性）：</p>
-<p>任何一个对象或者方法，它应该只能调用下列对象：</p>
+        <p>记录临摹一个IoC容器的过程，使用对象容器进行控制反转，将对象间依赖关系的管理交给容器。</p>
+<p>代码在<a href="https://github.com/zhanghTK/HelloIoC" target="_blank" rel="external">这里</a>，API参照了Spring IoC部分，实现的具体过程参照了<a href="https://github.com/code4craft/tiny-spring" target="_blank" rel="external">tiny-spring</a>和<a href="https://github.com/kevinlynx/ioc-sample" target="_blank" rel="external">ioc-sample</a>。先看看如何使用：</p>
+<h1 id="像Spring一样用"><a href="#像Spring一样用" class="headerlink" title="像Spring一样用"></a>像Spring一样用</h1><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">beans</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">name</span>=<span class="string">"helloWorldOutputService"</span></span></div><div class="line">          <span class="attr">class</span>=<span class="string">"tk.zhangh.ioc.beans.HelloWorldOutputServiceImpl"</span>&gt;</div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">value</span>=<span class="string">"helloWorld"</span>/&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"outputService"</span> <span class="attr">ref</span>=<span class="string">"outputService"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register_get_bean_by_ClassPathXmlApplicationContextTest</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    ApplicationContext applicationContext = <span class="keyword">new</span></div><div class="line">      ClassPathXmlApplicationContext(<span class="string">"ioc.xml"</span>);</div><div class="line">    HelloWorldService helloWorldService = (HelloWorldService)</div><div class="line">      applicationContext.getBean(<span class="string">"helloWorldOutputService"</span>);</div><div class="line">    helloWorldService.sayHello();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<p>整个开发过程是这样的：</p>
+<h1 id="自下而上"><a href="#自下而上" class="headerlink" title="自下而上"></a>自下而上</h1><p>大体的开发步骤以及思路参照了<a href="https://github.com/code4craft/tiny-spring" target="_blank" rel="external">tiny-spring</a>，实现步骤可以简述为：</p>
+<h2 id="1-全手动式的Bean容器"><a href="#1-全手动式的Bean容器" class="headerlink" title="1.全手动式的Bean容器"></a>1.全手动式的Bean容器</h2><p>做容器的最重要的就是存取，针对bean容器就是bean信息的保存（注册）和bean实例的获取。</p>
 <ul>
-<li>该对象本身和对象的属性</li>
-<li>作为参数传进方法的对象</li>
-<li>在方法内创建的对象</li>
+<li><p>bean信息注册</p>
+<p>bean的基本信息包括：bean的名称、bean实例、bean的Class信息，bean的属性信息，把这些基本信息封装成了<code>BeanDefinition</code>。</p>
+<p>以<code>key(beanName)=&gt;value(BeanDefinition)</code>的键值对就可以完成注册的功能</p>
+</li>
+<li><p>bean实例获取</p>
+<p>从bean信息到bean实例中间还有一条鸿沟：怎么实例化bean。</p>
+<p>为了方便实现，在初始化<code>BeanDefinition</code>实例的时候也对bean进行了初始化。</p>
+</li>
 </ul>
-<p>这下好像清晰多了，其实再通俗一点上面的代码就是违反了<strong>封装</strong>的原则。</p>
-<p><strong>合理的封装分为两步</strong>：</p>
+<p>站在客户端角度，怎么注册bean并不重要，因此bean容器接口只声明获取bena的方法。</p>
+<p>在<code>BeanDefinition</code>中实例化bean带来一个严重问题：bean实例的创建不受容器控制的。</p>
+<h2 id="2-定制Bean的实例化过程"><a href="#2-定制Bean的实例化过程" class="headerlink" title="2. 定制Bean的实例化过程"></a>2. 定制Bean的实例化过程</h2><p>针对上面的问题，<code>AbstractBeanFactory</code>抽象出实例化bean方法，并在<code>AutowireCapableBeanFactory</code>提供基板实现。在<code>BeanDefinition</code>中并不需要再实例化了（代码实现到这一步时没有修改,bug）。</p>
+<p>新的<code>AutowireCapableBeanFactory</code>已经可以做到：</p>
 <ol>
-<li><strong>分辨职责</strong><ol>
-<li>依据：数据与行为应该封装在一起（信息专家模式）</li>
-<li>过程：职责操作哪些数据，数据在哪个（些）类，进而确定职责在哪个类</li>
+<li>注册保存<code>BeanDefinition</code></li>
+<li>在注册时实例化bean</li>
+<li>提供bean实例的获取</li>
+</ol>
+<p>现在，bean的实例化是受控于容器的。</p>
+<p>但是初始化的时机不够灵活，整个生命周期只有在注册时刻有唯一一次初始化。</p>
+<p>这样会影响bean实例属性的初始化，先看基本属性：</p>
+<h2 id="3-支持基本属性依赖"><a href="#3-支持基本属性依赖" class="headerlink" title="3. 支持基本属性依赖"></a>3. 支持基本属性依赖</h2><p>对基本属性支持比较简单，整个过程完全由容器控制：</p>
+<ol>
+<li>根据<code>BeanDefinition</code>获取bean相关的属性信息</li>
+<li>创建对应的属性对象</li>
+<li>使用反射注入属性</li>
+</ol>
+<p>在bean实例构造完成后就对属性注入，但是现有的方案并不能支持bean属性的注入：</p>
+<ol>
+<li>属性bean从哪里来</li>
+<li>bean属性本身依赖其他bean呢？如果存在循环依赖呢？</li>
+</ol>
+<h2 id="4-使用资源文件配置"><a href="#4-使用资源文件配置" class="headerlink" title="4. 使用资源文件配置"></a>4. 使用资源文件配置</h2><p>解决bean属性问题前，先完成支持资源文件的管理。</p>
+<ol>
+<li>创建资源文件表示类，以及资源加载类</li>
+<li>创建信息读取接口，抽象类，以及具体的XML配置读取策略类</li>
+</ol>
+<p>添加对资源文件配置支持后，整个bean容器的过程为：</p>
+<ol>
+<li>读取加载配置文件信息</li>
+<li>创建beanfactory</li>
+<li>注册保存bean信息<ol>
+<li>创建bean实例</li>
+<li>设置bean实例的属性</li>
 </ol>
 </li>
-<li>判别哪些是实现细节，哪些是可以<strong>公开的接口</strong>，以保证对<strong>细节的合理隐藏</strong></li>
 </ol>
-<p><strong>不良封装造成的结果</strong>：Feature Envy（依恋情结）</p>
-<p><strong>不良封装可能的代码样式</strong>：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">obj1.obj1_fun().obj2_fun();</div></pre></td></tr></table></figure>
-<p>类似链式的方法调用，但方法返回的是不同对象，这时候的代码很有可能是不良封装，违反迪米特法则了。</p>
-<h2 id="问题的解决"><a href="#问题的解决" class="headerlink" title="问题的解决"></a>问题的解决</h2><p>上面代码良好的封装示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> Wallet myWallet;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">(<span class="keyword">float</span> payment)</span> </span>&#123;</div><div class="line">        Wallet theWallet = myWallet;</div><div class="line">        <span class="keyword">if</span> (theWallet.getTotalMoney() &gt; payment) &#123;</div><div class="line">            theWallet.subtractMoney(payment);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">//money not enough</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Paperboy</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> Customer myCustomer;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">(<span class="keyword">float</span> payment)</span> </span>&#123;</div><div class="line">        myCustomer.pay(payment);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>支持资源文件配置后原来需要硬编码的bean信息可以以配置文件的形式展示。</p>
+<p>但是，bean的实例构造时机、属性注入的时机没有改变，所以依赖存在对bean属性的支持问题。</p>
+<h2 id="5-支持bean属性依赖"><a href="#5-支持bean属性依赖" class="headerlink" title="5. 支持bean属性依赖"></a>5. 支持bean属性依赖</h2><p>前面碰到的两个问题：</p>
+<ol>
+<li>属性bean从哪里来</li>
+<li>bean属性本身依赖其他bean呢？如果存在循环依赖呢？</li>
+</ol>
+<p>属性bean也是bean，所以应该从工厂获取，循环依赖问题在Spring里是通过延迟实例化解决。</p>
+<p>所以问题变成了怎么调整bean实例构造时机，让这个过程延迟，发生在所有bean注册完成后。</p>
+<p>调整：在注册时只保存<code>BeanDefinition</code>，不对bena进行实例化。</p>
+<p>所有bean的实例化延迟到第一次获取bean实例时再进行：</p>
+<ol>
+<li>先创建bean实例</li>
+<li>遍历所有属性，基本属性直接注入，如果是其他bean引用重复以上过程。</li>
+</ol>
+<h2 id="6-进一步简化"><a href="#6-进一步简化" class="headerlink" title="6. 进一步简化"></a>6. 进一步简化</h2><p>回头看现在的客户端使用：</p>
+<ol>
+<li>加载资源</li>
+<li>解析资源</li>
+<li>创建beanFactory</li>
+<li>注册bean</li>
+<li>获取bean</li>
+</ol>
+<p>前四步实际是beanFactory的生命周期内容，客户端不关心这些细节，只要提供配置文件就可以。</p>
+<p>所以使用<code>ApplicationContext</code>接口对外暴露获取bean的方法。</p>
+<p>bean加载，解析，存取功能分别委托给：<code>BeanDefinitionReader</code>， <code>AbstractBeanFactory</code>。</p>
+<p>整个Bean容器生命周期细节都可以封装起来，对外提供简单调用。</p>
+<p>至此，一个简单的IoC容器就完成了</p>
+<hr>
+<h1 id="自上而下"><a href="#自上而下" class="headerlink" title="自上而下"></a>自上而下</h1><p>俯视这个IoC容器，基本的生命周期活动包括了：</p>
+<ol>
+<li>资源加载</li>
+<li>资源解析</li>
+<li>bean factory创建</li>
+<li>bean注册</li>
+<li>创建bean实例</li>
+<li>bean获取</li>
+</ol>
+<p>所有的步骤都是以接口或抽象方法的形式提供或者是多态留白，具体的实现都交由子类实现。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">步骤</th>
+<th style="text-align:center">抽象方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">资源加载</td>
+<td style="text-align:center">Resources.getInputStream()</td>
+</tr>
+<tr>
+<td style="text-align:center">资源解析</td>
+<td style="text-align:center">BeanDefinitionReader.loadBeanDefinitions(String)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean factory创建</td>
+<td style="text-align:center">this.beanFactory = beanFactory</td>
+</tr>
+<tr>
+<td style="text-align:center">bean注册</td>
+<td style="text-align:center">AbstractBeanFactory.registerBeanDefinition(String, BeanDefinition)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean实例化</td>
+<td style="text-align:center">AbstractBeanFactory.doCreateBean(BeanDefinition)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean获取</td>
+<td style="text-align:center">BeanFactory.getBean(String)</td>
+</tr>
+</tbody>
+</table>
+<p>各个模块的耦合以接口留白的形式而非具体实现类为扩展带来了极大的灵活。</p>
+<p>在实现的时候并没有考虑这些，但实现完成后发现接口带来的灵活极大的方便了修改和扩展。</p>
 
       
     </div>
@@ -409,8 +506,6 @@
           
             <a href="/tags/Java/" rel="tag">#Java</a>
           
-            <a href="/tags/设计模式/" rel="tag">#设计模式</a>
-          
         </div>
       
 
@@ -418,17 +513,13 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/10/16/使用Builder模式改进多参数方法/" rel="next" title="使用Builder模式改进多参数方法">
-                <i class="fa fa-chevron-left"></i> 使用Builder模式改进多参数方法
+              <a href="/2016/10/24/HTTPS小记/" rel="next" title="HTTPS小记">
+                <i class="fa fa-chevron-left"></i> HTTPS小记
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/10/22/从依赖实现到依赖行为/" rel="prev" title="从依赖实现到依赖行为">
-                从依赖实现到依赖行为 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -457,8 +548,8 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/10/22/迪米特法则——合理的封装/"
-           data-title="迪米特法则——合理的封装" data-url="https://zhanghtk.github.io/2016/10/22/迪米特法则——合理的封装/">
+      <div class="ds-thread" data-thread-key="2016/11/10/IoC容器的简单实现/"
+           data-title="IoC容器的简单实现" data-url="https://zhanghtk.github.io/2016/11/10/IoC容器的简单实现/">
       </div>
     
   </div>
@@ -549,7 +640,7 @@
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#看似没有问题的问题"><span class="nav-number">2.</span> <span class="nav-text">看似没有问题的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迪米特法则"><span class="nav-number">3.</span> <span class="nav-text">迪米特法则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题的解决"><span class="nav-number">4.</span> <span class="nav-text">问题的解决</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#像Spring一样用"><span class="nav-number">1.</span> <span class="nav-text">像Spring一样用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#自下而上"><span class="nav-number">2.</span> <span class="nav-text">自下而上</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-全手动式的Bean容器"><span class="nav-number">2.1.</span> <span class="nav-text">1.全手动式的Bean容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-定制Bean的实例化过程"><span class="nav-number">2.2.</span> <span class="nav-text">2. 定制Bean的实例化过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-支持基本属性依赖"><span class="nav-number">2.3.</span> <span class="nav-text">3. 支持基本属性依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-使用资源文件配置"><span class="nav-number">2.4.</span> <span class="nav-text">4. 使用资源文件配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-支持bean属性依赖"><span class="nav-number">2.5.</span> <span class="nav-text">5. 支持bean属性依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-进一步简化"><span class="nav-number">2.6.</span> <span class="nav-text">6. 进一步简化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#自上而下"><span class="nav-number">3.</span> <span class="nav-text">自上而下</span></a></li></ol></div>
             
           </div>
         </section>
