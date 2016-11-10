@@ -4,6 +4,143 @@
   
     
     <entry>
+      <title><![CDATA[IoC容器的简单实现]]></title>
+      <url>https://zhanghtk.github.io/2016/11/10/IoC%E5%AE%B9%E5%99%A8%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/</url>
+      <content type="html"><![CDATA[<p>记录临摹一个IoC容器的过程，使用对象容器进行控制反转，将对象间依赖关系的管理交给容器。</p>
+<p>代码在<a href="https://github.com/zhanghTK/HelloIoC" target="_blank" rel="external">这里</a>，API参照了Spring IoC部分，实现的具体过程参照了<a href="https://github.com/code4craft/tiny-spring" target="_blank" rel="external">tiny-spring</a>和<a href="https://github.com/kevinlynx/ioc-sample" target="_blank" rel="external">ioc-sample</a>。先看看如何使用：</p>
+<h1 id="像Spring一样用"><a href="#像Spring一样用" class="headerlink" title="像Spring一样用"></a>像Spring一样用</h1><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">beans</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">name</span>=<span class="string">"helloWorldOutputService"</span></span></div><div class="line">          <span class="attr">class</span>=<span class="string">"tk.zhangh.ioc.beans.HelloWorldOutputServiceImpl"</span>&gt;</div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">value</span>=<span class="string">"helloWorld"</span>/&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"outputService"</span> <span class="attr">ref</span>=<span class="string">"outputService"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register_get_bean_by_ClassPathXmlApplicationContextTest</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    ApplicationContext applicationContext = <span class="keyword">new</span></div><div class="line">      ClassPathXmlApplicationContext(<span class="string">"ioc.xml"</span>);</div><div class="line">    HelloWorldService helloWorldService = (HelloWorldService)</div><div class="line">      applicationContext.getBean(<span class="string">"helloWorldOutputService"</span>);</div><div class="line">    helloWorldService.sayHello();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<p>整个开发过程是这样的：</p>
+<h1 id="自下而上"><a href="#自下而上" class="headerlink" title="自下而上"></a>自下而上</h1><p>大体的开发步骤以及思路参照了<a href="https://github.com/code4craft/tiny-spring" target="_blank" rel="external">tiny-spring</a>，实现步骤可以简述为：</p>
+<h2 id="1-全手动式的Bean容器"><a href="#1-全手动式的Bean容器" class="headerlink" title="1.全手动式的Bean容器"></a>1.全手动式的Bean容器</h2><p>做容器的最重要的就是存取，针对bean容器就是bean信息的保存（注册）和bean实例的获取。</p>
+<ul>
+<li><p>bean信息注册</p>
+<p>bean的基本信息包括：bean的名称、bean实例、bean的Class信息，bean的属性信息，把这些基本信息封装成了<code>BeanDefinition</code>。</p>
+<p>以<code>key(beanName)=&gt;value(BeanDefinition)</code>的键值对就可以完成注册的功能</p>
+</li>
+<li><p>bean实例获取</p>
+<p>从bean信息到bean实例中间还有一条鸿沟：怎么实例化bean。</p>
+<p>为了方便实现，在初始化<code>BeanDefinition</code>实例的时候也对bean进行了初始化。</p>
+</li>
+</ul>
+<p>站在客户端角度，怎么注册bean并不重要，因此bean容器接口只声明获取bena的方法。</p>
+<p>在<code>BeanDefinition</code>中实例化bean带来一个严重问题：bean实例的创建不受容器控制的。</p>
+<h2 id="2-定制Bean的实例化过程"><a href="#2-定制Bean的实例化过程" class="headerlink" title="2. 定制Bean的实例化过程"></a>2. 定制Bean的实例化过程</h2><p>针对上面的问题，<code>AbstractBeanFactory</code>抽象出实例化bean方法，并在<code>AutowireCapableBeanFactory</code>提供基板实现。在<code>BeanDefinition</code>中并不需要再实例化了（代码实现到这一步时没有修改,bug）。</p>
+<p>新的<code>AutowireCapableBeanFactory</code>已经可以做到：</p>
+<ol>
+<li>注册保存<code>BeanDefinition</code></li>
+<li>在注册时实例化bean</li>
+<li>提供bean实例的获取</li>
+</ol>
+<p>现在，bean的实例化是受控于容器的。</p>
+<p>但是初始化的时机不够灵活，整个生命周期只有在注册时刻有唯一一次初始化。</p>
+<p>这样会影响bean实例属性的初始化，先看基本属性：</p>
+<h2 id="3-支持基本属性依赖"><a href="#3-支持基本属性依赖" class="headerlink" title="3. 支持基本属性依赖"></a>3. 支持基本属性依赖</h2><p>对基本属性支持比较简单，整个过程完全由容器控制：</p>
+<ol>
+<li>根据<code>BeanDefinition</code>获取bean相关的属性信息</li>
+<li>创建对应的属性对象</li>
+<li>使用反射注入属性</li>
+</ol>
+<p>在bean实例构造完成后就对属性注入，但是现有的方案并不能支持bean属性的注入：</p>
+<ol>
+<li>属性bean从哪里来</li>
+<li>bean属性本身依赖其他bean呢？如果存在循环依赖呢？</li>
+</ol>
+<h2 id="4-使用资源文件配置"><a href="#4-使用资源文件配置" class="headerlink" title="4. 使用资源文件配置"></a>4. 使用资源文件配置</h2><p>解决bean属性问题前，先完成支持资源文件的管理。</p>
+<ol>
+<li>创建资源文件表示类，以及资源加载类</li>
+<li>创建信息读取接口，抽象类，以及具体的XML配置读取策略类</li>
+</ol>
+<p>添加对资源文件配置支持后，整个bean容器的过程为：</p>
+<ol>
+<li>读取加载配置文件信息</li>
+<li>创建beanfactory</li>
+<li>注册保存bean信息<ol>
+<li>创建bean实例</li>
+<li>设置bean实例的属性</li>
+</ol>
+</li>
+</ol>
+<p>支持资源文件配置后原来需要硬编码的bean信息可以以配置文件的形式展示。</p>
+<p>但是，bean的实例构造时机、属性注入的时机没有改变，所以依赖存在对bean属性的支持问题。</p>
+<h2 id="5-支持bean属性依赖"><a href="#5-支持bean属性依赖" class="headerlink" title="5. 支持bean属性依赖"></a>5. 支持bean属性依赖</h2><p>前面碰到的两个问题：</p>
+<ol>
+<li>属性bean从哪里来</li>
+<li>bean属性本身依赖其他bean呢？如果存在循环依赖呢？</li>
+</ol>
+<p>属性bean也是bean，所以应该从工厂获取，循环依赖问题在Spring里是通过延迟实例化解决。</p>
+<p>所以问题变成了怎么调整bean实例构造时机，让这个过程延迟，发生在所有bean注册完成后。</p>
+<p>调整：在注册时只保存<code>BeanDefinition</code>，不对bena进行实例化。</p>
+<p>所有bean的实例化延迟到第一次获取bean实例时再进行：</p>
+<ol>
+<li>先创建bean实例</li>
+<li>遍历所有属性，基本属性直接注入，如果是其他bean引用重复以上过程。</li>
+</ol>
+<h2 id="6-进一步简化"><a href="#6-进一步简化" class="headerlink" title="6. 进一步简化"></a>6. 进一步简化</h2><p>回头看现在的客户端使用：</p>
+<ol>
+<li>加载资源</li>
+<li>解析资源</li>
+<li>创建beanFactory</li>
+<li>注册bean</li>
+<li>获取bean</li>
+</ol>
+<p>前四步实际是beanFactory的生命周期内容，客户端不关心这些细节，只要提供配置文件就可以。</p>
+<p>所以使用<code>ApplicationContext</code>接口对外暴露获取bean的方法。</p>
+<p>bean加载，解析，存取功能分别委托给：<code>BeanDefinitionReader</code>， <code>AbstractBeanFactory</code>。</p>
+<p>整个Bean容器生命周期细节都可以封装起来，对外提供简单调用。</p>
+<p>至此，一个简单的IoC容器就完成了</p>
+<hr>
+<h1 id="自上而下"><a href="#自上而下" class="headerlink" title="自上而下"></a>自上而下</h1><p>俯视这个IoC容器，基本的生命周期活动包括了：</p>
+<ol>
+<li>资源加载</li>
+<li>资源解析</li>
+<li>bean factory创建</li>
+<li>bean注册</li>
+<li>创建bean实例</li>
+<li>bean获取</li>
+</ol>
+<p>所有的步骤都是以接口或抽象方法的形式提供或者是多态留白，具体的实现都交由子类实现。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">步骤</th>
+<th style="text-align:center">抽象方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">资源加载</td>
+<td style="text-align:center">Resources.getInputStream()</td>
+</tr>
+<tr>
+<td style="text-align:center">资源解析</td>
+<td style="text-align:center">BeanDefinitionReader.loadBeanDefinitions(String)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean factory创建</td>
+<td style="text-align:center">this.beanFactory = beanFactory</td>
+</tr>
+<tr>
+<td style="text-align:center">bean注册</td>
+<td style="text-align:center">AbstractBeanFactory.registerBeanDefinition(String, BeanDefinition)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean实例化</td>
+<td style="text-align:center">AbstractBeanFactory.doCreateBean(BeanDefinition)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean获取</td>
+<td style="text-align:center">BeanFactory.getBean(String)</td>
+</tr>
+</tbody>
+</table>
+<p>各个模块的耦合以接口留白的形式而非具体实现类为扩展带来了极大的灵活。</p>
+<p>在实现的时候并没有考虑这些，但实现完成后发现接口带来的灵活极大的方便了修改和扩展。</p>
+]]></content>
+    </entry>
+    
+    <entry>
       <title><![CDATA[HTTPS小记]]></title>
       <url>https://zhanghtk.github.io/2016/10/24/HTTPS%E5%B0%8F%E8%AE%B0/</url>
       <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近好像跟HTTPS较上劲了，前几天的职级答辩问到了相关问题，最近维护的系统升级也碰到相关问题。</p>
