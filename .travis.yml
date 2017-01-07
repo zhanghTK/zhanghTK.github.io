@@ -13,7 +13,7 @@ install:
 script:
   - hexo clean
   - hexo g
-  - hexo d
+#  - hexo d
 
 after_script:
   - cd ./public
@@ -22,7 +22,7 @@ after_script:
   - git config user.email "510223064@qq.com"
   - git add .
   - git commit -m "Update docs"
-#  - git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:master
+  - git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:master
 # E: Build LifeCycle
 
 branches:
