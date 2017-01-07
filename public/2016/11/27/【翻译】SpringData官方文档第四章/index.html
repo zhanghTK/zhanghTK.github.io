@@ -1,0 +1,1163 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="翻译," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="说明：本翻译4.6和4.7段发布在并发编程网,其他段落为了熟悉上下文而翻译，没有精校。首次参与翻译任务，翻译的不好请指正。
+
+第四章 使用Spring Data RepositoriesSpring Data repository abstraction目的是为了显著的简化必要的样板式代码来为多种持久化数据存储实现数据层。
+
+重要
+本章解释Spring Data repositories核心的概念">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻译】SpringData官方文档第四章">
+<meta property="og:url" content="https://zhanghtk.github.io/2016/11/27/【翻译】SpringData官方文档第四章/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="说明：本翻译4.6和4.7段发布在并发编程网,其他段落为了熟悉上下文而翻译，没有精校。首次参与翻译任务，翻译的不好请指正。
+
+第四章 使用Spring Data RepositoriesSpring Data repository abstraction目的是为了显著的简化必要的样板式代码来为多种持久化数据存储实现数据层。
+
+重要
+本章解释Spring Data repositories核心的概念">
+<meta property="og:updated_time" content="2017-01-07T06:58:05.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【翻译】SpringData官方文档第四章">
+<meta name="twitter:description" content="说明：本翻译4.6和4.7段发布在并发编程网,其他段落为了熟悉上下文而翻译，没有精校。首次参与翻译任务，翻译的不好请指正。
+
+第四章 使用Spring Data RepositoriesSpring Data repository abstraction目的是为了显著的简化必要的样板式代码来为多种持久化数据存储实现数据层。
+
+重要
+本章解释Spring Data repositories核心的概念">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2016/11/27/【翻译】SpringData官方文档第四章/"/>
+
+  <title> 【翻译】SpringData官方文档第四章 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?0b7dee5a980e8d81300bd60b09b728fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【翻译】SpringData官方文档第四章
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-11-27T00:00:00+08:00" content="2016-11-27">
+              2016-11-27
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/翻译/" itemprop="url" rel="index">
+                    <span itemprop="name">翻译</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/11/27/【翻译】SpringData官方文档第四章/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/11/27/【翻译】SpringData官方文档第四章/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>说明：本翻译<a href="http://ifeve.com/repositories-custom-implementations/" target="_blank" rel="external">4.6</a>和<a href="http://ifeve.com/spring-data-4-7/" target="_blank" rel="external">4.7</a>段发布在<a href="http://ifeve.com/" target="_blank" rel="external">并发编程网</a>,其他段落为了熟悉上下文而翻译，没有精校。首次参与翻译任务，翻译的不好请指正。</p>
+<hr>
+<h1 id="第四章-使用Spring-Data-Repositories"><a href="#第四章-使用Spring-Data-Repositories" class="headerlink" title="第四章 使用Spring Data Repositories"></a>第四章 使用Spring Data Repositories</h1><p>Spring Data repository abstraction目的是为了显著的简化必要的样板式代码来为多种持久化数据存储实现数据层。</p>
+<blockquote>
+<p>重要</p>
+<p>本章解释Spring Data repositories核心的概念和接口。Spring Data repository documentation 与 你的模块。本章这些信息是从Spring Data Commons模块获取的。它使用了JPA模块的配置和代码示范,命名引用覆盖XML配置，它支持所有的Spring Data模块支持的repository API，Repository查询关键字覆盖被repository 接口一般的关键字查询方法。你的模块特性的细节信息，查询文档对应模块。</p>
+</blockquote>
+<h2 id="4-1-核心概念"><a href="#4-1-核心概念" class="headerlink" title="4.1 核心概念"></a>4.1 核心概念</h2><p>Spring Data repository抽象接口的核心是<code>Repository</code>（可能没有那么惊喜）。它需要管理实体类以及实体类的id作为参数。此接口主要用作是获取要使用的类型接口并帮助扩展这个接口。</p>
+<p><code>CrudRepository</code>为被管理的实体类提供复杂CRUD功能。</p>
+<h2 id="4-2-查询方法"><a href="#4-2-查询方法" class="headerlink" title="4.2 查询方法"></a>4.2 查询方法</h2><p>标准的CRUD功能repositories通常有查询底层数据库。</p>
+<p>在Spring Data中，分词声明这些查询变成了四个步骤的过程：</p>
+<ol>
+<li><p>声明一个接口继承<code>Repository</code>或者它的一个子类，并且指定要被处理的实体类和Id类型。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">PersonRepository</span> <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">Person</span>, <span class="title">Long</span>&gt; </span>&#123; … &#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>在接口中声明查询方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">PersonRepository</span> <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">Person</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  <span class="function">List&lt;Person&gt; <span class="title">findByLastname</span><span class="params">(String lastname)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>创建Spring生成代理实现上面接口，通过JavaConfig：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.springframework.data.jpa.repository.config.EnableJpaRepositories;</div><div class="line"><span class="meta">@EnableJpaRepositories</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Config</span> </span>&#123;&#125;</div></pre></td></tr></table></figure>
+<p>或者通过XML配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line"><span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line"><span class="attr">xmlns:jpa</span>=<span class="string">"http://www.springframework.org/schema/data/jpa"</span></div><div class="line"><span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans</span></div><div class="line">http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">http://www.springframework.org/schema/data/jpa</div><div class="line">http://www.springframework.org/schema/data/jpa/spring-jpa.xsd"&gt;</div><div class="line"><span class="tag">&lt;<span class="name">jpa:repositories</span> <span class="attr">base-package</span>=<span class="string">"com.acme.repositories"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>这个实例中使用了JPA命名空间。</p>
+<p>如果你为其他存储使用repository接口，你需要修改来适应你的存储模块命名空间的声明，大概就是替换jpa为期望的，例如mongodb。</p>
+<p>当然，注意JavaConfig并没有明确配置一个包默认使用注解的包。</p>
+<p>为了定制包被扫描可以使用数据存储注解<code>@Enable</code>的一个属性<code>basePackage</code>。</p>
+</li>
+</ol>
+<ol>
+<li><p>获得repository实例注入并使用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeClient</span> </span>&#123;</div><div class="line">  <span class="meta">@Autowired</span></div><div class="line">  <span class="keyword">private</span> PersonRepository repository;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span> </span>&#123;</div><div class="line">    List&lt;Person&gt; persons = repository.findByLastname(<span class="string">"Matthews"</span>);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>以下部分详细说明每个步骤。</p>
+<h2 id="4-3-定义repository接口"><a href="#4-3-定义repository接口" class="headerlink" title="4.3 定义repository接口"></a>4.3 定义repository接口</h2><p>第一步定义一个实体类依赖repository接口。</p>
+<p>这个接口必须继承<code>Repository</code>接口并且指定实体类型和Id类型。</p>
+<p>如果你希望实体类型拥有CRUD方法，将<code>Repository</code>接口替换成继承<code>CrudRepository</code>。</p>
+<h3 id="4-3-1-小巧repository定义"><a href="#4-3-1-小巧repository定义" class="headerlink" title="4.3.1 小巧repository定义"></a>4.3.1 小巧repository定义</h3><p>一般情况下，你的repository接口应该继承<code>Repository</code>，<code>CrudRepository</code>或者<code>PagingAndSortingRepository</code></p>
+<p>除此之外,如果你不想继承Spring Data接口,你也可以使用<code>@Repository</code>注解定义你的接口</p>
+<p>继承<code>CrudRepository</code>提供了一系列完整的方法来操纵你的实体.</p>
+<p>如果你希望选择方法,简单的从<code>CurdRepository</code>复制你希望获得的方法到你的<code>Repository</code></p>
+<blockquote>
+<p>注意</p>
+<p>注意这允许你定义你自己的抽闲建立在Spring Data Repositories功能.</p>
+</blockquote>
+<p>例5.有选择的展现<code>CRUD</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@NoRepositoryBean</span></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">MyBaseRepository</span>&lt;<span class="title">T</span>, <span class="title">ID</span> <span class="keyword">extends</span> <span class="title">Serializable</span>&gt; <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">T</span>, <span class="title">ID</span>&gt; </span>&#123;</div><div class="line">  <span class="function">T <span class="title">findOne</span><span class="params">(ID id)</span></span>;</div><div class="line">  <span class="function">T <span class="title">save</span><span class="params">(T entity)</span></span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> <span class="keyword">extends</span> <span class="title">MyBaseRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  <span class="function">User <span class="title">findByEmailAddress</span><span class="params">(EmailAddress emailAddress)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这是第一步你定义一个通用的基本接口,接口供你所有的实体repositories使用并提供<code>findOne()</code>和<code>save()</code>方法</p>
+<p>这些方法会被转发到你选择的Spring Data提供的基本repository实现,例如JPA<code>SimpleJpaRepository</code>,因为他们匹配<code>CrudRepository</code>的方法签名.</p>
+<p>因此<code>UserPepository</code>现在可以保存用户,查找唯一用户根据id,并且触发一个查询去查找<code>Users</code>根据他们的邮箱地址</p>
+<blockquote>
+<p>注意</p>
+<p>注意,中间的repository接口使用了注解<code>NoRepositoryBean</code>.</p>
+<p>对所有Spring Data在运行时不需要生成实例的repository接口,确保你为他们添加了注解.</p>
+</blockquote>
+<h3 id="4-3-2-在多个Spring-Data模块使用Repositories"><a href="#4-3-2-在多个Spring-Data模块使用Repositories" class="headerlink" title="4.3.2 在多个Spring Data模块使用Repositories"></a>4.3.2 在多个Spring Data模块使用Repositories</h3><p>在你的应用中使用唯一的Spring Data模块,所有repository接口定义范围限制在Spring Data模块.</p>
+<p>有时候应用需要使用不止一个Spring Data模块.</p>
+<p>这种情况下,需要repository定义在持久化技术之间有所区别.</p>
+<p>在class path发现多个repository工厂时,Spring Data严格检测repository配置模块.</p>
+<p>在repository或者实体类严格配置需要得细节以决定Spring Data模块绑定一个repository的定义:</p>
+<ol>
+<li>如果repository定义继承模块特殊的repository,那么对Spring Data模块这是一个有效的备选.</li>
+</ol>
+<ol>
+<li><p>如果实体类被模块特有的注解类型注解,那么对Spring Data模块这是一个有效的备选.</p>
+<p>Spring Data模块接收第三方注解(例如 JPA的<code>@Entity</code>)或者提供自己的注解例如<code>@Document</code>为Spring Data MongoDB/Spring Data Elasticsearch.</p>
+</li>
+</ol>
+<p>例6.使用模块特有的接口定义Repository</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">MyRepository</span> <span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123; &#125;</div><div class="line"><span class="meta">@NoRepositoryBean</span></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">MyBaseRepository</span>&lt;<span class="title">T</span>, <span class="title">ID</span> <span class="keyword">extends</span> <span class="title">Serializable</span>&gt; <span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">T</span>,<span class="title">ID</span></span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> <span class="keyword">extends</span> <span class="title">MyBaseRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>MyRepository</code>和<code>UserRepository</code>继承<code>JpaRepository</code>在他们类型层级.他们有效的表示了Spring Data JPA模块.</p>
+<p>例7.使用通用的接口定义<code>Repository</code>.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">AmbiguousRepository</span> <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@NoRepositoryBean</span></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">MyBaseRepository</span>&lt;<span class="title">T</span>, <span class="title">ID</span> <span class="keyword">extends</span> <span class="title">Serializable</span>&gt; <span class="keyword">extends</span></span></div><div class="line">  <span class="title">CrudRepository</span>&lt;<span class="title">T</span>,<span class="title">ID</span>&gt; &#123;</div><div class="line">  …</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">AmbiguousUserRepository</span> <span class="keyword">extends</span> <span class="title">MyBaseRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>AmbiguousRepository</code>和<code>AmbiguousUserRepository</code>在它们继承体系里只继承了<code>Repository</code>和<code>CrudRepository</code>.使用唯一的Spring Data模块是这是完成正确的,多个模块不能识别<code>Repository</code>到底绑定哪个Spring Data.</p>
+<p>例8.使用注解配合实体类定义<code>Repositor</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">PersonRepository</span> <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">Person</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Entity</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Document</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>PersonRepository</code>引用使用了JPA的注解<code>@Entity</code>进行注解的<code>Person</code>,所以这个repository明确的属于Spring Data JPA.<code>UserRepository</code>使用了Spring Data MongoDB的注解<code>@Document</code>进行注解.</p>
+<p>例9.使用混合注解配合实体类定义<code>Repositor</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">JpaPersonRepository</span> <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">Person</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">MongoDBPersonRepository</span> <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">Person</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Entity</span></div><div class="line"><span class="meta">@Document</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</div><div class="line">  …</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个示例展示实体类同时使用JPA和Spring Data MongoDB注解.</p>
+<p>这里定义了两个repository,<code>JpaPersonRepository</code>和<code>MongoDBPersonRepository</code>.</p>
+<p>一个被JPA使用,另一个被MongoDB使用.</p>
+<p>Spring Data不再能告诉repository区分,这将导致不清晰的行为</p>
+<p>“使用模块特有的接口定义Repository”和”使用注解配合实体类定义<code>Repositor</code>“都使用了严格的repository配置为一个特定的Spring Data模块识别可选的repository</p>
+<p>使用多种持久化技术特定的注解在同一个实体类上可能在锅中持久化技术上重用了实体类,但是这样做Spring Data将不能确定为repository绑定唯一的模块</p>
+<p>最后一种方式区分repository是划分repository的基本包.</p>
+<p>基本包定义起始点是扫描repository接口定义,这意味着在合适的包定义repository.</p>
+<p>默认的,注解配置使用类配置的包</p>
+<p>基于XML基本配置在这里.</p>
+<p>例10.注解配置基本包</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@EnableJpaRepositories</span>(basePackages = <span class="string">"com.acme.repositories.jpa"</span>)</div><div class="line"><span class="meta">@EnableMongoRepositories</span>(basePackages = <span class="string">"com.acme.repositories.mongo"</span>)</div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Configuration</span> </span>&#123; &#125;</div></pre></td></tr></table></figure>
+<h2 id="4-4-Defining-query-methods"><a href="#4-4-Defining-query-methods" class="headerlink" title="4.4 Defining query methods"></a>4.4 Defining query methods</h2><h2 id="4-4-定义查询方法"><a href="#4-4-定义查询方法" class="headerlink" title="4.4 定义查询方法"></a>4.4 定义查询方法</h2><p>repository代理有两种方式获得通过方法名获得指定查询.可以通过方法名直接获得查询,或者手动定义查询.有可用的选项定义在实际的存储.这有一些策略决定实际查询如何被创建.让我们一些看看可用的选项.</p>
+<h3 id="4-4-1-Query-lookup-strategies"><a href="#4-4-1-Query-lookup-strategies" class="headerlink" title="4.4.1 Query lookup strategies"></a>4.4.1 Query lookup strategies</h3><p>下面这些repository基本组件的决定查询可用的策略.你可以配置策略,在XML配置中通过命名空间<code>query-look-strategy</code>属性或者在Java配置中通过启用${store} Repository的属性注解<code>queryLookupStrategy</code>.一些策略可能不能支持特定的数据库.</p>
+<ul>
+<li>CREATE 试图通过方法名构建一个指定查询.一般处理是从方法名移除一系列给定的前缀并解析方法其他部分.更多查询构建信息阅读Query creation.</li>
+<li>USE_DECLARED_QUERY试图查找一个准确的查询,并在找不到时抛出一个异常.查询可以被通过注解定义或者其它方式定义.查询特殊存储的文档了解存储的可用选择.如果repository基本组件在启动时不能为方法找到一个准确的查询,将会失败</li>
+<li>CREATE_IF_NOT_FOUND(默认)联合了CREATE和USE_DECLARED_QUERY.首先查找一个准确查询,如果没有找到,创建一个定制方法基于名字的查询.这是默认的查询策略,因此如果你没有做任何明确配置.它允许根据方法名快速查询定义,而且定制查询根据需要引入声明的查询.</li>
+</ul>
+<h3 id="4-4-2-查询创建"><a href="#4-4-2-查询创建" class="headerlink" title="4.4.2 查询创建"></a>4.4.2 查询创建</h3><p>建成Spring Data repository基本组件的查询构建机制有用的构建了repository所有实体类的约束查询.</p>
+<p>这个机制分隔方法前缀<code>find...By</code>,<code>read...By</code>,<code>query...By</code>,<code>count...By</code>以及<code>get...By</code>,并解析其他部分.这个引入条款可以表达包含的特性例如<code>Distinct</code>,来设置明确的标志在要生成的查询上.然而,第一个by扮演了分解符来指明真实条件的起始.分词在一个非常基本的水平,你可以在实体属性上定义条件并且连接使用and或or连接他们.</p>
+<p>例11.来自方法名的查询创建</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PersonRepository</span> <span class="keyword">extends</span> <span class="title">Repository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">  <span class="function">List&lt;Person&gt; <span class="title">findByEmailAddressAndLastname</span><span class="params">(EmailAddress emailAddress, String</span></span></div><div class="line">                                             lastname);</div><div class="line">  <span class="comment">// Enables the distinct flag for the query</span></div><div class="line">  <span class="function">List&lt;Person&gt; <span class="title">findDistinctPeopleByLastnameOrFirstname</span><span class="params">(String lastname, String</span></span></div><div class="line">                                                       firstname);</div><div class="line">  <span class="function">List&lt;Person&gt; <span class="title">findPeopleDistinctByLastnameOrFirstname</span><span class="params">(String lastname, String</span></span></div><div class="line">                                                       firstname);</div><div class="line"></div><div class="line">  <span class="comment">// Enabling ignoring case for an individual property</span></div><div class="line">  <span class="function">List&lt;Person&gt; <span class="title">findByLastnameIgnoreCase</span><span class="params">(String lastname)</span></span>;</div><div class="line">  <span class="comment">// Enabling ignoring case for all suitable properties</span></div><div class="line">  <span class="function">List&lt;Person&gt; <span class="title">findByLastnameAndFirstnameAllIgnoreCase</span><span class="params">(String lastname, String</span></span></div><div class="line">                                                       firstname);</div><div class="line">  <span class="comment">// Enabling static ORDER BY for a query</span></div><div class="line">  <span class="function">List&lt;Person&gt; <span class="title">findByLastnameOrderByFirstnameAsc</span><span class="params">(String lastname)</span></span>;</div><div class="line"> </div><div class="line">  <span class="function">List&lt;Person&gt; <span class="title">findByLastnameOrderByFirstnameDesc</span><span class="params">(String lastname)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>解析方法的实际结果取决于你创建查询的持久化存储.然而,这有些问题需要注意:</p>
+<ul>
+<li>表达式通常串行的连接属性的遍历与操作符.你可以使用and和or连接属性表达式.你也可以给属性表达式使用操作符,例如between,lessThan,granterThan,like.你可以使用的表达式操作符有between,LessThan,GreaterThan,Loke.被支持的操作符根据多样的数据库决定,因此查询你引用文档的恰当部分.</li>
+<li>方法解析支持为单独属性设置一个IgnoreCase标志(例如,findByLastnameIgnoreCase(…))或者为所有属性都支持忽略情况(通常是String情形,例如,findByLastnameAndFirstnameAllIgnoreCase(…)).忽略情况是否被支持由多样的数据库决定，所以具体存储查询方法在引用文档查询相关章节.</li>
+<li>你可以为查询方法引用的属性提供静态排序连接OrderBy子句并且提供排序方向(Asc或Desc).为创建一个查询方法支持动态排序,查看特殊参数处理.</li>
+</ul>
+<h3 id="4-4-3-属性表达式"><a href="#4-4-3-属性表达式" class="headerlink" title="4.4.3 属性表达式"></a>4.4.3 属性表达式</h3><p>属性表达式可以只为管理的实体类的直接属性使用，就像前面所展示的那样。查询常见时你已经确认解析的字段是管理的实体类的一个字段.然而,你也可以通过最近的字段定义一个约束.假设<code>Person</code>的<code>Address</code>有一个<code>ZipCode</code>字段.这种情况一个方法如果这样命名:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function">List&lt;Person&gt; <span class="title">findByAddressZipCode</span><span class="params">(ZipCode zipCode)</span></span>;</div></pre></td></tr></table></figure>
+<p>创建属性遍历<code>x.address.zipCode</code>.决策算法从把全部(<code>AddressZipCode</code>)作为属性开始并且检查实体类依此命名的属性(小写开头).如果算法成功了,就是用这个属性.否则,算法将源码部分驼峰式大小写从右侧头部到尾巴分隔,并试图找到相应的属性,在我们的例子中,<code>AddressZip</code>和<code>Code</code>.如果从头部找到一个属性,算法将在这里生成树处理后面的部分,使用描述的方式分隔.如果第一个分隔没有匹配到,算法移动分割点到左侧继续(<code>Address</code>,<code>ZipCode</code>).</p>
+<p>这在大多数情况都可以使用,但也可能选择错误的属性.假设<code>Person</code>类也有一个<code>addressZip</code>属性.算法将匹配第一个匹配的,本质上选择了错误属性,最终失败(伴随的<code>addressZip</code>类型没有属性<code>code</code>).</p>
+<p>没了解决这种起义,你可以在方法名称内使用<code>_</code>手动的定义遍历点.所以我们的方法名称最终像这样:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function">List&lt;Person&gt; <span class="title">findByAddress_ZipCode</span><span class="params">(ZipCode zipCode)</span></span>;</div></pre></td></tr></table></figure>
+<p>As we treat underscore as a reserved character we strongly advise to follow standard Java naming<br>conventions (i.e. not using underscores in property names but camel case instead) </p>
+<p>我们对待下划线当做一个保留关键字,我们强力建议遵循标准Java命名规范(例如,使用驼峰命名而不是下划线命名属性名称)</p>
+<h3 id="4-4-4-特殊参数处理"><a href="#4-4-4-特殊参数处理" class="headerlink" title="4.4.4 特殊参数处理"></a>4.4.4 特殊参数处理</h3><p>处理你查询中的参数,你可以定义简单的方法参数像上面的示例中.处理之外基本组件可以识别出某些特殊类型例如<code>Pageable</code>和<code>Sort</code>用来动态的编码和排序你的查询.</p>
+<p>例12.在查询方法使用<code>Pageable</code>,<code>Slice</code>和<code>Sort</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function">Page&lt;User&gt; <span class="title">findByLastname</span><span class="params">(String lastname, Pageable pageable)</span></span>;</div><div class="line"><span class="function">Slice&lt;User&gt; <span class="title">findByLastname</span><span class="params">(String lastname, Pageable pageable)</span></span>;</div><div class="line"><span class="function">List&lt;User&gt; <span class="title">findByLastname</span><span class="params">(String lastname, Sort sort)</span></span>;</div><div class="line"><span class="function">List&lt;User&gt; <span class="title">findByLastname</span><span class="params">(String lastname, Pageable pageable)</span></span>;</div></pre></td></tr></table></figure>
+<p>第一个方法允许你在通过一个<code>org.springframework.data.domain.Pageable</code>实例在查询方法中动态添加分页信息在你的静态定义查询中.一个<code>Page</code>清楚数据的全部数量和页面总数.它是通过触发计数的基础设施查询计算总数。这个代价可能是昂贵的具体取决于所使用的存储,可以用<code>Slice</code>代替.一个<code>Slict</code>只知道下一个<code>Slice</code>可到到哪里,当运行在一个大的结果集上时这可能已经足够了.排序选项也通过<code>Pageable</code>实例处理.如果你只需要排序,简单起见添加<code>org.springframework.data.domain.Sort</code>参数在你的方法.如你所见,简单返回一个列表.在这种情况下,额外元数据构建实际的<code>Page</code>实例将不会被创建(反过来这意味着,没有发出额外的统计查询所必须的)简单约束只在给定的范围内查询.</p>
+<blockquote>
+<p>注意</p>
+<p>为了尽早得到你查询了多少页,你必须出发一个格外统计查询.默认的,这个查询你实际触发的查询调用.</p>
+</blockquote>
+<h3 id="4-4-5-限制查询结果"><a href="#4-4-5-限制查询结果" class="headerlink" title="4.4.5 限制查询结果"></a>4.4.5 限制查询结果</h3><p>查询方法的结果可以通过关键<code>first</code>或者<code>top</code>限制,可以交换使用.一个可选的数值可以追加在top/first来指定返回的最大结果集.如果数字缺失,假定结果集大小是1.</p>
+<p>例13.查询中使用Top和First限制结果大小</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function">User <span class="title">findFirstByOrderByLastnameAsc</span><span class="params">()</span></span>;</div><div class="line"><span class="function">User <span class="title">findTopByOrderByAgeDesc</span><span class="params">()</span></span>;</div><div class="line"><span class="function">Page&lt;User&gt; <span class="title">queryFirst10ByLastname</span><span class="params">(String lastname, Pageable pageable)</span></span>;</div><div class="line"><span class="function">Slice&lt;User&gt; <span class="title">findTop3ByLastname</span><span class="params">(String lastname, Pageable pageable)</span></span>;</div><div class="line"><span class="function">List&lt;User&gt; <span class="title">findFirst10ByLastname</span><span class="params">(String lastname, Sort sort)</span></span>;</div><div class="line"><span class="function">List&lt;User&gt; <span class="title">findTop10ByLastname</span><span class="params">(String lastname, Pageable pageable)</span></span>;</div></pre></td></tr></table></figure>
+<p>限制表达式也支持Distinct关键字.此外，对于将结果集设置为一个实例的查询，支持将结果包装到一个<code>Optional</code>.如果应用分页或分片限制查询分页(并且计算可用的页数)那么这可以应用limited结果.</p>
+<blockquote>
+<p>注意</p>
+<p>请注意，限制结果结合使用<code>Sort</code>的动态排序的结果允许参数可以表示“k”最小的查询方法以及“K”的查询方法最大的元素。</p>
+</blockquote>
+<h3 id="4-4-6-流式处理结果"><a href="#4-4-6-流式处理结果" class="headerlink" title="4.4.6 流式处理结果"></a>4.4.6 流式处理结果</h3><p>方法查询结果可以通过使用java 8<code>Stream&lt;T&gt;</code>逐步处理。</p>
+<p>特定的方法用来表示流而不是简单的包装查询结果在一个<code>Stream</code>数据存储</p>
+<p>例14 一个用java流8<code>Stream&lt;T&gt;</code>查询结果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Query</span>(<span class="string">"select u from User u"</span>)</div><div class="line"><span class="function">Stream&lt;User&gt; <span class="title">findAllByCustomQueryAndStream</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line"><span class="function">Stream&lt;User&gt; <span class="title">readAllByFirstnameNotNull</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line"><span class="meta">@Query</span>(<span class="string">"select u from User u"</span>)</div><div class="line"><span class="function">Stream&lt;User&gt; <span class="title">streamAllPaged</span><span class="params">(Pageable pageable)</span></span>;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>注意</p>
+<p>一个<code>Stream</code>潜在的包装底层数据存储在页数的资源中,因此使用完毕必须关闭.你可以使用<code>close()</code>方法手动关闭<code>Stream</code>或者使用一个Java7的try_with-resources块.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span>(Stream&lt;User&gt; stream = repository.findAllByCustomQueryAndStream()) &#123;</div><div class="line">  stream.forEach(...);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="4-4-7-异步查询结果"><a href="#4-4-7-异步查询结果" class="headerlink" title="4.4.7 异步查询结果"></a>4.4.7 异步查询结果</h3><p>Repository查询可以使用<code>Spring&#39;s asynchronous method execution capacity</code>执行异步.这意味着方法可以一执行立即返回,真实的查询执行发生在任务提交到一个Spring TaskExecutor.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Async</span></div><div class="line"><span class="function">Future&lt;User&gt; <span class="title">findByFirstname</span><span class="params">(String firstname)</span></span>;</div><div class="line"></div><div class="line"><span class="meta">@Async</span></div><div class="line"><span class="function">CompletableFuture&lt;User&gt; <span class="title">findOneByFirstname</span><span class="params">(String firstname)</span></span>;</div><div class="line"></div><div class="line"><span class="meta">@Async</span></div><div class="line"><span class="function">ListenableFuture&lt;User&gt; <span class="title">findOneByLastname</span><span class="params">(String lastname)</span></span>;</div></pre></td></tr></table></figure>
+<ol>
+<li>使用<code>java.util.concurrent.Future</code>作为返回类型</li>
+<li>使用一个Java8<code>java.util.current.CompletableFuture</code>作为返回类型</li>
+<li>使用一个<code>org.springframework.util.concurrent.ListenableFuture</code>作为返回类型</li>
+</ol>
+<h2 id="创建repository实例"><a href="#创建repository实例" class="headerlink" title="创建repository实例"></a>创建repository实例</h2><p>这个章节你创建实例和bean定义为repository接口定义.方法之一是手动的支持repository使用包含各个Spring Data模块的Spring命名空间装载,然而我们一般推荐使用Java配置的方法配置.</p>
+<h3 id="4-5-1-XML配置"><a href="#4-5-1-XML配置" class="headerlink" title="4.5.1 XML配置"></a>4.5.1 XML配置</h3><p>每个Spring Data module包含一个repository 元素,这可以让你简单的定义一个基本包,Spring为你扫描它.</p>
+<p>例16 通过XML启用Spring Data repositories</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">    <span class="tag">&lt;<span class="name">beans:beans</span> <span class="attr">xmlns:beans</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line">      <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">      <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/data/jpa"</span></div><div class="line">      <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans</span></div><div class="line">        http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">        http://www.springframework.org/schema/data/jpa</div><div class="line">        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd"&gt;</div><div class="line">      <span class="tag">&lt;<span class="name">repositories</span> <span class="attr">base-package</span>=<span class="string">"com.acme.repositories"</span> /&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">beans:beans</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>在前面的实例中,让Spring扫描<code>com.acme.repositories</code>包和它的子包里继承<code>Repository</code>的接口或者它的子接口.找到的每个接口,继承组件注册持久化技术的<code>FactoryBean</code>来创建合适的代理处理执行查询方法.每个bean被注册在一个接口名称确定的bean name下,所以一个叫<code>UserRepository</code>将注册<code>userRepository</code>.基本包属性允许通配符,所以你可以定义一个规则扫描包.</p>
+<p><strong>使用过滤</strong></p>
+<p>默认的基本组件选取所有在配置的基本包下继承了持久化技术<code>Repositpry</code>接口以及子接口</p>
+<p>并且为他们创建一个bean实例.然而,你可能希望更细粒度的控制哪个接口bean实例被创建.为了实现这个你可以在<code>&lt;repository/&gt;</code>中使用<code>&lt;include-filter/&gt;</code>和<code>&lt;exclude-filter/&gt;</code>元素.语义完全等同于Spring的上下文命名空间中的元素.更多细节,查看他们的元素<code>Spring reference documentation</code></p>
+<p>例如，要将某些确定的接口排除实例化为repository，可以使用以下配置:</p>
+<p>例17. 使用exclude-filter元素</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;repository base-package="com.acme.repositories"&gt;</div><div class="line">  &lt;context:exclude-filter type="regex" expression=".*SomeRepository" /&gt;</div><div class="line">&lt;/repositories&gt;</div></pre></td></tr></table></figure>
+<p>这个示例从待实例化对象中排除所有以SomeRepository结尾的接口.</p>
+<h3 id="4-5-2-JavaConfig"><a href="#4-5-2-JavaConfig" class="headerlink" title="4.5.2 JavaConfig"></a>4.5.2 JavaConfig</h3><p>repository基础组件也可以使用一个存储的特殊的<code>@Enable${store}Repositories</code>注解在一个JavaConfig类上.入门介绍Spring容器Java基本Spring容器查看文档:<code>JavaConfig in the Spring reference documentaional</code></p>
+<p>一个简单配置启用Spring Data repositories像这样:</p>
+<p>例18. repository配置基于简单注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="meta">@EnableJpaRepositories</span>(<span class="string">"com.acme.repositories"</span>)</div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ApplicationConfiguration</span> </span>&#123;</div><div class="line">  <span class="meta">@Bean</span></div><div class="line">  <span class="function"><span class="keyword">public</span> EntityManagerFactory <span class="title">entityManagerFactory</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">// …</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>注意</p>
+<p>示例使用了JPA特有的注解,根据你使用的存储模块决定实际如何替换.示例定义<code>EntityManagerFactory</code>bean.查阅具体存储的配置</p>
+</blockquote>
+<h3 id="4-5-3-单独使用"><a href="#4-5-3-单独使用" class="headerlink" title="4.5.3 单独使用"></a>4.5.3 单独使用</h3><p>你也可以在Spring容器之外使用repository基础组件,例如在CDI环境.你仍然需要一些Spring库在你的classpath中,但是你可以以编程的方式启动.repository包装持久化技术支持的Spring Data模块提供RepositoryFactory,你可以向下面这样使用:</p>
+<p>例19. repository工厂单独使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">RepositoryFactorySupport factory = … <span class="comment">// Instantiate factory here</span></div><div class="line">UserRepository repository = factory.getRepository(UserRepository.class);</div></pre></td></tr></table></figure>
+<h2 id="4-6-定制Spring-Data仓库实现"><a href="#4-6-定制Spring-Data仓库实现" class="headerlink" title="4.6 定制Spring Data仓库实现"></a>4.6 定制Spring Data仓库实现</h2><p>时常有必要为一少部分仓库方法提供一个定制的实现.Spring数据存储库很容易允许您提供自定义存储库代码并将其与通用CRUD集成抽象和查询方法功能整合.</p>
+<h3 id="4-6-1-为单独仓库添加定制行为"><a href="#4-6-1-为单独仓库添加定制行为" class="headerlink" title="4.6.1 为单独仓库添加定制行为"></a>4.6.1 为单独仓库添加定制行为</h3><p>为了定制功能丰富一个仓库,你首先为定制功能定义一个接口和实现.使用你提供的仓库接口来继承自定义接口.</p>
+<p>例20. 定制仓库功能的接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">UserRepositoryCustom</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">someCustomMethod</span><span class="params">(User user)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>例21.定制功能的实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserRepositoryImpl</span> <span class="keyword">implements</span> <span class="title">UserRepositoryCustom</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">someCustomMethod</span><span class="params">(User user)</span> </span>&#123;</div><div class="line">    <span class="comment">// Your custom implementation</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>注意</p>
+<p>类可以被找到最重要的点是名字以Impl为后缀区别于仓库的核心接口(见下文)</p>
+</blockquote>
+<p>实现的本身没有依赖Spring Data,可以是一个标准的Spring bean.所以你可以使用标准的依赖注入行为给其他bean注入引用,像<code>JdbcTemplate</code>,切面的一部分等等.</p>
+<p>例22 修改你基本的仓库接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> <span class="keyword">extends</span> <span class="title">CrudRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt;, <span class="title">UserRepositoryCustom</span> </span>&#123;</div><div class="line">  <span class="comment">// Declare query methods here</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>让你的标准仓库接口继承定制的.这样做结合了CRUD和定制功能并使其可用于客户端.</p>
+<p><strong>配置</strong></p>
+<p>如果你使用命名空间配置,仓库基本组件扫描类所在包,根据扫描结果尝试自动定制实现.</p>
+<p>这些类需要遵循命名规范:给仓库接口名添加命名空间元素属性<code>repositoryimpl-postfix</code>.默认的后缀是<code>Impl</code></p>
+<p>例23. 配置示例</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">repositories</span> <span class="attr">base-package</span>=<span class="string">"com.acme.repository"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">repositories</span> <span class="attr">base-package</span>=<span class="string">"com.acme.repository"</span> <span class="attr">repository-impl-postfix</span>=<span class="string">"FooBar"</span>/&gt;</span></div></pre></td></tr></table></figure>
+<p>第一个配置示例将查实查找一个类<code>com.acme.repository.UserRepositoryImpl</code>来作为定制藏局实现.然而第二个示例将尝试查找<code>com.acme.repository.UserRepositoryFooBar</code>.</p>
+<p><strong>手动指定</strong></p>
+<p>上面的方法可以正常工作,只有当你定制实现使用注解配置和自动注入,这将与其他Spring bean一样被对待.如果你定制的实现需要特殊处理,你可以像描述的简单定义一个bean并且命名它.基本组件将通过名称引用手动定义的bean定义而不是它自己创建一个.</p>
+<p>例24.手动指定定制实现</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">repositories</span> <span class="attr">base-package</span>=<span class="string">"com.acme.repository"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">beans:bean</span> <span class="attr">id</span>=<span class="string">"userRepositoryImpl"</span> <span class="attr">class</span>=<span class="string">"…"</span>&gt;</span></div><div class="line">  <span class="comment">&lt;!-- further configuration --&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">beans:bean</span>&gt;</span></div></pre></td></tr></table></figure>
+<h3 id="4-6-2为所有仓库添加定制行为"><a href="#4-6-2为所有仓库添加定制行为" class="headerlink" title="4.6.2为所有仓库添加定制行为"></a>4.6.2为所有仓库添加定制行为</h3><p>当你希望把一个单独的方法添加到你所有的仓库接口中时,上面的方法就不可行了.为了添加定制到所有的仓库,你首先添加一个中间接口来定义共享的行为.</p>
+<p>例25 定义共享定制行为接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@NoRepositoryBean</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MyRepository</span>&lt;<span class="title">T</span>, <span class="title">ID</span> <span class="keyword">extends</span> <span class="title">Serializable</span>&gt;</span></div><div class="line">  <span class="keyword">extends</span> <span class="title">PagingAndSortingRepository</span>&lt;<span class="title">T</span>, <span class="title">ID</span>&gt; &#123;</div><div class="line">  <span class="function"><span class="keyword">void</span> <span class="title">sharedCustomMethod</span><span class="params">(ID id)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>现在你独立的仓库接口将继承这个中间接口而不是<code>Repository</code>接口来包含功能的定义.接下来创建一个中间接口的实现继承持久化具体仓库的基本类.这个类后面将作为仓库代理的基本类.</p>
+<p>例26 定制仓库基本类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyRepositoryImpl</span>&lt;<span class="title">T</span>, <span class="title">ID</span> <span class="keyword">extends</span> <span class="title">Serializable</span>&gt;</span></div><div class="line">  <span class="keyword">extends</span> <span class="title">SimpleJpaRepository</span>&lt;<span class="title">T</span>, <span class="title">ID</span>&gt; <span class="keyword">implements</span> <span class="title">MyRepository</span>&lt;<span class="title">T</span>, <span class="title">ID</span>&gt; &#123;</div><div class="line">  </div><div class="line">  <span class="keyword">private</span> <span class="keyword">final</span> EntityManager entityManager;</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="title">MyRepositoryImpl</span><span class="params">(JpaEntityInformation entityInformation,</span></span></div><div class="line">                          EntityManager entityManager) &#123;</div><div class="line">    <span class="keyword">super</span>(entityInformation, entityManager);</div><div class="line">    <span class="comment">// Keep the EntityManager around to used from the newly introduced methods.</span></div><div class="line">    <span class="keyword">this</span>.entityManager = entityManager;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sharedCustomMethod</span><span class="params">(ID id)</span> </span>&#123;</div><div class="line">    <span class="comment">// implementation goes here</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>警告</p>
+<p>这个类需要有一个构造方法调用父类具体存储仓库工厂实现.万一仓库基础类有多个构造,覆盖包括一个<code>EntityInformation</code>加上存储具体基本组件对象(例如一个<code>EntityManager</code>或者模板类)</p>
+</blockquote>
+<p>Spring<code>&lt;repository/&gt;</code>命名空间下的默认行为为所有接口提供一个实现.这意味着如果处于其当前状态，<code>MyRepository</code>的实现实例将由Spring创建.这当然不是被期望的,它只是作为一个用来定义实体的 <code>Repository</code>和真实仓库接口的中间接口.为了排除一个继承<code>Repository</code>的接口被当做一个仓库接口实例化,你可以给它使用<code>@NoRepositoryBean</code>(像上面)或者把它从配置中<code>base-package</code>移除.</p>
+<p>最后一步是让Spring Data基本组件识别到定制的仓库基本类.在JavaConf使用注解<code>@Enable...Repository</code>的属性<code>repositoryBaseClass</code>完成:</p>
+<p>例27 使用JavaConfig配置一个定制仓库基本类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="meta">@EnableJpaRepositories</span>(repositoryBaseClass = MyRepositoryImpl.class)</div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ApplicationConfiguration</span> </span>&#123; … &#125;</div></pre></td></tr></table></figure>
+<p>类似的属性在XML命名空间中也可以找到.</p>
+<p>例28 使用XML配置一个定制仓库基本类</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">repositories</span> <span class="attr">base-package</span>=<span class="string">"com.acme.repository"</span></span></div><div class="line">              <span class="attr">base-class</span>=<span class="string">"….MyRepositoryImpl"</span> /&gt;</div></pre></td></tr></table></figure>
+<h2 id="4-7-Spring-Data扩展"><a href="#4-7-Spring-Data扩展" class="headerlink" title="4.7 Spring Data扩展"></a>4.7 Spring Data扩展</h2><p>这部分说明Spring Data一系列的扩展功能,可以使Spring Dta使用多样的上下文.目前大部分集成是针对Spring MVC.</p>
+<h3 id="4-7-1-Querydsl扩展"><a href="#4-7-1-Querydsl扩展" class="headerlink" title="4.7.1 Querydsl扩展"></a>4.7.1 Querydsl扩展</h3><p>Querydsl是一个框架,通过它的流式API构建静态类型的SQL类查询.</p>
+<p>多个Spring Data模块通过<code>QueryDslPredicateExecutor</code>与Querydsl集成.</p>
+<p>例29 QueryDslPredicateExecutor接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">QueryDslPredicateExecutor</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line">  <span class="function">T <span class="title">findOne</span><span class="params">(Predicate predicate)</span></span>; ①</div><div class="line">    <span class="function">Iterable&lt;T&gt; <span class="title">findAll</span><span class="params">(Predicate predicate)</span></span>; ②</div><div class="line">    <span class="function"><span class="keyword">long</span> <span class="title">count</span><span class="params">(Predicate predicate)</span></span>; ③</div><div class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">exists</span><span class="params">(Predicate predicate)</span></span>; ④</div><div class="line">    <span class="comment">// … more functionality omitted.</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>① 查询并返回一个匹配<code>Predicate</code>的单例实体</p>
+<p>②查询并返回所有匹配<code>Predicate</code>的实体</p>
+<p>③ 返回匹配<code>Predicate</code>的实体数量</p>
+<p>④  返回是否存在一个匹配<code>Predicate</code>的实体</p>
+<p>为了简单的使用Querydsl功能,在你的仓库接口继承<code>QueryDslPredicateExecutor</code>.</p>
+<p>例30 在仓库集成QueryDsl</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> <span class="keyword">extends</span> <span class="title">CrudRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt;,</span></div><div class="line">  <span class="title">QueryDslPredicateExecutor</span>&lt;<span class="title">User</span>&gt; &#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>像上面这样就可以使用Querydsl的<code>Predicate</code>书写类型安全的查询</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Predicate predicate = user.firstname.equalsIgnoreCase(<span class="string">"dave"</span>)</div><div class="line">  .and(user.lastname.startsWithIgnoreCase(<span class="string">"mathews"</span>));</div><div class="line">userRepository.findAll(predicate);</div></pre></td></tr></table></figure>
+<h3 id="4-7-2-Web支持"><a href="#4-7-2-Web支持" class="headerlink" title="4.7.2 Web支持"></a>4.7.2 Web支持</h3><blockquote>
+<p>注意</p>
+<p>本节包含Spring Data Web支持的文档是在1.6范围内的Spring Data Commons实现的.因为支持新引入的内容改变了很多东西，我们保留了旧行为的文档在”遗留Web支持”部分.</p>
+</blockquote>
+<p>如果模块支持仓库编程模型，那么Spring Data模块附带了各种Web模块支持.Web关联的东西需要Spring MVC的JAR包位于classpath路径下,它们中有些甚至提供了Spring HATEOAS集成.一般情况,集成方式支持使用<code>@EnableSpringDataWebSupport</code>注解在你的JavaConfig配置类.</p>
+<p>例31 启用Spring Data web支持</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="meta">@EnableWebMvc</span></div><div class="line"><span class="meta">@EnableSpringDataWebSupport</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">WebConfiguration</span> </span>&#123;&#125;</div></pre></td></tr></table></figure>
+<p><code>@EnableSpringDataWebSupport</code>注解注册了一些组件，我们将在稍后讨论.注解还将在类路径上检测Spring HATEOAS，如果才在将为其注册集成组件.</p>
+<p>作为可选项,如果你使用XML配置,注册<code>SpringDataWebSupport</code>或者<code>HateoasWareSpringDataWebSupport</code>作为Spring bean:</p>
+<p>例32 用XML启用Spring Data web支持</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.springframework.data.web.config.SpringDataWebConfiguration"</span> /&gt;</span></div><div class="line"><span class="comment">&lt;!-- If you're using Spring HATEOAS as well register this one *instead* of the</span></div><div class="line">former --&gt;</div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>= <span class="string">"org.springframework.data.web.config.HateoasAwareSpringDataWebConfiguration"</span> /&gt;</span></div></pre></td></tr></table></figure>
+<p><strong>基本Web支持</strong></p>
+<p>上面展示的的配置设置将注册几个基本组件：</p>
+<ul>
+<li>一个<code>DomainClassConverter</code>启用Spring MVC来根据请求参数或路径变量管理仓例实体类的实例</li>
+<li><code>HandlerMethodArgumentResolver</code>实现让Spring MVC从请求参数解析Pageable和Sort实例.</li>
+</ul>
+<p><strong>实体类转换</strong></p>
+<p><code>DomainClassConverter</code>允许你在Spring MVC控制器方法签名中直接使用实体类型,因此你不必手动的通过仓库查询实例:</p>
+<p>例33 一个Spring MVC控制器在方法签名中使用实体类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Controller</span></div><div class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/users"</span>)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserController</span> </span>&#123;</div><div class="line">  <span class="meta">@RequestMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">showUserForm</span><span class="params">(@PathVariable(<span class="string">"id"</span>)</span> User user, Model model) </span>&#123;</div><div class="line">    model.addAttribute(<span class="string">"user"</span>, user);</div><div class="line">    <span class="keyword">return</span> <span class="string">"userForm"</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如你所见,方法直接接收一个User实例并没有更进一步的查询是否必要.实例可以通过Spring MVC将路径变量转换为实体类的id类型并最终通过在实体类型注册的仓库实例上调用<code>findOne(...)</code>访问实例转换得到.</p>
+<blockquote>
+<p>注意</p>
+<p>当前的仓库必须实现<code>CrudRepository</code>做好准备被发现来进行转换.</p>
+</blockquote>
+<p><strong>为了分页和排序分解方法参数</strong></p>
+<p>上面的配置片段还注册了一个<code>PageableHandlerMethodArgumentResolver</code>和一个<code>SortHandlerMethodArgumentResolver</code>实例.注册使得Pageable和Sort成为有效的控制器方法参数.</p>
+<p>例34 使用Pageable作为控制器方法参数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Controller</span></div><div class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/users"</span>)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserController</span> </span>&#123;</div><div class="line">  <span class="meta">@Autowired</span> UserRepository repository;</div><div class="line">  <span class="meta">@RequestMapping</span></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">showUsers</span><span class="params">(Model model, Pageable pageable)</span> </span>&#123;</div><div class="line">    model.addAttribute(<span class="string">"users"</span>, repository.findAll(pageable));</div><div class="line">    <span class="keyword">return</span> <span class="string">"users"</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个方法签名将使Spring MVC尝试使用下面的默认配置从请求参数中转换一个Pageable实例:</p>
+<p>表1 请求参数转换Pageable实例</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>page</td>
+<td>要检索的页面,索引为0,默认为0</td>
+</tr>
+<tr>
+<td>size</td>
+<td>要检索的页面大小,默认20</td>
+</tr>
+<tr>
+<td>sort</td>
+<td>被排序的属性应以格式`property,property(, ASC\</td>
+<td>DESC)`表示.默认生序排序,如果你希望改变排序顺序,则使用多个排序参数,例如?sort=firstname&amp;sort=lastname,asc</td>
+</tr>
+</tbody>
+</table>
+<p>为了定制行为,可以继承<code>SpringDataWebConfiguration</code>或者启用等效的HATEOAS并覆盖<code>pageableResolver()</code>或<code>sortResolver()</code>方法并导入你的自定义配置文件替代@Enable-注解.</p>
+<p>有一种情况你需要多个<code>Pageable</code>或<code>Sort</code>实例从请求转换(例如处理多个表单),你可以使用Spring的<code>@Qualifier</code>注解来互相区别.请求参数必须以<code>${qualifier}为</code>前缀.这样一个方法的签名像这样:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> String <span class="title">showUsers</span><span class="params">(Model model, </span></span></div><div class="line">                        @Qualifier(<span class="string">"foo"</span>)Pagebale first, </div><div class="line">                        @<span class="title">Qualifier</span><span class="params">(<span class="string">"bar"</span>)</span> Pageable second) &#123;</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你必须填充foo_page和bar_page等.</p>
+<p>默认的<code>Pageable</code>在方法中处理等价于一个<code>new PageRequest(0, 20)</code>,但是可以使用<code>@PageableDefaults</code>注解在<code>Pageable</code>参数上定制.</p>
+<p><strong>Hypermedia支持分页</strong></p>
+<p>Spring HATEOAS包装了一个代表模型的类<code>PageResources</code> ,</p>
+<p>它可以使用Page实例包装必要的Page元数据内容作为连接让客户端导航页面.一个页面到一个<code>PageResources</code>的转换被Spring HATEOAS的<code>ResourceAssembler</code>接口实现<code>PagedResourcesAssembler</code>来完成.</p>
+<p>例35 使用一个PagedResourcesAssembler作为控制器方法参数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Controller</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PersonController</span> </span>&#123;</div><div class="line">  <span class="meta">@Autowired</span> PersonRepository repository;</div><div class="line">  <span class="meta">@RequestMapping</span>(value = <span class="string">"/persons"</span>, method = RequestMethod.GET)</div><div class="line">  HttpEntity&lt;PagedResources&lt;Person&gt;&gt; persons(Pageable pageable,</div><div class="line">                                             PagedResourcesAssembler assembler) &#123;</div><div class="line">    Page&lt;Person&gt; persons = repository.findAll(pageable);</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ResponseEntity&lt;&gt;(assembler.toResources(persons), HttpStatus.OK);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>像上面这样配置将允许<code>PageResourcesAssembler</code>作为控制器方法的一个参数.在这调用toResources(…)方法有以下作用:</p>
+<ul>
+<li><code>Page</code>的内容将<code>PageResources</code>实例的内容</li>
+<li><code>PageResources</code>将获得<code>PageMetadata</code>实例,该实例由Page和基础的PageRequest中的信息填充</li>
+<li><code>PageResources</code>获得<code>prev</code>和<code>next</code>连接,添加这些依赖在页面.这些链接将指向uri方法的调用映射.页码参数根据<code>PageableHandlerMethodArgumentResolver</code>添加到参数以在后面被转换.</li>
+</ul>
+<p>假设我们有30个Person实例在数据库.你现在可以触发一个GET请求 <a href="http://localhost:8080/persons" target="_blank" rel="external">http://localhost:8080/persons</a>, 你将可以看到类似下面的内容:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&#123; "links" : [ &#123; "rel" : "next",</div><div class="line">"href" : "http://localhost:8080/persons?page=1&amp;size=20 &#125;</div><div class="line">],</div><div class="line">"content" : [</div><div class="line">… // 20 Person instances rendered here</div><div class="line">],</div><div class="line">"pageMetadata" : &#123;</div><div class="line">"size" : 20,</div><div class="line">"totalElements" : 30,</div><div class="line">"totalPages" : 2,</div><div class="line">"number" : 0</div><div class="line">&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你可以看到编译生成了正确的URI，并且还会提取默认配置转换参数到即将到来的请求中的<code>Pageable</code>.这意味着,如果你改变配置,链接也将自动跟随改变.默认情况下，编译指向控制器执行的方法，但是这可以被一个自定义链接作为基本构建来构成分页的<code>Link</code>重载<code>PagedResourcesAssembler.toResource（...）</code>方法定制.</p>
+<p><strong>Querydsl web 支持</strong></p>
+<p>那些整合了<code>QueryDSL</code>的存储可能从<code>Request</code>查询字符串中的属性驱动查询.</p>
+<p>这意味着前面例子的查询字符串可以给出<code>User</code>的对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">?firstname=Dave&amp;lastname=Matthews</div></pre></td></tr></table></figure>
+<p>可以被转换为</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">QUser.user.firstname.eq(<span class="string">"Dave"</span>).and(QUser.user.lastname.eq(<span class="string">"Matthews"</span>))</div></pre></td></tr></table></figure>
+<p>使用了<code>QuerydslPredicateArgumentResolver</code>.</p>
+<blockquote>
+<p>注意</p>
+<p>当在类路径上找到Querydsl时，该功能将在@EnableSpringDataWebSupport注解中自动启用</p>
+</blockquote>
+<p>添加一个<code>@QuerydslPredicate</code>到一个方法签名将提供一个就绪的<code>Predicate</code>,可以通过<code>QueryDslPredicateExecutor</code>执行.</p>
+<blockquote>
+<p>提示</p>
+<p>类型信息通常从返回方法上解析.由于这些信息不一定匹配实体类型,使用<code>QuerydslPredicate</code>的<code>root</code>属性可能是个好主意.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Controller</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserController</span> </span>&#123;</div><div class="line">  <span class="meta">@Autowired</span> UserRepository repository;</div><div class="line">  <span class="meta">@RequestMapping</span>(value = <span class="string">"/"</span>, method = RequestMethod.GET)</div><div class="line">  <span class="function">String <span class="title">index</span><span class="params">(Model model, @QuerydslPredicate(root = User.class)</span> Predicate predicate,</span></div><div class="line">              Pageable pageable, @RequestParam MultiValueMap&lt;String, String&gt;</div><div class="line">    parameters) &#123;</div><div class="line">        model.addAttribute(<span class="string">"users"</span>, repository.findAll(predicate, pageable));</div><div class="line">        <span class="keyword">return</span> <span class="string">"index"</span>;</div><div class="line">  &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>为User转换匹配查询字符串参数的<code>Predicate</code></p>
+<p>默认的绑定规则如下:</p>
+<ol>
+<li><p><code>Object</code>在简单属性上如同<code>eq</code></p>
+</li>
+<li><p><code>Object</code>在集合作为属性如同<code>contains</code></p>
+</li>
+<li><p><code>Collection</code>在简单属性上如同<code>in</code></p>
+</li>
+</ol>
+<p>这些绑定可以通过<code>@QuerydslPredicate</code>的<code>bindings</code>属性定制或者使用Java8<code>default methods</code>给仓库接口添加<code>QuerydslBinderCustomizer</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">UserReposotory</span> <span class="keyword">extends</span> <span class="title">CurdRepository</span>&lt;<span class="title">User</span>, <span class="title">String</span>&gt;, </span></div><div class="line">  <span class="title">QueryDslPredicateExecutor</span>&lt;<span class="title">User</span>&gt;,</div><div class="line">  <span class="title">QuerydslBinderCustomizer</span>&lt;<span class="title">QUser</span>&gt; &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">  	<span class="function"><span class="keyword">default</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">customize</span><span class="params">(QuerydslBindings bindings, QUser user)</span> </span>&#123;</div><div class="line">      bindings.bind(user.username).first((path, value) -&gt; path.contains(value));</div><div class="line">      bindings.bind(String.class).first((StringPath path, String value) -&gt;</div><div class="line">                                        path.containsIgnoreCase(value));</div><div class="line">      bindings.excluding(user.password);</div><div class="line">  	&#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<ol>
+<li><code>QueryDslPredicateExecutor</code>为<code>Predicate</code>提供特殊的查询方法提供入口</li>
+<li>在仓库接口定义<code>QuerydslBinderCustomizer</code>将自动注解<code>@QuerydslPredicate(bindings=...)</code></li>
+<li>为<code>username</code>属性定义绑定,绑定到一个简单集合</li>
+<li>为<code>String</code>属性定义默认绑定到一个不区分大小写的集合</li>
+<li>从<code>Predicate</code>移除密码属性</li>
+</ol>
+<h3 id="4-7-3-仓库填充"><a href="#4-7-3-仓库填充" class="headerlink" title="4.7.3 仓库填充"></a>4.7.3 仓库填充</h3><p>如果你使用Spring JDBC模块,你可能熟悉在<code>DataSource</code>使用SQL脚本来填充.一个类似的抽象在仓库级别可以使用,尽管它不是使用SQL作为数据定义语言,因为它必须由存储决定.填充根据仓库支持XML(通过Spring的OXM抽象)和JSON(通过Jackson)定义数据.</p>
+<p>假设你有一个文件<code>data.json</code>内容如下:</p>
+<p>例36 JSON定义的数据</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[ &#123; <span class="attr">"_class"</span> : <span class="string">"com.acme.Person"</span>,</div><div class="line">     <span class="attr">"firstname"</span> : <span class="string">"Dave"</span>,</div><div class="line">      <span class="attr">"lastname"</span> : <span class="string">"Matthews"</span> &#125;,</div><div class="line">      &#123; <span class="attr">"_class"</span> : <span class="string">"com.acme.Person"</span>,</div><div class="line">     <span class="attr">"firstname"</span> : <span class="string">"Carter"</span>,</div><div class="line">      <span class="attr">"lastname"</span> : <span class="string">"Beauford"</span> &#125; ]</div></pre></td></tr></table></figure>
+<p>你可以容易的根据Spring Data Commons提供仓库的命名空间填充元素填充你的仓库.为了填充前面的数据到你的PersonRepository,像下面这样配置:</p>
+<p>例37 声明一个Jackson仓库填充</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line">    <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">    <span class="attr">xmlns:repository</span>=<span class="string">"http://www.springframework.org/schema/data/repository"</span></div><div class="line">    <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans</span></div><div class="line">      http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">      http://www.springframework.org/schema/data/repository</div><div class="line">      http://www.springframework.org/schema/data/repository/spring-repository.xsd"&gt;</div><div class="line">    <span class="tag">&lt;<span class="name">repository:jackson2-populator</span> <span class="attr">locations</span>=<span class="string">"classpath:data.json"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>这样的声明可以让<code>data.json</code>文件可以被一个Jackson的<code>ObjectMpper</code>读取和反序列化.</p>
+<p>JSON将要解析的对象类型由检查JSON文档的<code>_class</code>属性决定.基本组件将最终选择合适的仓库去处理反序列化的对象.</p>
+<p>要使用XML定义数据填充仓库,你可以使用<code>unmarshaller-populator</code>元素.你配置它使用Spring OXM提供给你的XML装配选项.在Spring reference documentation查看更多细节.</p>
+<p>例38 声明一个装配仓库填充器(使用JAXB)</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">    <span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line">      <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">      <span class="attr">xmlns:repository</span>=<span class="string">"http://www.springframework.org/schema/data/repository"</span></div><div class="line">      <span class="attr">xmlns:oxm</span>=<span class="string">"http://www.springframework.org/schema/oxm"</span></div><div class="line">      <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans</span></div><div class="line">        http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">        http://www.springframework.org/schema/data/repository</div><div class="line">        http://www.springframework.org/schema/data/repository/spring-repository.xsd</div><div class="line">        http://www.springframework.org/schema/oxm</div><div class="line">        http://www.springframework.org/schema/oxm/spring-oxm.xsd"&gt;</div><div class="line">      <span class="tag">&lt;<span class="name">repository:unmarshaller-populator</span> <span class="attr">locations</span>=<span class="string">"classpath:data.json"</span></span></div><div class="line">        <span class="attr">unmarshaller-ref</span>=<span class="string">"unmarshaller"</span> /&gt;</div><div class="line">      <span class="tag">&lt;<span class="name">oxm:jaxb2-marshaller</span> <span class="attr">contextPath</span>=<span class="string">"com.acme"</span> /&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
+<h3 id="4-7-4-遗留web支持"><a href="#4-7-4-遗留web支持" class="headerlink" title="4.7.4 遗留web支持"></a>4.7.4 遗留web支持</h3><p><strong>Spring MVC的实体类绑定</strong></p>
+<p>如果正在开发Spring MVC web应用,你通常必须从URL中解析实体类的id.默认的,你的任务是转化请求参数或URL参数到实体类并将它移交给下面或直接在实体上操作业务逻辑.这看起来像下面这样:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Controller</span></div><div class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/users"</span>)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserController</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">final</span> UserRepository userRepository;</div><div class="line">  </div><div class="line">  <span class="meta">@Autowired</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="title">UserController</span><span class="params">(UserRepository userRepository)</span> </span>&#123;</div><div class="line">    Assert.notNull(repository, <span class="string">"Repository must not be null!"</span>);</div><div class="line">    <span class="keyword">this</span>.userRepository = userRepository;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="meta">@RequestMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">showUserForm</span><span class="params">(@PathVariable(<span class="string">"id"</span>)</span> Long id, Model model) </span>&#123;</div><div class="line">    <span class="comment">// Do null check for id</span></div><div class="line">    User user = userRepository.findOne(id);</div><div class="line">    <span class="comment">// Do null check for user</span></div><div class="line">    model.addAttribute(<span class="string">"user"</span>, user);</div><div class="line">    <span class="keyword">return</span> <span class="string">"user"</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>首先你为每个控制器定义一个依赖的仓库来查找它们分别管理的实体.查询实体也是样板,因为它总是一个<code>findOne(...)</code>调用.幸运的Spring提供了方法来注册自定义组件,允许一个String值转换到一个属性类型.</p>
+<p><strong>属性编辑</strong></p>
+<p>Spring3.0之前Java<code>PropertyEditors</code>被使用.为了集成这些,Spring Data提出一个<code>DomainClassPropertyEditorRegistrar</code>来查询所有注册到<code>ApplicatonContext</code>的Spring Data仓库和一个定制的<code>PropertyEditor</code>来管理实体类.</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"….web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"webBindingInitializer"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"….web.bind.support.ConfigurableWebBindingInitializer"</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"propertyEditorRegistrars"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=</span></div><div class="line">          <span class="string">"org.springframework.data.repository.support.DomainClassPropertyEditorRegistrar"</span> /&gt;</div><div class="line">      <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>如果你已经像上面这样配置Spring MVC,你可以向下面这样配置你的控制器,从而减少不清晰和样板式的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Controller</span></div><div class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/users"</span>)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserController</span> </span>&#123;</div><div class="line">  <span class="meta">@RequestMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">showUserForm</span><span class="params">(@PathVariable(<span class="string">"id"</span>)</span> User user, Model model) </span>&#123;</div><div class="line">    model.addAttribute(<span class="string">"user"</span>, user);</div><div class="line">    <span class="keyword">return</span> <span class="string">"userForm"</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/翻译/" rel="tag">#翻译</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/10/IoC容器的简单实现/" rel="next" title="IoC容器的简单实现">
+                <i class="fa fa-chevron-left"></i> IoC容器的简单实现
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/30/二零一六年度总结/" rel="prev" title="2026's Summary">
+                2026's Summary <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  <p>热评文章</p>
+  <div class="ds-top-threads" data-range="weekly" data-num-items="4"></div>
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/11/27/【翻译】SpringData官方文档第四章/"
+           data-title="【翻译】SpringData官方文档第四章" data-url="https://zhanghtk.github.io/2016/11/27/【翻译】SpringData官方文档第四章/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">14</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第四章-使用Spring-Data-Repositories"><span class="nav-number">1.</span> <span class="nav-text">第四章 使用Spring Data Repositories</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-核心概念"><span class="nav-number">1.1.</span> <span class="nav-text">4.1 核心概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-查询方法"><span class="nav-number">1.2.</span> <span class="nav-text">4.2 查询方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-定义repository接口"><span class="nav-number">1.3.</span> <span class="nav-text">4.3 定义repository接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-1-小巧repository定义"><span class="nav-number">1.3.1.</span> <span class="nav-text">4.3.1 小巧repository定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-2-在多个Spring-Data模块使用Repositories"><span class="nav-number">1.3.2.</span> <span class="nav-text">4.3.2 在多个Spring Data模块使用Repositories</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-Defining-query-methods"><span class="nav-number">1.4.</span> <span class="nav-text">4.4 Defining query methods</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-定义查询方法"><span class="nav-number">1.5.</span> <span class="nav-text">4.4 定义查询方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-1-Query-lookup-strategies"><span class="nav-number">1.5.1.</span> <span class="nav-text">4.4.1 Query lookup strategies</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-2-查询创建"><span class="nav-number">1.5.2.</span> <span class="nav-text">4.4.2 查询创建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-3-属性表达式"><span class="nav-number">1.5.3.</span> <span class="nav-text">4.4.3 属性表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-4-特殊参数处理"><span class="nav-number">1.5.4.</span> <span class="nav-text">4.4.4 特殊参数处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-5-限制查询结果"><span class="nav-number">1.5.5.</span> <span class="nav-text">4.4.5 限制查询结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-6-流式处理结果"><span class="nav-number">1.5.6.</span> <span class="nav-text">4.4.6 流式处理结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-7-异步查询结果"><span class="nav-number">1.5.7.</span> <span class="nav-text">4.4.7 异步查询结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建repository实例"><span class="nav-number">1.6.</span> <span class="nav-text">创建repository实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-1-XML配置"><span class="nav-number">1.6.1.</span> <span class="nav-text">4.5.1 XML配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-2-JavaConfig"><span class="nav-number">1.6.2.</span> <span class="nav-text">4.5.2 JavaConfig</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-3-单独使用"><span class="nav-number">1.6.3.</span> <span class="nav-text">4.5.3 单独使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-6-定制Spring-Data仓库实现"><span class="nav-number">1.7.</span> <span class="nav-text">4.6 定制Spring Data仓库实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-1-为单独仓库添加定制行为"><span class="nav-number">1.7.1.</span> <span class="nav-text">4.6.1 为单独仓库添加定制行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-2为所有仓库添加定制行为"><span class="nav-number">1.7.2.</span> <span class="nav-text">4.6.2为所有仓库添加定制行为</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-7-Spring-Data扩展"><span class="nav-number">1.8.</span> <span class="nav-text">4.7 Spring Data扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-7-1-Querydsl扩展"><span class="nav-number">1.8.1.</span> <span class="nav-text">4.7.1 Querydsl扩展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-7-2-Web支持"><span class="nav-number">1.8.2.</span> <span class="nav-text">4.7.2 Web支持</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-7-3-仓库填充"><span class="nav-number">1.8.3.</span> <span class="nav-text">4.7.3 仓库填充</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-7-4-遗留web支持"><span class="nav-number">1.8.4.</span> <span class="nav-text">4.7.4 遗留web支持</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"zhanghtk"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
