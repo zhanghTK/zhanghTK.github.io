@@ -1,0 +1,640 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  
+  
+    
+    <entry>
+      <title><![CDATA[Test]]></title>
+      <url>https://zhanghtk.github.io/2017/01/07/Test/</url>
+      <content type="html"><![CDATA[<p>TEST CI.</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[使用CI发布Hexo]]></title>
+      <url>https://zhanghtk.github.io/2017/01/07/%E4%BD%BF%E7%94%A8CI%E5%8F%91%E5%B8%83Hexo/</url>
+      <content type="html"><![CDATA[<p>测试使用CI发布Hexo</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title></title>
+      <url>https://zhanghtk.github.io/2017/01/07/%E7%BC%96%E8%AF%91%E5%99%A8%E7%BB%93%E6%9E%84/</url>
+      <content type="html"><![CDATA[<p>什么是编译器</p>
+<p>编译器是一个程序</p>
+<p>核心功能:源程序代码翻译成目标代码</p>
+<p>解释器:也是处理程序的一种程序</p>
+<p>编译器输出可执行程序:离线</p>
+<p>解释器输出结果:在线</p>
+<p>第一个编译器:Fortran语言编译器1954~1957</p>
+<p>影响:</p>
+<p>理论上:形式语言,自动机,文法,语法执导的翻译</p>
+<p>实践上:算法,数据结构</p>
+<p>编译器架构</p>
+<h1 id="编译器结构"><a href="#编译器结构" class="headerlink" title="编译器结构"></a>编译器结构</h1><p>编译器具有非常模块化的高层结构</p>
+<p>内部结构:</p>
+<ul>
+<li>前端:输入相关部分,语言,语法规则,约束等<ul>
+<li>词法</li>
+<li>语法</li>
+</ul>
+</li>
+<li>后端:目标机器指令集,前端约束到指令集的映射等<ul>
+<li>指令生成</li>
+<li>指令优化</li>
+</ul>
+</li>
+</ul>
+<p>可以看成多个阶段构成的”流水线”结构(串行结构)</p>
+<p>没有优化的编译器结构(所有阶段与符号表关联)</p>
+<p>字符序列</p>
+<p>​    词法分析</p>
+<p>记号序列</p>
+<p>​    语法分析</p>
+<p>抽象语法树</p>
+<p>​    语法分析</p>
+<p>中间代码</p>
+<p>​    目标代码</p>
+<p>目标代码</p>
+<p>编译器由多个阶段组成,每个阶段处理不同问题(使用不同理论,数据结构,算法)</p>
+<p>如何划分</p>
+<ul>
+<li>接口清晰</li>
+<li>易于维护,实现</li>
+</ul>
+<p>例子:</p>
+<p>源语言:加法表达式语言Sum,两种语法形式:</p>
+<ul>
+<li>整数数字n</li>
+<li>加法e1+e2</li>
+</ul>
+<p>目标机器:栈式计算机Stack</p>
+<p>两条指令:</p>
+<ul>
+<li>push n</li>
+<li>add</li>
+</ul>
+<p>编译1+2+3到栈式计算机上</p>
+<p>前端:语法分析产生:抽象语法树(AST)</p>
+<p>后端:树的后端遍历 n:push + :add</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">push 1</div><div class="line">push 2</div><div class="line">add </div><div class="line">push 3</div><div class="line">add</div></pre></td></tr></table></figure>
+<p>增加一个代码优化阶段:</p>
+<h1 id="词法分析"><a href="#词法分析" class="headerlink" title="词法分析"></a>词法分析</h1><p>阶段划分:</p>
+<p>源程序-&gt;前端-&gt;中间表示-&gt;后端-&gt;目标程序</p>
+<p>前端:</p>
+<p>源程序-&gt;词法分析-&gt;<code>记号</code>-&gt;语法分析器-&gt;<code>抽象语法树</code>-&gt;语义分析器-&gt;中间表示</p>
+<p>例子</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">if (x &gt; 5)</div><div class="line">  y = &quot;hello&quot;;</div><div class="line">else</div><div class="line">  z = 1;</div></pre></td></tr></table></figure>
+<p>隐含的换行符,文件结束标示符</p>
+<p>处理后:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">IF LPAREN INDENT(x) GT INT(5) RPAREN</div><div class="line">   IDENT(y) ASSIGN STRING(&quot;hello&quot;) SEMICOLON</div><div class="line">ELSE</div><div class="line">   IDENT(z) ASSIGN INT(1) SEMICOLON EOD</div></pre></td></tr></table></figure>
+<p>LPAREN-&gt;单词,记号</p>
+<p>词法分析任务:字符流到单词流的切分</p>
+<ol>
+<li><p>记号的数据结构定义</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">enum kind &#123;IF, LPAREN, ID, INTLIT,...&#125;  // 枚举类型</div><div class="line">struct token &#123;</div><div class="line">  enum kind k;</div><div class="line">  char *lexeme;  // 所识别单词具体的值</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>if(x&gt;5)转化:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">token&#123;k=IF,LEXEM = 0&#125;;</div><div class="line">token&#123;k=lp,LEXEM = 0&#125;;</div><div class="line">token&#123;k=ID,LEXEM = &quot;x&quot;&#125;;</div><div class="line">...</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>词法分析实现方法:</p>
+<ol>
+<li>手工编码实现法<ol>
+<li>复杂,容易出错</li>
+<li>可控性比较好</li>
+<li>流行的方式:GCC,LLVM</li>
+</ol>
+</li>
+<li>词法分析器的生成器<ol>
+<li>可快速原型,代码量较少</li>
+<li>但较难控制细节</li>
+</ol>
+</li>
+</ol>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[IoC容器的简单实现]]></title>
+      <url>https://zhanghtk.github.io/2016/11/10/IoC%E5%AE%B9%E5%99%A8%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/</url>
+      <content type="html"><![CDATA[<p>记录临摹一个IoC容器的过程，使用对象容器进行控制反转，将对象间依赖关系的管理交给容器。</p>
+<p>代码在<a href="https://github.com/zhanghTK/HelloIoC" target="_blank" rel="external">这里</a>，API参照了Spring IoC部分，实现的具体过程参照了<a href="https://github.com/code4craft/tiny-spring" target="_blank" rel="external">tiny-spring</a>和<a href="https://github.com/kevinlynx/ioc-sample" target="_blank" rel="external">ioc-sample</a>。先看看如何使用：</p>
+<h1 id="像Spring一样用"><a href="#像Spring一样用" class="headerlink" title="像Spring一样用"></a>像Spring一样用</h1><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">beans</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">name</span>=<span class="string">"helloWorldOutputService"</span></span></div><div class="line">          <span class="attr">class</span>=<span class="string">"tk.zhangh.ioc.beans.HelloWorldOutputServiceImpl"</span>&gt;</div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">value</span>=<span class="string">"helloWorld"</span>/&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"outputService"</span> <span class="attr">ref</span>=<span class="string">"outputService"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register_get_bean_by_ClassPathXmlApplicationContextTest</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    ApplicationContext applicationContext = <span class="keyword">new</span></div><div class="line">      ClassPathXmlApplicationContext(<span class="string">"ioc.xml"</span>);</div><div class="line">    HelloWorldService helloWorldService = (HelloWorldService)</div><div class="line">      applicationContext.getBean(<span class="string">"helloWorldOutputService"</span>);</div><div class="line">    helloWorldService.sayHello();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<p>整个开发过程是这样的：</p>
+<h1 id="自下而上"><a href="#自下而上" class="headerlink" title="自下而上"></a>自下而上</h1><p>大体的开发步骤以及思路参照了<a href="https://github.com/code4craft/tiny-spring" target="_blank" rel="external">tiny-spring</a>，实现步骤可以简述为：</p>
+<h2 id="1-全手动式的Bean容器"><a href="#1-全手动式的Bean容器" class="headerlink" title="1.全手动式的Bean容器"></a>1.全手动式的Bean容器</h2><p>做容器的最重要的就是存取，针对bean容器就是bean信息的保存（注册）和bean实例的获取。</p>
+<ul>
+<li><p>bean信息注册</p>
+<p>bean的基本信息包括：bean的名称、bean实例、bean的Class信息，bean的属性信息，把这些基本信息封装成了<code>BeanDefinition</code>。</p>
+<p>以<code>key(beanName)=&gt;value(BeanDefinition)</code>的键值对就可以完成注册的功能</p>
+</li>
+<li><p>bean实例获取</p>
+<p>从bean信息到bean实例中间还有一条鸿沟：怎么实例化bean。</p>
+<p>为了方便实现，在初始化<code>BeanDefinition</code>实例的时候也对bean进行了初始化。</p>
+</li>
+</ul>
+<p>站在客户端角度，怎么注册bean并不重要，因此bean容器接口只声明获取bena的方法。</p>
+<p>在<code>BeanDefinition</code>中实例化bean带来一个严重问题：bean实例的创建不受容器控制的。</p>
+<h2 id="2-定制Bean的实例化过程"><a href="#2-定制Bean的实例化过程" class="headerlink" title="2. 定制Bean的实例化过程"></a>2. 定制Bean的实例化过程</h2><p>针对上面的问题，<code>AbstractBeanFactory</code>抽象出实例化bean方法，并在<code>AutowireCapableBeanFactory</code>提供基板实现。在<code>BeanDefinition</code>中并不需要再实例化了（代码实现到这一步时没有修改,bug）。</p>
+<p>新的<code>AutowireCapableBeanFactory</code>已经可以做到：</p>
+<ol>
+<li>注册保存<code>BeanDefinition</code></li>
+<li>在注册时实例化bean</li>
+<li>提供bean实例的获取</li>
+</ol>
+<p>现在，bean的实例化是受控于容器的。</p>
+<p>但是初始化的时机不够灵活，整个生命周期只有在注册时刻有唯一一次初始化。</p>
+<p>这样会影响bean实例属性的初始化，先看基本属性：</p>
+<h2 id="3-支持基本属性依赖"><a href="#3-支持基本属性依赖" class="headerlink" title="3. 支持基本属性依赖"></a>3. 支持基本属性依赖</h2><p>对基本属性支持比较简单，整个过程完全由容器控制：</p>
+<ol>
+<li>根据<code>BeanDefinition</code>获取bean相关的属性信息</li>
+<li>创建对应的属性对象</li>
+<li>使用反射注入属性</li>
+</ol>
+<p>在bean实例构造完成后就对属性注入，但是现有的方案并不能支持bean属性的注入：</p>
+<ol>
+<li>属性bean从哪里来</li>
+<li>bean属性本身依赖其他bean呢？如果存在循环依赖呢？</li>
+</ol>
+<h2 id="4-使用资源文件配置"><a href="#4-使用资源文件配置" class="headerlink" title="4. 使用资源文件配置"></a>4. 使用资源文件配置</h2><p>解决bean属性问题前，先完成支持资源文件的管理。</p>
+<ol>
+<li>创建资源文件表示类，以及资源加载类</li>
+<li>创建信息读取接口，抽象类，以及具体的XML配置读取策略类</li>
+</ol>
+<p>添加对资源文件配置支持后，整个bean容器的过程为：</p>
+<ol>
+<li>读取加载配置文件信息</li>
+<li>创建beanfactory</li>
+<li>注册保存bean信息<ol>
+<li>创建bean实例</li>
+<li>设置bean实例的属性</li>
+</ol>
+</li>
+</ol>
+<p>支持资源文件配置后原来需要硬编码的bean信息可以以配置文件的形式展示。</p>
+<p>但是，bean的实例构造时机、属性注入的时机没有改变，所以依赖存在对bean属性的支持问题。</p>
+<h2 id="5-支持bean属性依赖"><a href="#5-支持bean属性依赖" class="headerlink" title="5. 支持bean属性依赖"></a>5. 支持bean属性依赖</h2><p>前面碰到的两个问题：</p>
+<ol>
+<li>属性bean从哪里来</li>
+<li>bean属性本身依赖其他bean呢？如果存在循环依赖呢？</li>
+</ol>
+<p>属性bean也是bean，所以应该从工厂获取，循环依赖问题在Spring里是通过延迟实例化解决。</p>
+<p>所以问题变成了怎么调整bean实例构造时机，让这个过程延迟，发生在所有bean注册完成后。</p>
+<p>调整：在注册时只保存<code>BeanDefinition</code>，不对bena进行实例化。</p>
+<p>所有bean的实例化延迟到第一次获取bean实例时再进行：</p>
+<ol>
+<li>先创建bean实例</li>
+<li>遍历所有属性，基本属性直接注入，如果是其他bean引用重复以上过程。</li>
+</ol>
+<h2 id="6-进一步简化"><a href="#6-进一步简化" class="headerlink" title="6. 进一步简化"></a>6. 进一步简化</h2><p>回头看现在的客户端使用：</p>
+<ol>
+<li>加载资源</li>
+<li>解析资源</li>
+<li>创建beanFactory</li>
+<li>注册bean</li>
+<li>获取bean</li>
+</ol>
+<p>前四步实际是beanFactory的生命周期内容，客户端不关心这些细节，只要提供配置文件就可以。</p>
+<p>所以使用<code>ApplicationContext</code>接口对外暴露获取bean的方法。</p>
+<p>bean加载，解析，存取功能分别委托给：<code>BeanDefinitionReader</code>， <code>AbstractBeanFactory</code>。</p>
+<p>整个Bean容器生命周期细节都可以封装起来，对外提供简单调用。</p>
+<p>至此，一个简单的IoC容器就完成了</p>
+<hr>
+<h1 id="自上而下"><a href="#自上而下" class="headerlink" title="自上而下"></a>自上而下</h1><p>俯视这个IoC容器，基本的生命周期活动包括了：</p>
+<ol>
+<li>资源加载</li>
+<li>资源解析</li>
+<li>bean factory创建</li>
+<li>bean注册</li>
+<li>创建bean实例</li>
+<li>bean获取</li>
+</ol>
+<p>所有的步骤都是以接口或抽象方法的形式提供或者是多态留白，具体的实现都交由子类实现。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">步骤</th>
+<th style="text-align:center">抽象方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">资源加载</td>
+<td style="text-align:center">Resources.getInputStream()</td>
+</tr>
+<tr>
+<td style="text-align:center">资源解析</td>
+<td style="text-align:center">BeanDefinitionReader.loadBeanDefinitions(String)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean factory创建</td>
+<td style="text-align:center">this.beanFactory = beanFactory</td>
+</tr>
+<tr>
+<td style="text-align:center">bean注册</td>
+<td style="text-align:center">AbstractBeanFactory.registerBeanDefinition(String, BeanDefinition)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean实例化</td>
+<td style="text-align:center">AbstractBeanFactory.doCreateBean(BeanDefinition)</td>
+</tr>
+<tr>
+<td style="text-align:center">bean获取</td>
+<td style="text-align:center">BeanFactory.getBean(String)</td>
+</tr>
+</tbody>
+</table>
+<p>各个模块的耦合以接口留白的形式而非具体实现类为扩展带来了极大的灵活。</p>
+<p>在实现的时候并没有考虑这些，但实现完成后发现接口带来的灵活极大的方便了修改和扩展。</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[HTTPS小记]]></title>
+      <url>https://zhanghtk.github.io/2016/10/24/HTTPS%E5%B0%8F%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近好像跟HTTPS较上劲了，前几天的职级答辩问到了相关问题，最近维护的系统升级也碰到相关问题。</p>
+<p>自己对HTTPS了解的并不多，今天简单了解了一下，在此做个记录。</p>
+<p>首先有几个基本概念，TCP/IP协议，HTTP一些，对称/非对称加密，证书，公钥/私钥。</p>
+<p>TCP/TP：</p>
+<ul>
+<li>传输层协议，主要解决数据如何在网络中传输</li>
+</ul>
+<p>HTTP：</p>
+<ul>
+<li>应用层协议，主要解决如何包装数据，依赖TCP/IP协议</li>
+</ul>
+<p>对称加密：</p>
+<ul>
+<li>加密密钥能够从解密密钥中推算出来，同时解密密钥也可以从加密密钥中推算出来</li>
+</ul>
+<p>非对称加密：</p>
+<ul>
+<li>加密和解密过程使用了不同的密钥。分为公钥和私钥，它们可以互相解密。</li>
+<li>公钥加密，私钥解密</li>
+<li>私钥数字签名，公钥验证</li>
+</ul>
+<p>证书：</p>
+<ul>
+<li>我理解主要是两个作用：验证证书持有者身份、提供证书持有者公钥</li>
+</ul>
+<h2 id="为什么用HTTPS"><a href="#为什么用HTTPS" class="headerlink" title="为什么用HTTPS"></a>为什么用HTTPS</h2><p>因为HTTP不安全。</p>
+<ol>
+<li>HTTP使用的是明文传输，容易被窃取</li>
+<li>无法验证报文完整性，可能被篡改</li>
+<li>无法验证通信双方的身份</li>
+</ol>
+<p>为了对HTTP提供安全保障，就依赖：</p>
+<h3 id="SSL与TLS"><a href="#SSL与TLS" class="headerlink" title="SSL与TLS"></a>SSL与TLS</h3><p>SSL（Secure Socket Layer，安全套接字层）</p>
+<p>TLS（Transport Layer Security，传输层安全协议）</p>
+<p>TLS可以理解为SSL的增强版。</p>
+<p>HTTP直接与TCP通信，而在HTTPS中首先与SSL通信，SSL再与TCP通信。我觉得可以理解成HTTPS = HTTP + SSL。</p>
+<p>不论HTTP还是HTTPS，所有的通信、加解密都是最终都是建立在TCP/IP之上的。</p>
+<h2 id="加密思路"><a href="#加密思路" class="headerlink" title="加密思路"></a>加密思路</h2><ol>
+<li>客户端向服务器端索要并验证公钥；</li>
+<li>双方协商生成”对话密钥”；</li>
+<li>双方采用”对话密钥”进行加密通信；</li>
+</ol>
+<p>在通信过程中其实双方使用的还是对称的加密算法，但是为了让这个对称的加密算法足够安全。首先使用非对称的算法来获取对话密钥，之后再用对话密钥来对通信的内容加密解密。</p>
+<p>所以关键问题就变成了：</p>
+<h2 id="对话密钥的创建"><a href="#对话密钥的创建" class="headerlink" title="对话密钥的创建"></a>对话密钥的创建</h2><p>我没有仔细阅读相关协议，在网上查了一些资料，下面的内容是根据自己的理解写的。</p>
+<p>简单描述一次对话密钥的获取过程：</p>
+<blockquote>
+<p>C：我想跟服务器A说悄悄话，我支持1,2,3版本的协议。我先跟你说个秘密X。</p>
+<p>S：我是服务器A。我们用3版本的协议说话吧，我也给你说个秘密Y。我再给你个公钥，使用它加密后的信息就只有我能听懂了。</p>
+<p>C：让我先看看你是不是服务器A。（确认是服务器A）那我再给你说个秘密Z，这次用你给我的公钥对Z加密，确保其他人都不知道。以后我们用X,Y,Z这三个秘密来验证彼此的消息。我要跟你确认的就这些。</p>
+<p>S：好的，以后我们用X,Y,Z这三个秘密来验证彼此的消息。我要确认的也就这些内容。网上把上面四个步骤描述</p>
+</blockquote>
+<p>网上把上述的四个步骤描述为：</p>
+<ul>
+<li>客户端发出请求<ul>
+<li>支持的协议版本，比如TLS 1.0版</li>
+<li>一个随机数</li>
+<li>支持的加密方法，比如RSA公钥加密</li>
+<li>支持的压缩方法</li>
+</ul>
+</li>
+<li>服务器回应<ul>
+<li>协议的版本</li>
+<li>加密的算法</li>
+<li>生成随机数</li>
+<li>服务器证书</li>
+</ul>
+</li>
+<li>客户端回应<ul>
+<li>对服务器下发的证书进行验证</li>
+<li>再次产生一个随机数（第三个随机数）</li>
+<li>使用服务器证书中的公钥进行加密</li>
+<li>发送编码改变的消息</li>
+<li>发送整个前面所有消息的hash值</li>
+<li>根据三个随机数生成对话密钥</li>
+</ul>
+</li>
+<li>服务器最终回应<ul>
+<li>使用私钥解密接收到第三个随机数</li>
+<li>验证数据完整性</li>
+<li>使用跟客户端同样的方式生成对话密钥</li>
+<li>告知客户端已经切换到协商过的加密套件状态</li>
+<li>服务端发送消息验证加解密是否成功</li>
+</ul>
+</li>
+</ul>
+<p>如果服务器需要对客户端的身份进行认证，那么在第一次服务器回应中可以向客户端索取证书。客户端提供证书后，服务器通过验证客户端证书，从而验证客户端的身份。</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[自下而上的开发实践]]></title>
+      <url>https://zhanghtk.github.io/2016/10/22/%E8%87%AA%E4%B8%8B%E8%80%8C%E4%B8%8A%E7%9A%84%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/</url>
+      <content type="html"><![CDATA[<h2 id="两种开发思路"><a href="#两种开发思路" class="headerlink" title="两种开发思路"></a>两种开发思路</h2><p><strong>自上而下</strong>：设计先行，根据设计开发</p>
+<p><strong>自下而上</strong>：开发先行，给予开发重构</p>
+<h2 id="关注点分离"><a href="#关注点分离" class="headerlink" title="关注点分离"></a>关注点分离</h2><p>类似于文章段落的划分，代码拆分的简单过程可以概括为：</p>
+<ul>
+<li>分行<ul>
+<li>方法真实逻辑与业务支撑逻辑的划分</li>
+<li>基于模块层次的划分，而不是语句行数的划分</li>
+</ul>
+</li>
+<li>注释<ul>
+<li>良好命名要胜过写大量的注释</li>
+</ul>
+</li>
+<li>抽象提取方法<ul>
+<li>合理封装</li>
+<li>参数内联</li>
+<li>方法名、可访问性</li>
+</ul>
+</li>
+<li>删除不必要的分行与注释</li>
+</ul>
+<h2 id="共性与可变性分析"><a href="#共性与可变性分析" class="headerlink" title="共性与可变性分析"></a>共性与可变性分析</h2><p>软件工程的两个敌人：</p>
+<ul>
+<li>共性：开发成本、维护成本 </li>
+<li>可变性：维护成本</li>
+</ul>
+<p>共性的复用两种模式：</p>
+<ul>
+<li>继承<ul>
+<li>强耦合关系，父类的修改影响所有子类</li>
+<li>单继承限制</li>
+<li>多态</li>
+<li>差异式编程</li>
+<li>钩子方法</li>
+</ul>
+</li>
+<li>组合<ul>
+<li>优先使用</li>
+<li>依赖注入</li>
+<li>优先组合接口而非实现<ul>
+<li>控制翻转</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h2><p>context+role+collaborator</p>
+<p>好处：类型确定，但实现可变、不确定</p>
+<p>类与接口的关系类似于人与角色的关系：</p>
+<ul>
+<li>人可以有多个角色，类可以有多个接口</li>
+<li>人的某一个角色的确定是由环境决定的，类某一接口的确定是由上下文环境决定的</li>
+</ul>
+<p>接口设计应当遵循的原则：<strong>接口隔离原则（SIP）</strong></p>
+<p>接口应该是干净的，单一的，细粒度的，而不是混合过多的方法，职责单一</p>
+<h2 id="扩展式设计的一般过程："><a href="#扩展式设计的一般过程：" class="headerlink" title="扩展式设计的一般过程："></a>扩展式设计的一般过程：</h2><ol>
+<li>分离职责各司其职：关注点分离<ul>
+<li>向上分离：继承</li>
+<li>向外分离：组合</li>
+</ul>
+</li>
+<li>统一接口：<ul>
+<li>提炼接口，提供多态</li>
+<li>面向接口编程</li>
+</ul>
+</li>
+<li>引用接口预留空白<ul>
+<li>依赖注入</li>
+</ul>
+</li>
+</ol>
+<p>以一个事务为例子展示扩展式设计的一般过程：</p>
+<p>首先，有一个Service，在方法中业务逻辑与JDBC事务粘合在一起：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderService</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> DatabasePool dbPool;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribTrainings</span><span class="params">(List&lt;Training&gt; trainings, </span></span></div><div class="line">                                  Customer customer) <span class="keyword">throws</span> SQLException &#123;</div><div class="line">        <span class="comment">// 初始化方法</span></div><div class="line">      	Connection c = <span class="keyword">null</span>;</div><div class="line">        PreparedStatement ps = <span class="keyword">null</span>;</div><div class="line">        Statement s = <span class="keyword">null</span>;</div><div class="line">        ResultSet rs = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">boolean</span> transactionState = <span class="keyword">false</span>;</div><div class="line">      </div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          	<span class="comment">// 开启事务 </span></div><div class="line">            s = c.createStatement();</div><div class="line">            transactionState = c.getAutoCommit();</div><div class="line">            c.setAutoCommit(<span class="keyword">false</span>);</div><div class="line">          </div><div class="line">          	<span class="comment">// 业务操作</span></div><div class="line">            <span class="keyword">for</span> (Training training : trainings) &#123;</div><div class="line">                addTrainingItem(customer, training);</div><div class="line">            &#125;</div><div class="line">            addOrder(customer, trainings);</div><div class="line">            </div><div class="line">          	<span class="comment">// 提交事务</span></div><div class="line">          	c.commit();</div><div class="line">        &#125; <span class="keyword">catch</span> (SQLException sqlx) &#123;</div><div class="line">          	<span class="comment">// 回滚</span></div><div class="line">            c.rollback();</div><div class="line">          </div><div class="line">            <span class="keyword">throw</span> sqlx;</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">          	<span class="comment">// 关闭操作</span></div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                c.setAutoCommit(transactionState);</div><div class="line">                dbPool.release(c);</div><div class="line">                <span class="keyword">if</span> (s != <span class="keyword">null</span>) s.close();</div><div class="line">                <span class="keyword">if</span> (ps != <span class="keyword">null</span>) ps.close();</div><div class="line">                <span class="keyword">if</span> (rs != <span class="keyword">null</span>) rs.close();</div><div class="line">            &#125; <span class="keyword">catch</span> (SQLException ignored) &#123;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">addOrder</span><span class="params">(Customer customer, List&lt;Training&gt; trainings)</span> </span>&#123;</div><div class="line">	</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">addTrainingItem</span><span class="params">(Customer customer, Training training)</span> </span>&#123;</div><div class="line"></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>第一步在原始代码上分段并添加注释后代码如上所示。对每段代码提取方法，向上抽象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TransactionScope</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> DatabasePool dbPool;</div><div class="line">    <span class="keyword">private</span> Connection connection;</div><div class="line">    <span class="keyword">private</span> PreparedStatement preparedStatement;</div><div class="line">    <span class="keyword">private</span> Statement statement;</div><div class="line">    <span class="keyword">private</span> ResultSet resultSet;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> transactionState;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">using</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">        setup();</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            beginTransaction();</div><div class="line">            <span class="comment">// 留白一个具体的业务的实现:</span></div><div class="line">            <span class="comment">//      1. (模板方法)继承-&gt;钩子方法</span></div><div class="line">            <span class="comment">//      2. (委派)传递一个方法(方法接口)</span></div><div class="line">            commitTransaction();</div><div class="line">        &#125; <span class="keyword">catch</span> (SQLException sqlx) &#123;</div><div class="line">            rollbackTransaction();</div><div class="line">            <span class="keyword">throw</span> sqlx;</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            teardown();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">rollbackTransaction</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">        connection.rollback();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setup</span><span class="params">()</span> </span>&#123;</div><div class="line">        connection = <span class="keyword">null</span>;</div><div class="line">        preparedStatement = <span class="keyword">null</span>;</div><div class="line">        statement = <span class="keyword">null</span>;</div><div class="line">        resultSet = <span class="keyword">null</span>;</div><div class="line">        transactionState = <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">teardown</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            connection.setAutoCommit(transactionState);</div><div class="line">            dbPool.release(connection);</div><div class="line">            <span class="keyword">if</span> (statement != <span class="keyword">null</span>) statement.close();</div><div class="line">            <span class="keyword">if</span> (preparedStatement != <span class="keyword">null</span>) preparedStatement.close();</div><div class="line">            <span class="keyword">if</span> (resultSet != <span class="keyword">null</span>) resultSet.close();</div><div class="line">        &#125; <span class="keyword">catch</span> (SQLException ignored) &#123;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">commitTransaction</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">        connection.commit();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">beginTransaction</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">        statement = connection.createStatement();</div><div class="line">        transactionState = connection.getAutoCommit();</div><div class="line">        connection.setAutoCommit(<span class="keyword">false</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Command</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">execute</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>现在提炼出了一个本地事务的基本控制模板，实现了事务控制与业务逻辑控制基本分离。</p>
+<p>继续提炼事务控制类的接口，用于横向扩展继承使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TransactionScope</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">using</span><span class="params">(Command command)</span> <span class="keyword">throws</span> SQLException</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LocalTransactionScope</span> <span class="keyword">implements</span> <span class="title">TransactionScope</span> </span>&#123;</div><div class="line">  	<span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">using</span><span class="params">(Command action)</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">        setup();</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            beginTransaction();</div><div class="line">            action.execute();  <span class="comment">// 具体的业务逻辑</span></div><div class="line">            commitTransaction();</div><div class="line">        &#125; <span class="keyword">catch</span> (SQLException sqlx) &#123;</div><div class="line">            rollbackTransaction();</div><div class="line">            <span class="keyword">throw</span> sqlx;</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            teardown();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DistructedTransactionScope</span> <span class="keyword">implements</span> <span class="title">TransactionScope</span> </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">using</span><span class="params">(Command command)</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">      </div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>调用方通过接口留白，实现依赖注入：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderService</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> TransactionScope transactionScope;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTransactionScope</span><span class="params">(TransactionScope transactionScope)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.transactionScope = transactionScope;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribTrainings</span><span class="params">(List&lt;Training&gt; trainings, </span></span></div><div class="line">                                  Customer customer) <span class="keyword">throws</span> SQLException &#123;</div><div class="line">        transactionScope.using(() -&gt; &#123;</div><div class="line">                <span class="keyword">for</span> (Training training : trainings) &#123;</div><div class="line">                    addTrainingItem(customer, training);</div><div class="line">                &#125;</div><div class="line">                addOrder(customer, trainings);</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[从依赖实现到依赖行为]]></title>
+      <url>https://zhanghtk.github.io/2016/10/22/%E4%BB%8E%E4%BE%9D%E8%B5%96%E5%AE%9E%E7%8E%B0%E5%88%B0%E4%BE%9D%E8%B5%96%E8%A1%8C%E4%B8%BA/</url>
+      <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>一个报表程序需要初始化报表参数。具体的参数分为三种类型，都实现了<code>Parameter</code>类型，具体的初始化过程由子类实现。</p>
+<p>对报表参数初始化的过程，从对具体实现过程的依赖，依次经历对接口、对数据结构，最终对行为依赖，不断抽象依赖，实现更大程度的复用。</p>
+<h2 id="对实现的依赖"><a href="#对实现的依赖" class="headerlink" title="对实现的依赖"></a>对实现的依赖</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ParameterCollector</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, </span></span></div><div class="line">                                ParameterGraph parameterGraph) &#123;</div><div class="line">        <span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">            <span class="keyword">if</span> (para <span class="keyword">instanceof</span> SimpleParameter) &#123;</div><div class="line">                SimpleParameter simplePara = (SimpleParameter) para;</div><div class="line">                String[] values = request.getParameterValues(para.getName());</div><div class="line">                simplePara.setValue(values);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">if</span> (para <span class="keyword">instanceof</span> ItemParameter) &#123;</div><div class="line">                    ItemParameter itemPara = (ItemParameter) para;</div><div class="line">                    <span class="keyword">for</span> (Item item : itemPara.getItems()) &#123;</div><div class="line">                        String[] values = request.getParameterValues(item.getName());</div><div class="line">                        item.setValues(values);</div><div class="line">                    &#125;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    TableParameter tablePara = (TableParameter) para;</div><div class="line">                    String[] rows =</div><div class="line">                            request.getParameterValues(tablePara.getRowName());</div><div class="line">                    String[] columns =</div><div class="line">                            request.getParameterValues(tablePara.getColumnName());</div><div class="line">                    String[] dataCells =</div><div class="line">                            request.getParameterValues(tablePara.getDataCellName());</div><div class="line"></div><div class="line">                    <span class="keyword">int</span> columnSize = columns.length;</div><div class="line">                    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; rows.length; i++) &#123;</div><div class="line">                        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; columns.length; j++) &#123;</div><div class="line">                            TableParameterElement element = <span class="keyword">new</span> TableParameterElement();</div><div class="line">                            element.setRow(rows[i]);</div><div class="line">                            element.setColumn(columns[j]);</div><div class="line">                            element.setDataCell(dataCells[columnSize * i + j]);</div><div class="line">                            tablePara.addElement(element);</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>坏代码的味道：</p>
+<ol>
+<li>多层次的循环、IF嵌套，如果要在这个层次上加一个期限，那就是大于2。</li>
+<li><code>IF/SWITCH instanceof Class</code>式的样板代码</li>
+</ol>
+<h2 id="对接口的依赖"><a href="#对接口的依赖" class="headerlink" title="对接口的依赖"></a>对接口的依赖</h2><p>多态替换分支语句，重构：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ParameterCollector</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, </span></span></div><div class="line">                                ParameterGraph parameterGraph) &#123;</div><div class="line">        <span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">            para.fillParamter(request);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="对数据结构的依赖"><a href="#对数据结构的依赖" class="headerlink" title="对数据结构的依赖"></a>对数据结构的依赖</h2><p>上面的重构使用多态极大简化了<code>ParameterCollector</code>，同时也让不同实现的<code>Parameter</code>更加容易维护。但是在Parameter的方法中传递了request，这使得Parameter类所在的包也必须依赖ServletHttpRequest。这种包之间不必要的耦合可以使用Map保存需要的键值映射关系，弱化这种依赖关系。</p>
+<p>进一步重构：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ParameterCollector</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, </span></span></div><div class="line">                                ParameterGraph parameterGraph) &#123;</div><div class="line">        Map parmaeters = getParameterMap();           </div><div class="line">        <span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">            para.fillParamter(parmaeters);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>进一步重构后的代码虽然避免了对ServletHttpRequest的依赖，但是无法避免的对Map进行了依赖。</p>
+<p>对类似Map这样具体的数据结构依赖，让人无法清晰知道方法参数含义并不是好的编码风格。</p>
+<h2 id="对行为的依赖"><a href="#对行为的依赖" class="headerlink" title="对行为的依赖"></a>对行为的依赖</h2><p>在回头看最初的代码，与Servlet API强耦合的是这样一句<code>request.getParameterValues(para.getName())</code></p>
+<p>依赖的到底是什么？站在函数式编程的角度，依赖的其实是一种行为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">string -&gt;  request.getParameterValues(string)</div></pre></td></tr></table></figure>
+<p>在Java语法中为了传递一个方法，必须让方法附属在一个接口上，像这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ParamterRequest</span> </span>&#123;</div><div class="line">    String[] getParameterValues(String string);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>为了让ServletHttpRequest与ParamterRequest相关联，必须适配器模式，对象的适配器实现像下面这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">ParameterRequestAdapter</span> <span class="keyword">implements</span> <span class="title">ParamterRequest</span> </span>&#123;</div><div class="line">    ServletHttpRequest servletHttpRequest;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ParameterRequestAdapter</span><span class="params">(ServletHttpRequest servletHttpRequest)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.servletHttpRequest = servletHttpRequest;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="keyword">public</span> String[] getParameterValues(String string) &#123;</div><div class="line">        <span class="keyword">return</span> servletHttpRequest.getParameterValues(string);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>使用上面的适配器再进一步重构：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, ParameterGraph parameterGraph)</span> </span>&#123;</div><div class="line">	<span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">		para.fillParamter(<span class="keyword">new</span> ParameterRequestAdapter(request));</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们还可以使用匿名内部类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, ParameterGraph parameterGraph)</span> </span>&#123;</div><div class="line">  <span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">    para.fillParamter(<span class="keyword">new</span> ParamterRequest() &#123;</div><div class="line">      <span class="meta">@Override</span></div><div class="line">      <span class="keyword">public</span> String[] getParameterValues(String string) &#123;</div><div class="line">        <span class="keyword">return</span> request.getParameterValues(string);</div><div class="line">      &#125;</div><div class="line">    &#125;);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在Java8我们还可以这样写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, ParameterGraph parameterGraph)</span> </span>&#123;</div><div class="line">  <span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">    para.fillParamter(string -&gt;  request.getParameterValues(string));</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>甚至还可以这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fillParameters</span><span class="params">(ServletHttpRequest request, ParameterGraph parameterGraph)</span> </span>&#123;</div><div class="line">  <span class="keyword">for</span> (Parameter para : parameterGraph.getParmaeters()) &#123;</div><div class="line">    para.fillParamter(request::getParameterValues);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>回头看一眼原有大篇幅的方法，再看看多次重构过的代码。</p>
+<p>最明显的感受<code>fillParameters</code>方法比以前薄了：</p>
+<p>不相关的职责从方法中抽取出来放到单独的类维护了（职责单一）</p>
+<p>当有更多参数类型需要添加时<code>fillParameters</code>不需要做任何的修改，只要添加对应类型就好（开闭原则）</p>
+<p>之前对实现类的依赖现在变成了对接口的依赖（依赖倒置）</p>
+<p>重构过程中<code>Parameter</code>从对<code>request</code>的依赖变为对数据结构（Map）的依赖，避免了Parameter所在模块与<code>Servlet API</code>之间的耦合。</p>
+<p>从对数据结构的依赖最后变成了对接口（行为）的依赖，抽象程度进一步提高，可维护性也更好。</p>
+<h2 id="面向对象与函数式编程"><a href="#面向对象与函数式编程" class="headerlink" title="面向对象与函数式编程"></a>面向对象与函数式编程</h2><p>面向对象强调对事物的抽象，强调名词</p>
+<p>函数式编程强调对行为的抽象，强调动词</p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">People</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> List&lt;Person&gt; persons = <span class="keyword">new</span> ArrayList&lt;Person&gt;();</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> List&lt;Person&gt; <span class="title">findByName</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">        List&lt;Person&gt; result = <span class="keyword">new</span> ArrayList&lt;Person&gt;();</div><div class="line">        <span class="keyword">for</span> (Person person : persons) &#123;</div><div class="line">            <span class="keyword">if</span> (person.getName().equals(name)) &#123;</div><div class="line">                result.add(person);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> result;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>例如我们有一个方法findByName，以后可能还需要更多方法例如findByAge，findByGender，findChildren等等方法，所有的方法其实都只有查找的过滤条件不同，可以抽象出函数式的写法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> List&lt;Person&gt; <span class="title">findPersons</span><span class="params">(Predicate&lt;Person&gt; predicate, Person people)</span> </span>&#123;</div><div class="line">  List&lt;Person&gt; result = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">  <span class="keyword">for</span> (Person person : persons) &#123;</div><div class="line">    <span class="keyword">if</span> (predicate.test(people)) &#123;</div><div class="line">      result.add(person);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Java8可以简写成：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> List&lt;Person&gt; <span class="title">findPersons</span><span class="params">(Predicate&lt;Person&gt; predicate, Person people)</span> </span>&#123;</div><div class="line">  <span class="keyword">return</span> persons.stream().filter(predicate).collect(Collectors.toList());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[迪米特法则——合理的封装]]></title>
+      <url>https://zhanghtk.github.io/2016/10/22/%E8%BF%AA%E7%B1%B3%E7%89%B9%E6%B3%95%E5%88%99%E2%80%94%E2%80%94%E5%90%88%E7%90%86%E7%9A%84%E5%B0%81%E8%A3%85/</url>
+      <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>以服务员，客户，钱包为载体，模拟一个付款过程，阐述不恰当的封装行为。</p>
+<p>说明合理封装的一般过程以及不合理封装所表现的一般形式，介绍迪米特法则相关的基本内容，遵循迪米特法则对问题代码进行重构。</p>
+<h2 id="看似没有问题的问题"><a href="#看似没有问题的问题" class="headerlink" title="看似没有问题的问题"></a>看似没有问题的问题</h2><p>先看一个简单代码，分别描述钱包、客户、服务员：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Wallet</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">double</span> value;</div><div class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getTotalMoney</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> value;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTotalMoney</span><span class="params">(<span class="keyword">double</span> newValue)</span> </span>&#123;</div><div class="line">        value = newValue;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addMoney</span><span class="params">(<span class="keyword">double</span> deposit)</span> </span>&#123;</div><div class="line">        value += deposit;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subtractMoney</span><span class="params">(<span class="keyword">double</span> debit)</span> </span>&#123;</div><div class="line">        value -= debit;</div><div class="line">    &#125;</div><div class="line">	<span class="comment">// 省略其它字段，方法</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> Wallet myWallet;</div><div class="line">	<span class="comment">// 省略其它字段，方法</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Paperboy</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> Customer myCustomer;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">(<span class="keyword">double</span> payment)</span> </span>&#123;</div><div class="line">    Wallet theWallet = myCustomer.getWallet();</div><div class="line">    <span class="keyword">if</span> (theWallet.getTotalMoney() &gt; payment) &#123;</div><div class="line">        theWallet.subtractMoney(payment);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">//money not enough</span></div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>一眼看过去，没毛病。几个基本的简单类在Paperboy的pay方法中实现了简单的业务逻辑，但翻译成“人类语言”就有点问题了：</p>
+<p>业务的第一步造作：通过客户获取其钱包。</p>
+<p>等等这样真的好吗?现实生活中仿佛讲不通啊，程序设计中其实违反了迪米特法则。</p>
+<p>听到迪米特法则那一瞬间，我想到的是各种设计模式概念，尴尬的是就是想不起迪米特到底是个啥!</p>
+<h2 id="迪米特法则"><a href="#迪米特法则" class="headerlink" title="迪米特法则"></a>迪米特法则</h2><p>迪米特法则（最小知识法则，强调专注性）：</p>
+<p>任何一个对象或者方法，它应该只能调用下列对象：</p>
+<ul>
+<li>该对象本身和对象的属性</li>
+<li>作为参数传进方法的对象</li>
+<li>在方法内创建的对象</li>
+</ul>
+<p>这下好像清晰多了，其实再通俗一点上面的代码就是违反了<strong>封装</strong>的原则。</p>
+<p><strong>合理的封装分为两步</strong>：</p>
+<ol>
+<li><strong>分辨职责</strong><ol>
+<li>依据：数据与行为应该封装在一起（信息专家模式）</li>
+<li>过程：职责操作哪些数据，数据在哪个（些）类，进而确定职责在哪个类</li>
+</ol>
+</li>
+<li>判别哪些是实现细节，哪些是可以<strong>公开的接口</strong>，以保证对<strong>细节的合理隐藏</strong></li>
+</ol>
+<p><strong>不良封装造成的结果</strong>：Feature Envy（依恋情结）</p>
+<p><strong>不良封装可能的代码样式</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">obj1.obj1_fun().obj2_fun();</div></pre></td></tr></table></figure>
+<p>类似链式的方法调用，但方法返回的是不同对象，这时候的代码很有可能是不良封装，违反迪米特法则了。</p>
+<h2 id="问题的解决"><a href="#问题的解决" class="headerlink" title="问题的解决"></a>问题的解决</h2><p>上面代码良好的封装示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> Wallet myWallet;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">(<span class="keyword">float</span> payment)</span> </span>&#123;</div><div class="line">        Wallet theWallet = myWallet;</div><div class="line">        <span class="keyword">if</span> (theWallet.getTotalMoney() &gt; payment) &#123;</div><div class="line">            theWallet.subtractMoney(payment);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">//money not enough</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Paperboy</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> Customer myCustomer;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">(<span class="keyword">float</span> payment)</span> </span>&#123;</div><div class="line">        myCustomer.pay(payment);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[使用Builder模式改进多参数方法]]></title>
+      <url>https://zhanghtk.github.io/2016/10/16/%E4%BD%BF%E7%94%A8Builder%E6%A8%A1%E5%BC%8F%E6%94%B9%E8%BF%9B%E5%A4%9A%E5%8F%82%E6%95%B0%E6%96%B9%E6%B3%95/</url>
+      <content type="html"><![CDATA[<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>记一次工作当中对多参数方法重构。</p>
+<ol>
+<li>使用对象封装对多参数，简化方法调用</li>
+<li>使用Builder（创建者）模式简化多属性对象的创建</li>
+</ol>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>业务系统中统一的邮件发送服务接口在改造前大概长着个样子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">    * 不帶附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良代码）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line"></div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 带附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    * <span class="doctag">@param</span> docName                       文档名称</div><div class="line">    * <span class="doctag">@param</span> fileName                      文件名称(单个文件)</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons, String docName, String fileName)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 带附件的邮件发送</div><div class="line">    * 未使用建造者模式的原始方法（不良代码）</div><div class="line">    * <span class="doctag">@param</span> template                      模板</div><div class="line">    * <span class="doctag">@param</span> subjects                      主题</div><div class="line">    * <span class="doctag">@param</span> contents                      内容</div><div class="line">    * <span class="doctag">@param</span> toPersons                     收件人</div><div class="line">    * <span class="doctag">@param</span> ccPersons                     抄送人</div><div class="line">    * <span class="doctag">@param</span> bccPersons                    暗送人</div><div class="line">    * <span class="doctag">@param</span> docName                       文档名称</div><div class="line">    * <span class="doctag">@param</span> fileNames                     文件名称(多个文件,文件名称列表)</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(String template, List&lt;String&gt; subjects, List&lt;String&gt; contents, List&lt;String&gt; toPersons,</span></span></div><div class="line">                                 List&lt;String&gt; ccPersons, List&lt;String&gt; bccPersons, String docName, List&lt;String&gt; fileNames)&#123;</div><div class="line">       logger.info(<span class="string">"send email"</span>);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>接口有个重要的内容注释中并没有说明：参数中“模板”和“收件人”是必填的，而其他参数是非必填的。</p>
+<p>接口的可配置程度还是不错的，但是调用的过程就比较痛苦了。</p>
+<p>一大堆String和List接口暴露出来，同时又使用了不同的参数个数来进行重载。</p>
+<p>调用的时候光是创建这些参数就够麻烦的了，还要考虑哪些参数是必填的以及参数的正确位置。更糟糕的是参数传错位置你会发现很有可能并没有显式的暴露出问题，邮件还是发送了只是发送到错误的相关人员那里。</p>
+<p>其他人看到方法调用也无法清晰知道这个到底是要发什么邮件，给哪些人。</p>
+<p>这应该就是坏代码的味道吧。</p>
+<h2 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h2><p>简单的改进思路就是把参数做成一个modle封装起来，以后传递model给方法。就像这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * 邮件发送通用接口</div><div class="line"> * <span class="doctag">@param</span> email 邮件发送参数对象</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(EmailSendMain email)</span></span>&#123;</div><div class="line">	logger.info(<span class="string">"send email:"</span> + email);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>但是问题还是没有根本解决，对象的构造还是需要多个参数的构造方法，可能还需要重载。</p>
+<p>比较容易想到的改进是使用Java Bean模式。简化构造方法字段，构造方法只传入必要的字段，使用setter方法设置其他值。我就是这么肤浅的想到这个地步了。</p>
+<p>乍一看问题是解决了，其实不然。</p>
+<ol>
+<li>在对象创建过程中Java Bean可能处于不一致状态</li>
+<li>使用Java Bean就将不能创建不可变对象</li>
+</ol>
+<p>读了《Effective Java》只是第二章就有了更好的解决思路——Builder模式。</p>
+<p>先看改进后的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * 复杂类型构建接口</div><div class="line"> *</div><div class="line"> * 建造者模式中的抽象构建者</div><div class="line"> * Created by ZhangHao on 2016/10/15.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Builder</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line">    <span class="function">T <span class="title">build</span><span class="params">()</span></span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * 邮件发送参数对象</div><div class="line"> * 包含多个字段的复杂类型，使用内部类实现Builder接口创建对象</div><div class="line"> *</div><div class="line"> * 建造者模式中的产品类</div><div class="line"> * Created by ZhangHao on 2016/10/15.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">EmailSendMain</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String template;  <span class="comment">// 模板名称</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;String&gt; subjects;  <span class="comment">// 主题参数列表</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;String&gt; contents;  <span class="comment">// 内容参数列表</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;String&gt; toPersons;  <span class="comment">// 收件人列表</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;String&gt; ccPersons;  <span class="comment">// 抄送人列表</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;String&gt; bccPersons;  <span class="comment">// 暗送人列表</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String docName;  <span class="comment">// 文档名称</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;String&gt; fileNames;  <span class="comment">// 文件名称列表</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">EmailSendMain</span><span class="params">(Builder builder)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.template = builder.template;</div><div class="line">        <span class="keyword">this</span>.subjects = builder.subjects;</div><div class="line">        <span class="keyword">this</span>.contents = builder.contents;</div><div class="line">        <span class="keyword">this</span>.toPersons = builder.toPersons;</div><div class="line">        <span class="keyword">this</span>.ccPersons = builder.ccPersons;</div><div class="line">        <span class="keyword">this</span>.bccPersons = builder.bccPersons;</div><div class="line">        <span class="keyword">this</span>.docName = builder.docName;</div><div class="line">        <span class="keyword">this</span>.fileNames = builder.fileNames;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 实现Builder接口的构建类，用于创建EmailSendMain</div><div class="line">     *</div><div class="line">     * 建造者模式中的建造类</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> <span class="keyword">implements</span> <span class="title">tk</span>.<span class="title">zhangh</span>.<span class="title">pattern</span>.<span class="title">create</span>.<span class="title">builder</span>.<span class="title">demo1</span>.<span class="title">Builder</span>&lt;<span class="title">EmailSendMain</span>&gt; </span>&#123;</div><div class="line">        <span class="keyword">private</span> String template;  <span class="comment">// 模板名称</span></div><div class="line">        <span class="keyword">private</span> List&lt;String&gt; subjects;  <span class="comment">// 主题参数列表</span></div><div class="line">        <span class="keyword">private</span> List&lt;String&gt; contents;  <span class="comment">// 内容参数列表</span></div><div class="line">        <span class="keyword">private</span> List&lt;String&gt; toPersons;  <span class="comment">// 收件人列表</span></div><div class="line">        <span class="keyword">private</span> List&lt;String&gt; ccPersons;  <span class="comment">// 抄送人列表</span></div><div class="line">        <span class="keyword">private</span> List&lt;String&gt; bccPersons;  <span class="comment">// 暗送人列表</span></div><div class="line">        <span class="keyword">private</span> String docName;  <span class="comment">// 文档名称</span></div><div class="line">        <span class="keyword">private</span> List&lt;String&gt; fileNames;  <span class="comment">// 文件名称列表</span></div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Builder</span><span class="params">(String template, List&lt;String&gt; toPersons)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.template = template;</div><div class="line">            <span class="keyword">this</span>.toPersons = toPersons;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> EmailSendMain <span class="title">build</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> EmailSendMain(<span class="keyword">this</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">subjects</span><span class="params">(List&lt;String&gt; subjects)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.subjects = subjects;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">contents</span><span class="params">(List&lt;String&gt; contents)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.contents = contents;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">ccPersons</span><span class="params">(List&lt;String&gt; ccPersons)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.ccPersons = ccPersons;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">bccPersons</span><span class="params">(List&lt;String&gt; bccPersons)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.bccPersons = bccPersons;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">docName</span><span class="params">(String docName)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.docName = docName;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">fileNames</span><span class="params">(List&lt;String&gt; fileNames)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.fileNames = fileNames;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// getter,toString方法省略</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>重写做的接口方法封装：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * 邮件发送通用接口</div><div class="line"> * <span class="doctag">@param</span> email 邮件发送参数对象</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendEmail</span><span class="params">(EmailSendMain email)</span></span>&#123;</div><div class="line">    logger.info(<span class="string">"send email:"</span> + email);</div><div class="line">    <span class="keyword">if</span> ((email.getDocName() == <span class="keyword">null</span> || email.getDocName().equals(<span class="string">""</span>)) ||</div><div class="line">            (email.getFileNames() == <span class="keyword">null</span> || email.getFileNames().size() == <span class="number">0</span>)) &#123;</div><div class="line">        sendEmail(email.getTemplate(), email.getSubjects(), email.getContents(), email.getToPersons(),</div><div class="line">                email.getCcPersons(), email.getBccPersons());</div><div class="line">    &#125;<span class="keyword">else</span> &#123;</div><div class="line">        sendEmail(email.getTemplate(), email.getSubjects(), email.getContents(), email.getToPersons(),</div><div class="line">                email.getCcPersons(), email.getBccPersons(), email.getDocName(), email.getFileNames());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>客户端调用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testSendEmail</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    EmailSendMain email =</div><div class="line">            <span class="keyword">new</span> EmailSendMain.Builder(<span class="string">"邮件模版名"</span>,toPersons).</div><div class="line">                    subjects(subjects).</div><div class="line">                    contents(contents).</div><div class="line">                    ccPersons(ccPersons).</div><div class="line">                    bccPersons(bccPersons).build();</div><div class="line">    SendEmailUtil.sendEmail(email);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>问题圆满解决，支持可选参数的链式结构调用，创建过程也确保了一致性，使用不可变类也没问题。</p>
+<p>如果说缺点，其实不难看出EmailSendMain的字段和它的内部类Builder字段完全重复了。为了创建EmailSendMain的对象将必须先创建Builder也会带来轻微的性能问题。创建的调用过程虽然看起来更清晰，但也更加冗长。</p>
+<p>但是Builder模式还是创建多参数类的不错选择，尤其是大多数参数是可选。</p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><p>这篇文章的思路是根据《Effective Java》得来的，文章只提到书中建议的第二条，实际关于上面使用到的内部类，泛型，在书中的建议都让我有了更多的认识。我就不赘述了，连上8天班我要去偷懒了。</p>
+<p>写这篇文章的时候看到有个系列专门讲Java方法参数太多的问题</p>
+<p>传送门：<a href="https://dzone.com/articles/too-many-parameters-java" target="_blank" rel="external">https://dzone.com/articles/too-many-parameters-java</a></p>
+<p>以及翻译：<a href="http://www.importnew.com/6518.html" target="_blank" rel="external">http://www.importnew.com/6518.html</a></p>
+<p>代码我放在了学习设计模式的项目下：</p>
+<p>传送门：<a href="https://github.com/zhanghTK/HelloDesignPattern" target="_blank" rel="external">https://github.com/zhanghTK/HelloDesignPattern</a></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[《Java并发编程实战》读书笔记]]></title>
+      <url>https://zhanghtk.github.io/2016/09/29/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<p>右键-&gt;新标签页中打开图片-&gt;放大预览<br><img src="https://ooo.0o0.ooo/2016/09/29/57eca40868441.png" alt="Java并发编程实战.png"></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[ThreadLocal小记]]></title>
+      <url>https://zhanghtk.github.io/2016/09/11/ThreadLocal%E5%B0%8F%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<h1 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h1><p>最近《Java并发编程实战》第三章谈及了对象共享的问题。对共享的可变数据最简单粗暴的做法当然是同步，但是同步的缺点也很明显，代码复杂可维护性降低。针对这个问题，书上谈及到了通过线程封闭避免同步，其中的ThreadLocal类就是帮助维持线程封闭性的。</p>
+<p>之前对ThreadLocal的认识非常简单，就是把一个变量绑定到线程上。参照网上的例子自己也实现了类似功能的例子ThreadLocalVariable(<a href="https://github.com/zhanghTK/HelloJava/blob/master/src/main/java/tk/zhangh/java/thread/ThreadLocalVariable.java)，但总的来说没什么体会。今天参照别人的文章看了一下ThreadLocal的实现，发现还是有蛮多注意点的。" target="_blank" rel="external">https://github.com/zhanghTK/HelloJava/blob/master/src/main/java/tk/zhangh/java/thread/ThreadLocalVariable.java)，但总的来说没什么体会。今天参照别人的文章看了一下ThreadLocal的实现，发现还是有蛮多注意点的。</a></p>
+<p>看JDK之前想当然的以为ThreadLocal应该就是简单对<code>Map&lt;Thread, Object&gt;</code>做一个封装，然而实际并没有这么简单。参照了网上一些文章的说法，早期的ThreadLocal确实是这样实现的。但是这样实现存在一些问题：</p>
+<ol>
+<li>线程安全问题，如果使用线程安全的Map实现那么就会带来性能问题，当有大量的线程使用ThreadLocal，伴随着线程生命周期ThreadLocal也需要频繁向底层的Map添加删除数据。</li>
+<li>内存回收问题，用Thread当key，除非手动调用remove，否则即使线程退出了会导致：1)该Thread对象无法回收；2)该线程在所有ThreadLocal中对应的value也无法回收。</li>
+</ol>
+<p>ThreadLocal实际给出了不同的实现方式。首先绑定到线程的变量没有维护在ThreadLocal内，而是维护在各个Thread类实例内——在Thread类内使用了ThreadLocal的静态内部类<code>ThreadLocalMap</code>实例去维护需要绑定到线程的变量。这样原本需要维护在ThreadLocal内的数据现在就分散到了各个线程内去维护。</p>
+<p>在Thread中ThreadLocalMap的声明长这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 真的就只是声明了一下，什么都没干    </span></div><div class="line">ThreadLocal.ThreadLocalMap threadLocals = <span class="keyword">null</span>;</div></pre></td></tr></table></figure>
+<p>ThreadLocal一共只有五个非私有的方法，首先是两个并没有什么卵用的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 构造，什么都没干</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadLocal</span><span class="params">()</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">// 设置ThreadLocal的初始值，protected很明显是希望子类重写</span></div><div class="line"><span class="function"><span class="keyword">protected</span> T <span class="title">initialValue</span><span class="params">()</span> </span>&#123;<span class="keyword">return</span> <span class="keyword">null</span>&#125;</div></pre></td></tr></table></figure>
+<p>看看其余三个方法的实现（JDK8）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> T <span class="title">get</span><span class="params">()</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread();</div><div class="line">    <span class="comment">// 从线程里获取ThreadLocalMap</span></div><div class="line">    ThreadLocalMap map = getMap(t);</div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="comment">// 根据ThreadLocal实例获取Entity</span></div><div class="line">        <span class="comment">// 一会看ThreadLocal的实现</span></div><div class="line">        <span class="comment">// 暂时可以看做类似Map&lt;ThreadLocal,Object&gt;</span></div><div class="line">        <span class="comment">// 注意key类型是ThreadLocal，不是Thread</span></div><div class="line">        ThreadLocalMap.Entry e = map.getEntry(<span class="keyword">this</span>);</div><div class="line">        <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</div><div class="line">            T result = (T)e.value;</div><div class="line">            <span class="keyword">return</span> result;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 如果获得的map为null或者从map通过key获取的value为空时获取一个初始值</span></div><div class="line">    <span class="comment">// setInitialValue方法里调用了initialValue方法</span></div><div class="line">    <span class="comment">// 宝宝不管，反正宝宝想要有值，宝宝不想为null</span></div><div class="line">    <span class="keyword">return</span> setInitialValue();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(T value)</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread();</div><div class="line">    ThreadLocalMap map = getMap(t);</div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>)</div><div class="line">        <span class="comment">// 没什么说的set进去</span></div><div class="line">        map.set(<span class="keyword">this</span>, value);</div><div class="line">    <span class="keyword">else</span></div><div class="line">        <span class="comment">// 当map不存在时，使用初始值创建一个</span></div><div class="line">        createMap(t, value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">()</span> </span>&#123;</div><div class="line">     ThreadLocalMap m = getMap(Thread.currentThread());</div><div class="line">     <span class="keyword">if</span> (m != <span class="keyword">null</span>)</div><div class="line">         <span class="comment">// 没什么说的，remove掉</span></div><div class="line">         m.remove(<span class="keyword">this</span>);</div><div class="line"> &#125;</div><div class="line"></div><div class="line"><span class="function">ThreadLocalMap <span class="title">getMap</span><span class="params">(Thread t)</span> </span>&#123;</div><div class="line">    <span class="comment">// 你给我一个线程，我换你一个map</span></div><div class="line">    <span class="keyword">return</span> t.threadLocals;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>ThreadLocal所有的操作都是围绕着内部类ThreadLocalMap的，ThreadLocal只是让ThreadLocalMap更加容易访问。咦，有点耳熟，没错外观模式。</p>
+<p>下面看一下ThreadLocal的静态内部类ThreadLocalMap，JDK文档对它的描述主要集中在一下几点：</p>
+<ol>
+<li>是什么：定制的hash map用于维护本地线程变量</li>
+<li>可见性：ThreadLocal之外没有任何方法可访问，Thread类使用它定义了私有属性</li>
+<li>特殊性：为了管理大对象、长生命周期对象，使用WeakReference包装ThreadLocal对象作为key</li>
+</ol>
+<p>前面两点没什么好说的，主要是第三点：key使用了弱引用类型管理（关于弱引用可以先参考<a href="https://github.com/zhanghTK/HelloJava/blob/master/src/main/java/tk/zhangh/java/jvm/reference/ReferenceTest.java，后面我会单独写文章记录Java引用的使用，先挖个坑）。" target="_blank" rel="external">https://github.com/zhanghTK/HelloJava/blob/master/src/main/java/tk/zhangh/java/jvm/reference/ReferenceTest.java，后面我会单独写文章记录Java引用的使用，先挖个坑）。</a></p>
+<p><img src="http://img.blog.csdn.net/20160121000731607" alt="image"></p>
+<p>图片来自互联网，实线表示强引用，虚线表示弱引用。</p>
+<p>简而言之，一个对象在没有强引用引用，只有弱引用引用时，当GC发生这个对象就会被标记回收。将ThreadLocal对象设置成弱引用作为key的好处是显而易见：当ThreadLocal没有任何强引用引用时，只有ThreadLocalMap的Entry对它存在弱引用，这样GC的时候这个ThreadLocal对象就可以被回收了。但是这又带来了一个问题：Entry的key可能被回收了，但留下了一个并没有什么卵用的value。只要线程生命周期不结束，那么这个value对象始终保持了一个强引用链条：</p>
+<p>Thread Ref -&gt; Thread -&gt; ThreadLocalMap -&gt; Entry -&gt; value</p>
+<p>当内存有大量驻留的线程时，因为强引用存在，GC始终无法回收，就导致了内存泄漏。</p>
+<p>真对这个问题ThreadLocalMap在实现的时候也采取了一些防护措施，比如ThreadLocalMap的get（set，remove方法也类似，限于篇幅不展开了）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> Entry <span class="title">getEntry</span><span class="params">(ThreadLocal&lt;?&gt; key)</span> </span>&#123;</div><div class="line">    <span class="comment">// hash函数获取索引位置</span></div><div class="line">    <span class="keyword">int</span> i = key.threadLocalHashCode &amp; (table.length - <span class="number">1</span>);</div><div class="line">    Entry e = table[i];</div><div class="line">    <span class="keyword">if</span> (e != <span class="keyword">null</span> &amp;&amp; e.get() == key)</div><div class="line">        <span class="comment">// 命中了</span></div><div class="line">        <span class="keyword">return</span> e;</div><div class="line">    <span class="keyword">else</span></div><div class="line">        <span class="comment">// miss了</span></div><div class="line">        <span class="keyword">return</span> getEntryAfterMiss(key, i, e);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> Entry <span class="title">getEntryAfterMiss</span><span class="params">(ThreadLocal&lt;?&gt; key, <span class="keyword">int</span> i, Entry e)</span> </span>&#123;</div><div class="line">    Entry[] tab = table;</div><div class="line">    <span class="keyword">int</span> len = tab.length;</div><div class="line">		</div><div class="line">    <span class="comment">// 遍历table</span></div><div class="line">    <span class="keyword">while</span> (e != <span class="keyword">null</span>) &#123;</div><div class="line">        ThreadLocal&lt;?&gt; k = e.get();</div><div class="line">        <span class="keyword">if</span> (k == key)</div><div class="line">            <span class="comment">// 找到了</span></div><div class="line">            <span class="keyword">return</span> e;</div><div class="line">        <span class="keyword">if</span> (k == <span class="keyword">null</span>)</div><div class="line">            <span class="comment">// 发现key为空（也就是上面描述的内存泄漏的情况），做删除</span></div><div class="line">            expungeStaleEntry(i);</div><div class="line">        <span class="keyword">else</span></div><div class="line">            <span class="comment">// 找下一个Entty位置</span></div><div class="line">            i = nextIndex(i, len);</div><div class="line">        e = tab[i];</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在get的过程中凡是碰到了key为null的Entry，这个Entry就会被擦除，从而避免内存泄漏。类似的思路在set，remove方法中都有实现。针对内存泄漏问题ThreadLocal实际是需要手动触发函数删除key为null的Entry，所以当不要再需要一个变量当定到线程时手动的remove还是很有必要的。</p>
+<p>最后，在网上看到对ThreadLocal有多种说法：ThreadLocal为解决多线程程序的并发问题提供了一种新的思路；ThreadLocal的目的是为了解决多线程访问资源时的共享问题。</p>
+<p>关于第一种说法我觉得是部分正确的，ThreadLocal将需要共享的对象封闭在了线程内确实解决了并发的一部分问题，但并不是万能的。比如重写initialValue方法时返回的是一个全局共享的对象，那实际上ThreadLocal只是把这个全局共享的对象又封装到了Thread对象里，ThreadLocal本身并没有做类似深拷贝的操作，因此这个变量依然是线程不安全的（逸出）。</p>
+<p>关于第二种说法，我觉得问题就比较大了。ThreadLocal根本不是为了线程间共享，实际是为了将状态封闭在线程内以确保线程安全。这样做确实带来了访问共享状态的便利，但这个状态的共享是在单个线程内的，而不是线程之间的。比如在action中将session对象绑定在线程内，在service、dao里都可以方便的共享，但所有的共享都是在单个的线程内部，而不是在多个的线程之间共享。</p>
+<p>参考资料：</p>
+<p>《Java并发编程实战》</p>
+<p>JDK8帮助手册</p>
+<p><a href="http://qifuguang.me/2015/09/02/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E4%B8%83]%E8%A7%A3%E5%AF%86ThreadLocal/" target="_blank" rel="external">http://qifuguang.me/2015/09/02/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E4%B8%83]%E8%A7%A3%E5%AF%86ThreadLocal/</a></p>
+<p><a href="http://my.oschina.net/xianggao/blog/392440#navbar-header" target="_blank" rel="external">http://my.oschina.net/xianggao/blog/392440#navbar-header</a></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[《函数式编程思维》读书笔记]]></title>
+      <url>https://zhanghtk.github.io/2016/08/27/%E3%80%8A%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B%E6%80%9D%E7%BB%B4%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<p><img src="http://i2.buimg.com/4851/efe49260863d5566.png" alt="函数式编程思维.png"></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[Java内存区域]]></title>
+      <url>https://zhanghtk.github.io/2016/08/14/Java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/</url>
+      <content type="html"><![CDATA[<p><img src="https://ooo.0o0.ooo/2016/08/14/57b08be587b3a.png" alt="Java内存区域.png"></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[HTML与CSS小记]]></title>
+      <url>https://zhanghtk.github.io/2016/07/31/HTML%E4%B8%8ECSS%E5%B0%8F%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<p><img src="https://ooo.0o0.ooo/2016/07/31/579dd779d1389.png" alt="jjj"></p>
+]]></content>
+    </entry>
+    
+  
+  
+</search>
