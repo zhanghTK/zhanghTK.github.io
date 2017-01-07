@@ -1,19 +1,14 @@
 language: node_js
 node_js: stable
 
-# S: Build Lifecycle
 install:
   - npm install -g hexo
   - npm install -g hexo-cli
   - npm install
 
-#before_script:
- # - npm install -g gulp
-
 script:
   - hexo clean
   - hexo g
-#  - hexo d
 
 after_script:
   - cd ./public
@@ -23,7 +18,6 @@ after_script:
   - git add .
   - git commit -m "Update docs"
   - git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:master
-# E: Build LifeCycle
 
 branches:
   only:
