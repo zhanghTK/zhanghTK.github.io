@@ -4,6 +4,117 @@
   
     
     <entry>
+      <title><![CDATA[Test]]></title>
+      <url>https://zhanghtk.github.io/2017/01/07/Test/</url>
+      <content type="html"><![CDATA[<p>TEST CI.</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[使用CI发布Hexo]]></title>
+      <url>https://zhanghtk.github.io/2017/01/07/%E4%BD%BF%E7%94%A8CI%E5%8F%91%E5%B8%83Hexo/</url>
+      <content type="html"><![CDATA[<p>测试使用CI发布Hexo</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title></title>
+      <url>https://zhanghtk.github.io/2017/01/07/%E7%BC%96%E8%AF%91%E5%99%A8%E7%BB%93%E6%9E%84/</url>
+      <content type="html"><![CDATA[<p>什么是编译器</p>
+<p>编译器是一个程序</p>
+<p>核心功能:源程序代码翻译成目标代码</p>
+<p>解释器:也是处理程序的一种程序</p>
+<p>编译器输出可执行程序:离线</p>
+<p>解释器输出结果:在线</p>
+<p>第一个编译器:Fortran语言编译器1954~1957</p>
+<p>影响:</p>
+<p>理论上:形式语言,自动机,文法,语法执导的翻译</p>
+<p>实践上:算法,数据结构</p>
+<p>编译器架构</p>
+<h1 id="编译器结构"><a href="#编译器结构" class="headerlink" title="编译器结构"></a>编译器结构</h1><p>编译器具有非常模块化的高层结构</p>
+<p>内部结构:</p>
+<ul>
+<li>前端:输入相关部分,语言,语法规则,约束等<ul>
+<li>词法</li>
+<li>语法</li>
+</ul>
+</li>
+<li>后端:目标机器指令集,前端约束到指令集的映射等<ul>
+<li>指令生成</li>
+<li>指令优化</li>
+</ul>
+</li>
+</ul>
+<p>可以看成多个阶段构成的”流水线”结构(串行结构)</p>
+<p>没有优化的编译器结构(所有阶段与符号表关联)</p>
+<p>字符序列</p>
+<p>​    词法分析</p>
+<p>记号序列</p>
+<p>​    语法分析</p>
+<p>抽象语法树</p>
+<p>​    语法分析</p>
+<p>中间代码</p>
+<p>​    目标代码</p>
+<p>目标代码</p>
+<p>编译器由多个阶段组成,每个阶段处理不同问题(使用不同理论,数据结构,算法)</p>
+<p>如何划分</p>
+<ul>
+<li>接口清晰</li>
+<li>易于维护,实现</li>
+</ul>
+<p>例子:</p>
+<p>源语言:加法表达式语言Sum,两种语法形式:</p>
+<ul>
+<li>整数数字n</li>
+<li>加法e1+e2</li>
+</ul>
+<p>目标机器:栈式计算机Stack</p>
+<p>两条指令:</p>
+<ul>
+<li>push n</li>
+<li>add</li>
+</ul>
+<p>编译1+2+3到栈式计算机上</p>
+<p>前端:语法分析产生:抽象语法树(AST)</p>
+<p>后端:树的后端遍历 n:push + :add</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">push 1</div><div class="line">push 2</div><div class="line">add </div><div class="line">push 3</div><div class="line">add</div></pre></td></tr></table></figure>
+<p>增加一个代码优化阶段:</p>
+<h1 id="词法分析"><a href="#词法分析" class="headerlink" title="词法分析"></a>词法分析</h1><p>阶段划分:</p>
+<p>源程序-&gt;前端-&gt;中间表示-&gt;后端-&gt;目标程序</p>
+<p>前端:</p>
+<p>源程序-&gt;词法分析-&gt;<code>记号</code>-&gt;语法分析器-&gt;<code>抽象语法树</code>-&gt;语义分析器-&gt;中间表示</p>
+<p>例子</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">if (x &gt; 5)</div><div class="line">  y = &quot;hello&quot;;</div><div class="line">else</div><div class="line">  z = 1;</div></pre></td></tr></table></figure>
+<p>隐含的换行符,文件结束标示符</p>
+<p>处理后:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">IF LPAREN INDENT(x) GT INT(5) RPAREN</div><div class="line">   IDENT(y) ASSIGN STRING(&quot;hello&quot;) SEMICOLON</div><div class="line">ELSE</div><div class="line">   IDENT(z) ASSIGN INT(1) SEMICOLON EOD</div></pre></td></tr></table></figure>
+<p>LPAREN-&gt;单词,记号</p>
+<p>词法分析任务:字符流到单词流的切分</p>
+<ol>
+<li><p>记号的数据结构定义</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">enum kind &#123;IF, LPAREN, ID, INTLIT,...&#125;  // 枚举类型</div><div class="line">struct token &#123;</div><div class="line">  enum kind k;</div><div class="line">  char *lexeme;  // 所识别单词具体的值</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>if(x&gt;5)转化:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">token&#123;k=IF,LEXEM = 0&#125;;</div><div class="line">token&#123;k=lp,LEXEM = 0&#125;;</div><div class="line">token&#123;k=ID,LEXEM = &quot;x&quot;&#125;;</div><div class="line">...</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>词法分析实现方法:</p>
+<ol>
+<li>手工编码实现法<ol>
+<li>复杂,容易出错</li>
+<li>可控性比较好</li>
+<li>流行的方式:GCC,LLVM</li>
+</ol>
+</li>
+<li>词法分析器的生成器<ol>
+<li>可快速原型,代码量较少</li>
+<li>但较难控制细节</li>
+</ol>
+</li>
+</ol>
+]]></content>
+    </entry>
+    
+    <entry>
       <title><![CDATA[IoC容器的简单实现]]></title>
       <url>https://zhanghtk.github.io/2016/11/10/IoC%E5%AE%B9%E5%99%A8%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/</url>
       <content type="html"><![CDATA[<p>记录临摹一个IoC容器的过程，使用对象容器进行控制反转，将对象间依赖关系的管理交给容器。</p>
