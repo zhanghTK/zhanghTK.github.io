@@ -23,7 +23,7 @@ after_script:
 
 branches:
   only:
-    - blog-source
+    - hexo
 env:
  global:
    - GH_REF: github.com/zhanghTK/zhanghTK.github.io.git
