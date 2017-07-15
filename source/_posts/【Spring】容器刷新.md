@@ -166,7 +166,7 @@ protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 }
 ```
 
-## postProcessBeanFactory
+### postProcessBeanFactory
 
 空实现，由具体子类实现。为子类特殊的 Application Context 实现指定特殊的 bean post 事件处理器
 
@@ -308,7 +308,7 @@ protected void initApplicationEventMulticaster() {
 
 空的模板方法，根据不同的 ApplicationContext 子类实现对应的业务逻辑
 
-## registerListeners
+### registerListeners
 
 ```java
 protected void registerListeners() {

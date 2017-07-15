@@ -140,7 +140,7 @@ Object.wait()/Object.notify()
 
 - wait方法执行后线程会释放持有的锁，直到被他线程notify monitor时重新持有锁
 
-- wait的典型使用场景：Thread.joi
+- wait的典型使用场景：Thread.join
 
   join方法内部的关键实现：
 
