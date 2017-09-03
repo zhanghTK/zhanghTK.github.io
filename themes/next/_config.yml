@@ -238,7 +238,7 @@ mathjax:
 #swiftype_key:
 
 # Baidu Analytics ID
-#baidu_analytics:
+baidu_analytics: 60fcdf041a8b46c0c5c01cfb3f2a2e34
 
 # Duoshuo ShortName
 #duoshuo_shortname:
@@ -265,7 +265,7 @@ mathjax:
 
 
 # Google Analytics
-#google_analytics:
+google_analytics: 105818980-1
 
 # CNZZ count
 #cnzz_siteid:

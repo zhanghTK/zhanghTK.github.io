@@ -75,7 +75,7 @@ deploy:
 
 avatar: /images/avatar.png
 
-baidu_analytics: 0b7dee5a980e8d81300bd60b09b728fa
+# baidu_analytics: 0b7dee5a980e8d81300bd60b09b728fa
 
 # duoshuo_shortname: zhanghtk
 # duoshuo_hotartical: true
