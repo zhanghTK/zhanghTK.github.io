@@ -1,0 +1,963 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="线程状态Java中线程的定义与操作系统线程状态并不是一一对应的关系。
+Java在java.lang.Thread.State中给出了关于线程状态的描述：
+
+Thread定义的基本方法
+新建
+
+start：用于启动线程
+
+run：普通方法,直接调用run方法将不会开启新的线程，依旧是在原有线程上顺序执行
+
+
+
+终止
+
+stop：不推荐使用，释放所有的锁，如果锁内的代码没有执行完毕，会出现不一致
+会抛">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java线程基本操作">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/03/29/Java线程基本操作/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="线程状态Java中线程的定义与操作系统线程状态并不是一一对应的关系。
+Java在java.lang.Thread.State中给出了关于线程状态的描述：
+
+Thread定义的基本方法
+新建
+
+start：用于启动线程
+
+run：普通方法,直接调用run方法将不会开启新的线程，依旧是在原有线程上顺序执行
+
+
+
+终止
+
+stop：不推荐使用，释放所有的锁，如果锁内的代码没有执行完毕，会出现不一致
+会抛">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/03/24/58d507cd6f253.png">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/03/24/58d511f21c11c.jpg">
+<meta property="og:updated_time" content="2017-07-15T16:23:58.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java线程基本操作">
+<meta name="twitter:description" content="线程状态Java中线程的定义与操作系统线程状态并不是一一对应的关系。
+Java在java.lang.Thread.State中给出了关于线程状态的描述：
+
+Thread定义的基本方法
+新建
+
+start：用于启动线程
+
+run：普通方法,直接调用run方法将不会开启新的线程，依旧是在原有线程上顺序执行
+
+
+
+终止
+
+stop：不推荐使用，释放所有的锁，如果锁内的代码没有执行完毕，会出现不一致
+会抛">
+<meta name="twitter:image" content="https://ooo.0o0.ooo/2017/03/24/58d507cd6f253.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/03/29/Java线程基本操作/"/>
+
+  <title> Java线程基本操作 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Java线程基本操作
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-03-29T00:03:51+08:00" content="2017-03-29">
+              2017-03-29
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/03/29/Java线程基本操作/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/29/Java线程基本操作/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="线程状态"><a href="#线程状态" class="headerlink" title="线程状态"></a>线程状态</h2><p>Java中线程的定义与操作系统线程状态并不是一一对应的关系。</p>
+<p>Java在<code>java.lang.Thread.State</code>中给出了关于线程状态的描述：</p>
+<p><img src="https://ooo.0o0.ooo/2017/03/24/58d507cd6f253.png" alt="线程状态.png"></p>
+<h2 id="Thread定义的基本方法"><a href="#Thread定义的基本方法" class="headerlink" title="Thread定义的基本方法"></a>Thread定义的基本方法</h2><ul>
+<li><p>新建</p>
+<ul>
+<li><p>start：用于启动线程</p>
+</li>
+<li><p>run：普通方法,直接调用run方法将不会开启新的线程，依旧是在原有线程上顺序执行</p>
+</li>
+</ul>
+</li>
+<li><p>终止</p>
+<ul>
+<li>stop：不推荐使用，释放所有的锁，如果锁内的代码没有执行完毕，会出现不一致</li>
+<li>会抛出ThreadDeath Error</li>
+</ul>
+</li>
+<li><p>中断</p>
+<ul>
+<li><p>给线程一个标记，让线程自己响应中断，具体怎么响应甚至于是否响应由被中断线程自己决定</p>
+</li>
+<li><p>与中断相关的方法包括：</p>
+<p>| 方法                                     | 说明                        |<br>| :————————————- | ————————- |<br>| <code>public void interrupt()</code>              | 中断线程， 将中断状态设置为true        |<br>| <code>public boolean isInterrupted()</code>      | 测试线程是否已经中断。线程中断状态不受该方法的影响 |<br>| <code>public static boolean interrupted()</code> | 测试当前线程是否已经中断，并清除中断状态      |</p>
+</li>
+<li><p>中断的处理</p>
+<ul>
+<li><p>中断与异常</p>
+<p>InterruptedException往往是阻塞的方法响应中断的方式，吞掉该异常将导致上层无法响应中断；</p>
+<p>具体处理方式可以上抛，或者重设中断状态，但不建议吞掉；</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>sleep</p>
+<ul>
+<li>休眠线程，使线程进入TIMED_WAITING状态</li>
+<li>线程休眠期间不会释放锁</li>
+<li>休眠期间可以响应中断，会抛出InterruptedException</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>挂起与恢复</p>
+<ul>
+<li><p>suspend/resume，不推荐使用</p>
+</li>
+<li><p>缺陷：</p>
+<ul>
+<li>挂起操作不会释放锁，如果加锁放生在suspend之前，没有其他线程可以访问锁，直到resume，容易造成死锁</li>
+<li>如果resume先于suspend执行，线程无法结束会持续处于RUNNABLE状态，like this：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BadSuspend</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Object lock = <span class="keyword">new</span> Object();</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ChangeObjectThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ChangeObjectThread</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">            <span class="keyword">super</span>.setName(name);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">synchronized</span> (lock) &#123;</div><div class="line">                System.out.println(<span class="string">"in "</span> + getName());</div><div class="line">                Thread.currentThread().suspend();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</div><div class="line">        ChangeObjectThread thread1 = <span class="keyword">new</span> ChangeObjectThread(<span class="string">"thread1"</span>);</div><div class="line">        thread1.start();</div><div class="line">        <span class="comment">// 确保thread1一定执行</span></div><div class="line">        TimeUnit.MILLISECONDS.sleep(<span class="number">100</span>);</div><div class="line">        ChangeObjectThread thread2 = <span class="keyword">new</span> ChangeObjectThread(<span class="string">"thread2"</span>);</div><div class="line">        thread2.start();</div><div class="line">        thread1.resume();</div><div class="line">        thread2.resume();</div><div class="line">        thread1.join();</div><div class="line">        thread2.join();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>运行代码后，程序始终没有结束，查看线程详细信息，发现thread1线程已不存在，thread2卡在suspend方法并且状态仍然是RUNNABLE的，like this：</p>
+<p><img src="https://ooo.0o0.ooo/2017/03/24/58d511f21c11c.jpg" alt="BadSuspend.jpg"></p>
+</li>
+</ul>
+</li>
+<li><p>Join/Yeild</p>
+<ul>
+<li>yeild表示：别说我欺负你，我把机会让出来，我们一起抢</li>
+<li>join表示：我就是欺负你，你等着，我先来</li>
+<li>join的具体的实现参照后面的Object.wait方法介绍</li>
+</ul>
+<p>守护线程</p>
+<ul>
+<li>当只有守护线程时，JVM会自动退出</li>
+<li><code>thread.setDaemon(true);</code></li>
+</ul>
+</li>
+<li><p>线程优先级：thread.setPriority(Thread.MAX_PRIORITY);</p>
+</li>
+<li><p>同步：synchronized</p>
+<ul>
+<li>加锁对象：对象锁</li>
+<li>加锁实例方法：加锁在方法所在对象实例，如果多个线程加在多个实例上并没有什么卵用</li>
+<li>加锁静态方法：加锁在方法所在Class对象上</li>
+</ul>
+</li>
+</ul>
+<h2 id="Object中的线程相关方法"><a href="#Object中的线程相关方法" class="headerlink" title="Object中的线程相关方法"></a>Object中的线程相关方法</h2><p>Object.wait()/Object.notify()</p>
+<ul>
+<li><p>先看JDK中对两个方法的描述：</p>
+<ul>
+<li><p>wait()：</p>
+<p>Causes the current thread to wait until another thread invokes the java.lang.Object.notify() method or the java.lang.Object.notifyAll() method for this object.</p>
+</li>
+<li><p>notify()：</p>
+<p>Wakes up a single thread that is waiting on this object’s monitor.</p>
+</li>
+</ul>
+</li>
+<li><p>简言之，就是通过一个（monitor）对象，让线程停下来或是动起来</p>
+</li>
+<li><p>这两个方法在操作之前都一定要取得monitor对象的锁</p>
+</li>
+<li><p>wait方法执行后线程会释放持有的锁，直到被他线程notify monitor时重新持有锁</p>
+</li>
+<li><p>wait的典型使用场景：Thread.join</p>
+<p>join方法内部的关键实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">join</span><span class="params">(<span class="keyword">long</span> millis)</span> </span>&#123;</div><div class="line">  <span class="keyword">if</span> (millis == <span class="number">0</span>) &#123;</div><div class="line">    <span class="keyword">while</span> (isAlive()) &#123;</div><div class="line">      wait(<span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line">  &#125; <span class="keyword">else</span> &#123;</div><div class="line">    <span class="keyword">while</span> (isAlive()) &#123;</div><div class="line">      <span class="keyword">long</span> delay = millis - now;</div><div class="line">      <span class="keyword">if</span> (delay &lt;= <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">      &#125;</div><div class="line">      wait(delay);</div><div class="line">      now = System.currentTimeMillis() - base;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>两点需要注意的：</p>
+<ul>
+<li>join最终的实现依赖：wait(delay);</li>
+<li>加锁位置：public final synchronized void join(long millis)，相当于synchronized(this)</li>
+</ul>
+<p>以一个例子说明：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JoinDemo</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> <span class="keyword">long</span> count = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</div><div class="line">        Thread thread = <span class="keyword">new</span> Thread(() -&gt; &#123;</div><div class="line">            <span class="keyword">while</span> (++count &lt; <span class="number">1_000_000_000</span>) &#123;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">        thread.start();</div><div class="line">        thread.join();</div><div class="line">        System.out.println(count);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Main线程中执行thread.join，在join(int)方法中锁加在了thread对象上，内部的wait()是在thread对象上执行的。也就是说对于Main线程而言，thread线程是它的monitor。</p>
+<p>在join方法执行后Main线程处于WAITING状态，直到有人对它的monitor（thread 线程）执行notify操作，这一步是在thread线程执行完毕由JVM操作的。</p>
+<p>可以说thread既当爹又当妈，既要让当前线程停下来，又要自己跑起来。在thread执行完毕后重新对自己notify，让Main线程跑起来。</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/25/Spring之AOP【二】/" rel="next" title="Spring之AOP【二】">
+                <i class="fa fa-chevron-left"></i> Spring之AOP【二】
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/04/04/JDK中的Future模式/" rel="prev" title="JDK中的Future模式">
+                JDK中的Future模式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#线程状态"><span class="nav-number">1.</span> <span class="nav-text">线程状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Thread定义的基本方法"><span class="nav-number">2.</span> <span class="nav-text">Thread定义的基本方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object中的线程相关方法"><span class="nav-number">3.</span> <span class="nav-text">Object中的线程相关方法</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/03/29/Java线程基本操作/';
+      var disqus_title = "Java线程基本操作";
+      var disqus_url = 'https://zhanghtk.github.io/2017/03/29/Java线程基本操作/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

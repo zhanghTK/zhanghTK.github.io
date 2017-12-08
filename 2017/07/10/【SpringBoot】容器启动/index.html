@@ -1,0 +1,880 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Spring," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="Spring Boot 的启动前面说到了：
+
+包文件启动：从JarLauncher的main方法启动，加载各种资源后，开启一个新的线程调用程序的main方法
+SpringApplication实例创建：判断是否是web环境，加载并实例化初始化器和监听器，查找main方法所在类
+启动监听器：创建SpringApplicationRunListeners实例统一管理监听器。在启动过程中调用不同容器生命">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【SpringBoot】容器启动">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/07/10/【SpringBoot】容器启动/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="Spring Boot 的启动前面说到了：
+
+包文件启动：从JarLauncher的main方法启动，加载各种资源后，开启一个新的线程调用程序的main方法
+SpringApplication实例创建：判断是否是web环境，加载并实例化初始化器和监听器，查找main方法所在类
+启动监听器：创建SpringApplicationRunListeners实例统一管理监听器。在启动过程中调用不同容器生命">
+<meta property="og:updated_time" content="2017-07-18T12:27:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【SpringBoot】容器启动">
+<meta name="twitter:description" content="Spring Boot 的启动前面说到了：
+
+包文件启动：从JarLauncher的main方法启动，加载各种资源后，开启一个新的线程调用程序的main方法
+SpringApplication实例创建：判断是否是web环境，加载并实例化初始化器和监听器，查找main方法所在类
+启动监听器：创建SpringApplicationRunListeners实例统一管理监听器。在启动过程中调用不同容器生命">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/07/10/【SpringBoot】容器启动/"/>
+
+  <title> 【SpringBoot】容器启动 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【SpringBoot】容器启动
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-07-10T20:24:11+08:00" content="2017-07-10">
+              2017-07-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/07/10/【SpringBoot】容器启动/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/10/【SpringBoot】容器启动/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Spring Boot 的启动前面说到了：</p>
+<ul>
+<li>包文件启动：从<code>JarLauncher</code>的<code>main</code>方法启动，加载各种资源后，开启一个新的线程调用程序的<code>main</code>方法</li>
+<li><code>SpringApplication</code>实例创建：判断是否是web环境，加载并实例化初始化器和监听器，查找<code>main</code>方法所在类</li>
+<li>启动监听器：创建<code>SpringApplicationRunListeners</code>实例统一管理监听器。在启动过程中调用不同容器生命周期通知，创建不同的事件类型，由<code>ApplicationEventMulticaster</code>广播对应事件给<code>ApplicationListener</code></li>
+</ul>
+<p>前面做了各种准备工作就是为了最后的容器提供服务，本文以注释的形式记录一下 Spring Boot 容器的启动过程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> ConfigurableApplicationContext <span class="title">run</span><span class="params">(String... args)</span> </span>&#123;</div><div class="line">	<span class="comment">// ...</span></div><div class="line">	<span class="keyword">try</span> &#123;</div><div class="line">         	<span class="comment">// 封装应用启动参数</span></div><div class="line">		ApplicationArguments applicationArguments = <span class="keyword">new</span> DefaultApplicationArguments(args);</div><div class="line">		<span class="comment">// 准备环境</span></div><div class="line">         	ConfigurableEnvironment environment = prepareEnvironment(listeners,</div><div class="line">				applicationArguments);</div><div class="line">		Banner printedBanner = printBanner(environment);</div><div class="line">         	<span class="comment">// 创建容器</span></div><div class="line">		context = createApplicationContext();</div><div class="line">		analyzers = <span class="keyword">new</span> FailureAnalyzers(context);</div><div class="line">         	<span class="comment">// 准备容器</span></div><div class="line">		prepareContext(context, environment, listeners, applicationArguments,</div><div class="line">				printedBanner);</div><div class="line">         	<span class="comment">// 刷新容器</span></div><div class="line">		refreshContext(context);</div><div class="line">         	<span class="comment">// 运行runner</span></div><div class="line">		afterRefresh(context, applicationArguments);</div><div class="line">		listeners.finished(context, <span class="keyword">null</span>);</div><div class="line">		stopWatch.stop();</div><div class="line">		<span class="keyword">if</span> (<span class="keyword">this</span>.logStartupInfo) &#123;</div><div class="line">			<span class="keyword">new</span> StartupInfoLogger(<span class="keyword">this</span>.mainApplicationClass)</div><div class="line">					.logStarted(getApplicationLog(), stopWatch);</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">return</span> context;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">catch</span> (Throwable ex) &#123;</div><div class="line">         	<span class="comment">// ...</span></div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="准备环境"><a href="#准备环境" class="headerlink" title="准备环境"></a>准备环境</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> ConfigurableEnvironment <span class="title">prepareEnvironment</span><span class="params">(</span></span></div><div class="line">		SpringApplicationRunListeners listeners,</div><div class="line">		ApplicationArguments applicationArguments) &#123;</div><div class="line">     	<span class="comment">// 创建环境</span></div><div class="line">	ConfigurableEnvironment environment = getOrCreateEnvironment();</div><div class="line">     	<span class="comment">// 配置环境</span></div><div class="line">	configureEnvironment(environment, applicationArguments.getSourceArgs());</div><div class="line">     	<span class="comment">// 监听器通知事件</span></div><div class="line">	listeners.environmentPrepared(environment);</div><div class="line">     	<span class="comment">// 处理非web环境</span></div><div class="line">	<span class="keyword">if</span> (isWebEnvironment(environment) &amp;&amp; !<span class="keyword">this</span>.webEnvironment) &#123;</div><div class="line">		environment = convertToStandardEnvironment(environment);</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> environment;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> ConfigurableEnvironment <span class="title">getOrCreateEnvironment</span><span class="params">()</span> </span>&#123;</div><div class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.environment != <span class="keyword">null</span>) &#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.environment;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.webEnvironment) &#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">new</span> StandardServletEnvironment();</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> <span class="keyword">new</span> StandardEnvironment();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configureEnvironment</span><span class="params">(ConfigurableEnvironment environment,</span></span></div><div class="line">		String[] args) &#123;</div><div class="line">     	<span class="comment">// 配置property</span></div><div class="line">	configurePropertySources(environment, args);</div><div class="line">       <span class="comment">// 配置profiles</span></div><div class="line">	configureProfiles(environment, args);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String COMMAND_LINE_PROPERTY_SOURCE_NAME = <span class="string">"commandLineArgs"</span>;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configurePropertySources</span><span class="params">(ConfigurableEnvironment environment,</span></span></div><div class="line">		String[] args) &#123;</div><div class="line">	MutablePropertySources sources = environment.getPropertySources();</div><div class="line">     	<span class="comment">// 判断defaultProperties是否为空</span></div><div class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.defaultProperties != <span class="keyword">null</span> &amp;&amp; !<span class="keyword">this</span>.defaultProperties.isEmpty()) &#123;</div><div class="line">         	<span class="comment">// MutablePropertySources内部维护一个list&lt;PropertySource&lt;?&gt;&gt;集合</span></div><div class="line">         	<span class="comment">// addLast先removeIfPresent()然后把defaultProperties加到最后</span></div><div class="line">		sources.addLast(</div><div class="line">				<span class="keyword">new</span> MapPropertySource(<span class="string">"defaultProperties"</span>, <span class="keyword">this</span>.defaultProperties));</div><div class="line">	&#125;</div><div class="line">     	<span class="comment">// 判断addCommandLineProperties ==true 和 args的长度</span></div><div class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.addCommandLineProperties &amp;&amp; args.length &gt; <span class="number">0</span>) &#123;</div><div class="line">         	<span class="comment">// name=commandLineArgs</span></div><div class="line">		String name = CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;</div><div class="line">		<span class="keyword">if</span> (sources.contains(name)) &#123;</div><div class="line">             	<span class="comment">// 如果列表中包含，替换</span></div><div class="line">			PropertySource&lt;?&gt; source = sources.get(name);</div><div class="line">			CompositePropertySource composite = <span class="keyword">new</span> CompositePropertySource(name);</div><div class="line">			composite.addPropertySource(<span class="keyword">new</span> SimpleCommandLinePropertySource(</div><div class="line">					name + <span class="string">"-"</span> + args.hashCode(), args));</div><div class="line">			composite.addPropertySource(source);</div><div class="line">			sources.replace(name, composite);</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">else</span> &#123;</div><div class="line">             	<span class="comment">// 如果列表中不包含</span></div><div class="line">             	<span class="comment">// 将配置信息添加在最前面，优先执行</span></div><div class="line">			sources.addFirst(<span class="keyword">new</span> SimpleCommandLinePropertySource(args));</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configureProfiles</span><span class="params">(ConfigurableEnvironment environment, String[] args)</span> </span>&#123;</div><div class="line">	<span class="comment">// spring.active.profile值</span></div><div class="line">     	environment.getActiveProfiles();</div><div class="line">	<span class="comment">// But these ones should go first (last wins in a property key clash)</span></div><div class="line">	Set&lt;String&gt; profiles = <span class="keyword">new</span> LinkedHashSet&lt;String&gt;(<span class="keyword">this</span>.additionalProfiles);</div><div class="line">	profiles.addAll(Arrays.asList(environment.getActiveProfiles()));</div><div class="line">     	<span class="comment">// 将additionalProfiles和getActiveProfiles的值加到一起设置到环境中</span></div><div class="line">	environment.setActiveProfiles(profiles.toArray(<span class="keyword">new</span> String[profiles.size()]));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注释比较详细的说明了代码的作用了：</p>
+<ol>
+<li>创建环境</li>
+<li>配置环境</li>
+<li>监听器通知环境准备完毕</li>
+<li>对异常环境处理</li>
+</ol>
+<p>上面代码注释跳过了web环境相关的配置，猜测里面会有servlet容器相关配置，这里跳过另开一文记录。</p>
+<h2 id="创建容器"><a href="#创建容器" class="headerlink" title="创建容器"></a>创建容器</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_WEB_CONTEXT_CLASS = <span class="string">"org.springframework."</span></div><div class="line">			+ <span class="string">"boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext"</span>;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_CONTEXT_CLASS = <span class="string">"org.springframework.context."</span></div><div class="line">			+ <span class="string">"annotation.AnnotationConfigApplicationContext"</span>;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> ConfigurableApplicationContext <span class="title">createApplicationContext</span><span class="params">()</span> </span>&#123;</div><div class="line">   Class&lt;?&gt; contextClass = <span class="keyword">this</span>.applicationContextClass;</div><div class="line">   <span class="keyword">if</span> (contextClass == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">         contextClass = Class.forName(<span class="keyword">this</span>.webEnvironment</div><div class="line">               ? DEFAULT_WEB_CONTEXT_CLASS : DEFAULT_CONTEXT_CLASS);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">catch</span> (ClassNotFoundException ex) &#123;</div><div class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(</div><div class="line">               <span class="string">"Unable create a default ApplicationContext, "</span></div><div class="line">                     + <span class="string">"please specify an ApplicationContextClass"</span>,</div><div class="line">               ex);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> (ConfigurableApplicationContext) BeanUtils.instantiate(contextClass);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这部分没什么可说的，就是根据环境通过反射直接创建对应的容器的实例。</p>
+<h2 id="准备容器"><a href="#准备容器" class="headerlink" title="准备容器"></a>准备容器</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">prepareContext</span><span class="params">(ConfigurableApplicationContext context,</span></span></div><div class="line">      ConfigurableEnvironment environment, SpringApplicationRunListeners listeners,</div><div class="line">      ApplicationArguments applicationArguments, Banner printedBanner) &#123;</div><div class="line">   context.setEnvironment(environment);</div><div class="line">   postProcessApplicationContext(context);</div><div class="line">   applyInitializers(context);</div><div class="line">   listeners.contextPrepared(context);</div><div class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.logStartupInfo) &#123;</div><div class="line">      logStartupInfo(context.getParent() == <span class="keyword">null</span>);</div><div class="line">      logStartupProfileInfo(context);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// Add boot specific singleton beans</span></div><div class="line">   context.getBeanFactory().registerSingleton(<span class="string">"springApplicationArguments"</span>,</div><div class="line">         applicationArguments);</div><div class="line">   <span class="keyword">if</span> (printedBanner != <span class="keyword">null</span>) &#123;</div><div class="line">      context.getBeanFactory().registerSingleton(<span class="string">"springBootBanner"</span>, printedBanner);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// Load the sources</span></div><div class="line">   Set&lt;Object&gt; sources = getSources();</div><div class="line">   Assert.notEmpty(sources, <span class="string">"Sources must not be empty"</span>);</div><div class="line">   load(context, sources.toArray(<span class="keyword">new</span> Object[sources.size()]));</div><div class="line">   listeners.contextLoaded(context);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">postProcessApplicationContext</span><span class="params">(ConfigurableApplicationContext context)</span> </span>&#123;</div><div class="line">   <span class="comment">//  beanNameGenerator不为空，注册</span></div><div class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.beanNameGenerator != <span class="keyword">null</span>) &#123;</div><div class="line">      context.getBeanFactory().registerSingleton(</div><div class="line">            AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR,</div><div class="line">            <span class="keyword">this</span>.beanNameGenerator);</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// resourceLoader不为空，注册</span></div><div class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.resourceLoader != <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">if</span> (context <span class="keyword">instanceof</span> GenericApplicationContext) &#123;</div><div class="line">         ((GenericApplicationContext) context)</div><div class="line">               .setResourceLoader(<span class="keyword">this</span>.resourceLoader);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (context <span class="keyword">instanceof</span> DefaultResourceLoader) &#123;</div><div class="line">         ((DefaultResourceLoader) context)</div><div class="line">               .setClassLoader(<span class="keyword">this</span>.resourceLoader.getClassLoader());</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">applyInitializers</span><span class="params">(ConfigurableApplicationContext context)</span> </span>&#123;</div><div class="line">   <span class="comment">// 容器使用初始化器</span></div><div class="line">   <span class="keyword">for</span> (ApplicationContextInitializer initializer : getInitializers()) &#123;</div><div class="line">      Class&lt;?&gt; requiredType = GenericTypeResolver.resolveTypeArgument(</div><div class="line">            initializer.getClass(), ApplicationContextInitializer.class);</div><div class="line">      Assert.isInstanceOf(requiredType, context, <span class="string">"Unable to call initializer."</span>);</div><div class="line">      initializer.initialize(context);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 加载各种bean到容器中</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">load</span><span class="params">(ApplicationContext context, Object[] sources)</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</div><div class="line">      logger.debug(</div><div class="line">            <span class="string">"Loading source "</span> + StringUtils.arrayToCommaDelimitedString(sources));</div><div class="line">   &#125;</div><div class="line">   BeanDefinitionLoader loader = createBeanDefinitionLoader(</div><div class="line">         getBeanDefinitionRegistry(context), sources);</div><div class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.beanNameGenerator != <span class="keyword">null</span>) &#123;</div><div class="line">      loader.setBeanNameGenerator(<span class="keyword">this</span>.beanNameGenerator);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.resourceLoader != <span class="keyword">null</span>) &#123;</div><div class="line">      loader.setResourceLoader(<span class="keyword">this</span>.resourceLoader);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.environment != <span class="keyword">null</span>) &#123;</div><div class="line">      loader.setEnvironment(<span class="keyword">this</span>.environment);</div><div class="line">   &#125;</div><div class="line">   loader.load();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>容器的准备阶段的操作：</p>
+<ol>
+<li>为容器设置环境信息</li>
+<li>容器的预设置</li>
+<li>生效初始化器</li>
+<li>监听器通知容器准备完毕</li>
+<li>加载各种bean到容器中</li>
+<li>监听器通知容器加载完毕</li>
+</ol>
+<h2 id="刷新容器"><a href="#刷新容器" class="headerlink" title="刷新容器"></a>刷新容器</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">refreshContext</span><span class="params">(ConfigurableApplicationContext context)</span> </span>&#123;</div><div class="line">   refresh(context);</div><div class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.registerShutdownHook) &#123;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">         context.registerShutdownHook();</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">catch</span> (AccessControlException ex) &#123;</div><div class="line">         <span class="comment">// Not allowed in some environments.</span></div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">refresh</span><span class="params">(ApplicationContext applicationContext)</span> </span>&#123;</div><div class="line">   Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);</div><div class="line">   ((AbstractApplicationContext) applicationContext).refresh();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后这个<code>((AbstractApplicationContext) applicationContext).refresh();</code>就厉害了，终于把 Spring 容器整合到一起了，这里不详细分析，说起来话有点多，还是再开一篇文章介绍。</p>
+<h2 id="Runner"><a href="#Runner" class="headerlink" title="Runner"></a>Runner</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">afterRefresh</span><span class="params">(ConfigurableApplicationContext context,</span></span></div><div class="line">      ApplicationArguments args) &#123;</div><div class="line">   callRunners(context, args);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callRunners</span><span class="params">(ApplicationContext context, ApplicationArguments args)</span> </span>&#123;</div><div class="line">   List&lt;Object&gt; runners = <span class="keyword">new</span> ArrayList&lt;Object&gt;();</div><div class="line">   <span class="comment">// 找出Spring容器中ApplicationRunner接口的实现类</span></div><div class="line">   runners.addAll(context.getBeansOfType(ApplicationRunner.class).values());</div><div class="line">   <span class="comment">// 找出Spring容器中CommandLineRunner接口的实现类</span></div><div class="line">   runners.addAll(context.getBeansOfType(CommandLineRunner.class).values());</div><div class="line">   AnnotationAwareOrderComparator.sort(runners);</div><div class="line">   <span class="keyword">for</span> (Object runner : <span class="keyword">new</span> LinkedHashSet&lt;Object&gt;(runners)) &#123;</div><div class="line">      <span class="keyword">if</span> (runner <span class="keyword">instanceof</span> ApplicationRunner) &#123;</div><div class="line">         callRunner((ApplicationRunner) runner, args);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (runner <span class="keyword">instanceof</span> CommandLineRunner) &#123;</div><div class="line">         callRunner((CommandLineRunner) runner, args);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callRunner</span><span class="params">(ApplicationRunner runner, ApplicationArguments args)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">      (runner).run(args);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">catch</span> (Exception ex) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Failed to execute ApplicationRunner"</span>, ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callRunner</span><span class="params">(CommandLineRunner runner, ApplicationArguments args)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">      (runner).run(args.getSourceArgs());</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">catch</span> (Exception ex) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Failed to execute CommandLineRunner"</span>, ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>刷新完容器后，Spring 容器的启动就全部完成，最后这个<code>afterRefresh</code>方法是调用程序中的<code>ApplicationRunner</code>和<code>CommandLineRunner</code>，没有什么特别的。</p>
+<hr>
+<p>总结一下，整个容器的启动步骤：</p>
+<ol>
+<li>准备环境<ol>
+<li>创建环境</li>
+<li>配置环境</li>
+<li>对异常环境处理</li>
+</ol>
+</li>
+<li>创建容器<ol>
+<li>根据环境通过反射直接创建对应的容器的实例</li>
+</ol>
+</li>
+<li>刷新容器<ol>
+<li><code>AbstractApplicationContext.refresh()</code></li>
+</ol>
+</li>
+<li>运行runner<ol>
+<li>调用程序中的<code>ApplicationRunner</code>和<code>CommandLineRunner</code></li>
+</ol>
+</li>
+</ol>
+<p>监听器穿插在以上步骤中，根据容器的启动、运行状态广播对应的事件。</p>
+<p>上述步骤当中忽略了两个关键的具体实现：</p>
+<ol>
+<li><p>容器的创建，根据环境创建容器：</p>
+<p>web环境：<code>AnnotationConfigEmbeddedWebApplicationContext</code></p>
+<p>非web环境：<code>`AnnotationConfigApplicationContext</code></p>
+</li>
+<li><p>容器的创建完成后的刷新</p>
+</li>
+</ol>
+<p>这两部分内容较多，挖坑以后填写。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/Spring/" rel="tag">#Spring</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/05/【SpringBoot】监听器篇/" rel="next" title="【SpringBoot】监听器篇">
+                <i class="fa fa-chevron-left"></i> 【SpringBoot】监听器篇
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/16/【Spring】容器刷新/" rel="prev" title="【Spring】容器刷新">
+                【Spring】容器刷新 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#准备环境"><span class="nav-number">1.</span> <span class="nav-text">准备环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建容器"><span class="nav-number">2.</span> <span class="nav-text">创建容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#准备容器"><span class="nav-number">3.</span> <span class="nav-text">准备容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#刷新容器"><span class="nav-number">4.</span> <span class="nav-text">刷新容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Runner"><span class="nav-number">5.</span> <span class="nav-text">Runner</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/07/10/【SpringBoot】容器启动/';
+      var disqus_title = "【SpringBoot】容器启动";
+      var disqus_url = 'https://zhanghtk.github.io/2017/07/10/【SpringBoot】容器启动/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

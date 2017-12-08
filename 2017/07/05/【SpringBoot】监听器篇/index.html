@@ -1,0 +1,876 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Spring," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="还是先回顾前文：
+
+包文件启动：从JarLauncher的main方法启动，加载各种资源后，开启一个新的线程调用程序的main方法
+SpringApplication实例创建：判断是否是web环境，加载并实例化初始化器和监听器，查找main方法所在类
+
+至此终于可以运行SpringApplication的非静态run方法了：
+123456789101112131415161718192021222">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【SpringBoot】监听器篇">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/07/05/【SpringBoot】监听器篇/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="还是先回顾前文：
+
+包文件启动：从JarLauncher的main方法启动，加载各种资源后，开启一个新的线程调用程序的main方法
+SpringApplication实例创建：判断是否是web环境，加载并实例化初始化器和监听器，查找main方法所在类
+
+至此终于可以运行SpringApplication的非静态run方法了：
+123456789101112131415161718192021222">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/06/23/594cbdc2572ef.png">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/06/23/594cbe5e3a355.jpg">
+<meta property="og:updated_time" content="2017-07-05T13:27:21.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【SpringBoot】监听器篇">
+<meta name="twitter:description" content="还是先回顾前文：
+
+包文件启动：从JarLauncher的main方法启动，加载各种资源后，开启一个新的线程调用程序的main方法
+SpringApplication实例创建：判断是否是web环境，加载并实例化初始化器和监听器，查找main方法所在类
+
+至此终于可以运行SpringApplication的非静态run方法了：
+123456789101112131415161718192021222">
+<meta name="twitter:image" content="https://ooo.0o0.ooo/2017/06/23/594cbdc2572ef.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/07/05/【SpringBoot】监听器篇/"/>
+
+  <title> 【SpringBoot】监听器篇 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【SpringBoot】监听器篇
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-07-05T21:26:09+08:00" content="2017-07-05">
+              2017-07-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/07/05/【SpringBoot】监听器篇/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/05/【SpringBoot】监听器篇/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>还是先回顾前文：</p>
+<ul>
+<li>包文件启动：从<code>JarLauncher</code>的<code>main</code>方法启动，加载各种资源后，开启一个新的线程调用程序的<code>main</code>方法</li>
+<li><code>SpringApplication</code>实例创建：判断是否是web环境，加载并实例化初始化器和监听器，查找<code>main</code>方法所在类</li>
+</ul>
+<p>至此终于可以运行<code>SpringApplication</code>的非静态<code>run</code>方法了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> ConfigurableApplicationContext <span class="title">run</span><span class="params">(String... args)</span> </span>&#123;</div><div class="line">	StopWatch stopWatch = <span class="keyword">new</span> StopWatch();</div><div class="line">	stopWatch.start();</div><div class="line">	ConfigurableApplicationContext context = <span class="keyword">null</span>;</div><div class="line">	FailureAnalyzers analyzers = <span class="keyword">null</span>;</div><div class="line">	configureHeadlessProperty();</div><div class="line">	SpringApplicationRunListeners listeners = getRunListeners(args);</div><div class="line">	listeners.starting();</div><div class="line">	<span class="keyword">try</span> &#123;</div><div class="line">		ApplicationArguments applicationArguments = <span class="keyword">new</span> DefaultApplicationArguments(</div><div class="line">				args);</div><div class="line">		ConfigurableEnvironment environment = prepareEnvironment(listeners,</div><div class="line">				applicationArguments);</div><div class="line">		Banner printedBanner = printBanner(environment);</div><div class="line">		context = createApplicationContext();</div><div class="line">		analyzers = <span class="keyword">new</span> FailureAnalyzers(context);</div><div class="line">		prepareContext(context, environment, listeners, applicationArguments,</div><div class="line">				printedBanner);</div><div class="line">		refreshContext(context);</div><div class="line">		afterRefresh(context, applicationArguments);</div><div class="line">		listeners.finished(context, <span class="keyword">null</span>);</div><div class="line">		stopWatch.stop();</div><div class="line">		<span class="keyword">if</span> (<span class="keyword">this</span>.logStartupInfo) &#123;</div><div class="line">			<span class="keyword">new</span> StartupInfoLogger(<span class="keyword">this</span>.mainApplicationClass)</div><div class="line">					.logStarted(getApplicationLog(), stopWatch);</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">return</span> context;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">catch</span> (Throwable ex) &#123;</div><div class="line">		handleRunFailure(context, listeners, analyzers, ex);</div><div class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(ex);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>整个方法中间穿插着listener的各种操作，本文就先看看listen的操作。</p>
+<h2 id="监听器加载、实例化"><a href="#监听器加载、实例化" class="headerlink" title="监听器加载、实例化"></a>监听器加载、实例化</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> ConfigurableApplicationContext <span class="title">run</span><span class="params">(String... args)</span> </span>&#123;</div><div class="line">	<span class="comment">// ...</span></div><div class="line">	SpringApplicationRunListeners listeners = getRunListeners(args);</div><div class="line">   	<span class="comment">// ...</span></div><div class="line">   &#125;  </div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> SpringApplicationRunListeners <span class="title">getRunListeners</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">	Class&lt;?&gt;[] types = <span class="keyword">new</span> Class&lt;?&gt;[] &#123; SpringApplication.class, String[].class &#125;;</div><div class="line">	<span class="keyword">return</span> <span class="keyword">new</span> SpringApplicationRunListeners(logger, getSpringFactoriesInstances(</div><div class="line">			SpringApplicationRunListener.class, types, <span class="keyword">this</span>, args));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>加载的逻辑和上一篇文章提到的初始化器加载方式一致，都是从配置文件<code>META-INF/spring.factories</code>中加载：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># Run Listeners</div><div class="line">org.springframework.boot.SpringApplicationRunListener=\</div><div class="line">org.springframework.boot.context.event.EventPublishingRunListener</div></pre></td></tr></table></figure>
+<p>加载并实例化<code>EventPublishingRunListener</code>之后，与<code>logger</code>实例一起创建了<code>SpringApplicationRunListeners</code>，其类图：</p>
+<p><img src="https://ooo.0o0.ooo/2017/06/23/594cbdc2572ef.png" alt="SpringApplicationRunListeners"></p>
+<h3 id="监听器实现"><a href="#监听器实现" class="headerlink" title="监听器实现"></a>监听器实现</h3><p>上面配置文件中的两个类<code>SpringApplicationRunListener</code>和<code>EventPublishingRunListener</code>分别就是监听器的接口和实现。</p>
+<p>接口中定义了五个方法都是围绕着容器的生命周期的：</p>
+<ol>
+<li><code>starting</code>：run方法首次调用</li>
+<li><code>environmentPrepared</code>：<code>ApplicationContext</code>创建之前并且环境信息准备好的时候调用</li>
+<li><code>contextPrepared</code>：<code>ApplicationContext</code>创建好并且在source加载之前调用一次</li>
+<li><code>contextLoaded</code>：<code>ApplicationContext</code>创建并加载之后并在refresh之前调用</li>
+<li><code>finished</code>：<code>run</code>方法结束之前调用</li>
+</ol>
+<p><code>EventPublishingRunListener</code>的实例创建：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">EventPublishingRunListener</span><span class="params">(SpringApplication application, String[] args)</span> </span>&#123;</div><div class="line">	<span class="keyword">this</span>.application = application;</div><div class="line">	<span class="keyword">this</span>.args = args;</div><div class="line">	<span class="keyword">this</span>.initialMulticaster = <span class="keyword">new</span> SimpleApplicationEventMulticaster();</div><div class="line">	<span class="keyword">for</span> (ApplicationListener&lt;?&gt; listener : application.getListeners()) &#123;</div><div class="line">		<span class="keyword">this</span>.initialMulticaster.addApplicationListener(listener);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>实例的创建过程中创建了一个<code>SimpleApplicationEventMulticaster</code>实例，并且从上文创建的<code>SpringApplication</code>的实例中获取了所有的监听器并追加到了<code>SimpleApplicationEventMulticaster</code>实例。</p>
+<p><code>SimpleApplicationEventMulticaster</code>是一个 Spring 事件体系的一员，用于将事件广播给监听者。</p>
+<p>这里就是讲事件广播给上一篇文章提及的加载并实例化的监听器。</p>
+<p>因此<code>EventPublishingRunListener</code>的实现类似与：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="meta">@SuppressWarnings</span>(<span class="string">"deprecation"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">starting</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">// 构造事件，使用事件广播者发送事件</span></div><div class="line">	<span class="keyword">this</span>.initialMulticaster</div><div class="line">			.multicastEvent(<span class="keyword">new</span> ApplicationStartedEvent(<span class="keyword">this</span>.application, <span class="keyword">this</span>.args));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从调用顺序上：</p>
+<p><img src="https://ooo.0o0.ooo/2017/06/23/594cbe5e3a355.jpg" alt="监听事件"></p>
+<p><code>SpringApplication</code>持有了<code>SpringApplicationRunListeners</code>就间接掌管了所有的<code>ApplicationListener</code>了，想执行哪个<code>applicationListener</code>只要调用对应的<code>applicationListener</code>所监听的事件就可以了。</p>
+<p>这里再看看上一篇文章初始化的监听器，例如<code>LiquibaseServiceLocatorApplicationListener</code>，其在实现<code>ApplicationListener</code>接口的同时，还指定了泛型，用于限定具体的事件类型：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LiquibaseServiceLocatorApplicationListener</span></span></div><div class="line">		<span class="keyword">implements</span> <span class="title">ApplicationListener</span>&lt;<span class="title">ApplicationStartingEvent</span>&gt; &#123;</div><div class="line">	<span class="comment">//...</span></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onApplicationEvent</span><span class="params">(ApplicationStartingEvent event)</span> </span>&#123;</div><div class="line">		<span class="keyword">if</span> (ClassUtils.isPresent(<span class="string">"liquibase.servicelocator.ServiceLocator"</span>, <span class="keyword">null</span>)) &#123;</div><div class="line">			<span class="keyword">new</span> LiquibasePresent().replaceServiceLocator();</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	<span class="comment">//...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="事件发布"><a href="#事件发布" class="headerlink" title="事件发布"></a>事件发布</h2><p>上面已经看到 Spring Boot 是如何加载，实例化事件的了。除了 Spring Boot 内部定义的时间，也可以自定义事件</p>
+<h3 id="事件类型"><a href="#事件类型" class="headerlink" title="事件类型"></a>事件类型</h3><p>Spring Boot支持的事件类型：</p>
+<ul>
+<li>ApplicationStartingEvent</li>
+<li>ApplicationEnvironmentPreparedEvent</li>
+<li>ApplicationFailedEvent</li>
+<li>ApplicationPreparedEvent</li>
+</ul>
+<h3 id="自定义事件"><a href="#自定义事件" class="headerlink" title="自定义事件"></a>自定义事件</h3><p>使用泛型指定具体的事件类型，例如（以T代表具体的事件类型）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyApplicationStartedEventListener</span> <span class="keyword">implements</span> <span class="title">ApplicationListener</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line">   	<span class="meta">@Override</span></div><div class="line">   	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onApplicationEvent</span><span class="params">(T event)</span> </span>&#123;</div><div class="line">   	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="发布事件"><a href="#发布事件" class="headerlink" title="发布事件"></a>发布事件</h3><ul>
+<li><p>使用 API 发布</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    SpringApplication app = <span class="keyword">new</span> SpringApplication(ListenerApplication.class);</div><div class="line">    app.addListeners(</div><div class="line">            <span class="keyword">new</span> MyApplicationStartedEventListener(),</div><div class="line">            <span class="keyword">new</span> MyApplicationEnvironmentPreparedEventListener(),</div><div class="line">            <span class="keyword">new</span> MyApplicationPreparedEventListener(),</div><div class="line">            <span class="keyword">new</span> MyApplicationFailedEventListener());</div><div class="line">    app.run(args);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置文件</p>
+<p>如加载事件的过程分析，可以在工程下添加<code>META-INF/spring.factories</code>文件，在文件内指自定义事件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">org.springframework.context.ApplicationListener=</div></pre></td></tr></table></figure>
+</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/Spring/" rel="tag">#Spring</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/05/【SpringBoot】SpringApplication实例创建/" rel="next" title="【SpringBoot】SpringApplication实例创建">
+                <i class="fa fa-chevron-left"></i> 【SpringBoot】SpringApplication实例创建
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/10/【SpringBoot】容器启动/" rel="prev" title="【SpringBoot】容器启动">
+                【SpringBoot】容器启动 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#监听器加载、实例化"><span class="nav-number">1.</span> <span class="nav-text">监听器加载、实例化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#监听器实现"><span class="nav-number">1.1.</span> <span class="nav-text">监听器实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事件发布"><span class="nav-number">2.</span> <span class="nav-text">事件发布</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#事件类型"><span class="nav-number">2.1.</span> <span class="nav-text">事件类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义事件"><span class="nav-number">2.2.</span> <span class="nav-text">自定义事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发布事件"><span class="nav-number">2.3.</span> <span class="nav-text">发布事件</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/07/05/【SpringBoot】监听器篇/';
+      var disqus_title = "【SpringBoot】监听器篇";
+      var disqus_url = 'https://zhanghtk.github.io/2017/07/05/【SpringBoot】监听器篇/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

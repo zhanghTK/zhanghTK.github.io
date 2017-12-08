@@ -1,0 +1,867 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Spring," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="前面文章在分析 Spring Boot 的启动过程中提到了 AbstractApplicationContext 类的 refresh 方法，这个方法是 Spring 容器的核心方法之一，该方法提供了基本的模板，完成容器的初始化，并提供了丰富的接口可以从纵向（容器启动过程）、横向（不同的容器子类型）、不同形式（声明式、编程式等）进行自定义扩展。
+有关 ApplicationContext 和 Be">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Spring】容器刷新">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/07/16/【Spring】容器刷新/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="前面文章在分析 Spring Boot 的启动过程中提到了 AbstractApplicationContext 类的 refresh 方法，这个方法是 Spring 容器的核心方法之一，该方法提供了基本的模板，完成容器的初始化，并提供了丰富的接口可以从纵向（容器启动过程）、横向（不同的容器子类型）、不同形式（声明式、编程式等）进行自定义扩展。
+有关 ApplicationContext 和 Be">
+<meta property="og:updated_time" content="2017-07-15T16:32:53.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Spring】容器刷新">
+<meta name="twitter:description" content="前面文章在分析 Spring Boot 的启动过程中提到了 AbstractApplicationContext 类的 refresh 方法，这个方法是 Spring 容器的核心方法之一，该方法提供了基本的模板，完成容器的初始化，并提供了丰富的接口可以从纵向（容器启动过程）、横向（不同的容器子类型）、不同形式（声明式、编程式等）进行自定义扩展。
+有关 ApplicationContext 和 Be">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/07/16/【Spring】容器刷新/"/>
+
+  <title> 【Spring】容器刷新 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【Spring】容器刷新
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-07-16T00:20:31+08:00" content="2017-07-16">
+              2017-07-16
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/07/16/【Spring】容器刷新/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/16/【Spring】容器刷新/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>前面文章在分析 Spring Boot 的启动过程中提到了 AbstractApplicationContext 类的 refresh 方法，这个方法是 Spring 容器的核心方法之一，该方法提供了基本的模板，完成容器的初始化，并提供了丰富的接口可以从纵向（容器启动过程）、横向（不同的容器子类型）、不同形式（声明式、编程式等）进行自定义扩展。</p>
+<p>有关 ApplicationContext 和 BeanFactory 的内容可以参考之前关于 Spring 的文章：</p>
+<ul>
+<li><a href="http://zhangh.tk/2017/03/13/Spring%E4%B9%8BBeanFactory/" target="_blank" rel="external">Spring之BeanFactory</a></li>
+<li><a href="http://zhangh.tk/2017/03/19/Spring%E4%B9%8BApplicationContext/" target="_blank" rel="external">Spring之ApplicationContext</a></li>
+</ul>
+<p>这里详细过一下 refresh 方法的过程，留个印象，方便以后回顾。</p>
+<p>这篇文章就不记录关于 Spring Boot 在启动刷新阶段的特殊实现了，只关心 Spring 的通用实现模板</p>
+<h2 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">refresh</span><span class="params">()</span> <span class="keyword">throws</span> BeansException, IllegalStateException </span>&#123;</div><div class="line">   <span class="keyword">synchronized</span> (<span class="keyword">this</span>.startupShutdownMonitor) &#123;</div><div class="line">      <span class="comment">// 刷新前准备工作</span></div><div class="line">      prepareRefresh();</div><div class="line"></div><div class="line">      <span class="comment">// 调用子类refreshBeanFactory()方法，获取bean factory</span></div><div class="line">      ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();</div><div class="line"></div><div class="line">      <span class="comment">// 创建bean Factory的通用设置</span></div><div class="line">      prepareBeanFactory(beanFactory);</div><div class="line"></div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">         <span class="comment">// 子类特殊的bean factory设置</span></div><div class="line">         postProcessBeanFactory(beanFactory);</div><div class="line"></div><div class="line">         <span class="comment">// 实例化beanFactoryPostProcessor</span></div><div class="line">         <span class="comment">// 调用beanFactoryPostProcessor修改bean definition</span></div><div class="line">         invokeBeanFactoryPostProcessors(beanFactory);</div><div class="line"></div><div class="line">         <span class="comment">// 注册 bean pst processors</span></div><div class="line">         registerBeanPostProcessors(beanFactory);</div><div class="line"></div><div class="line">         <span class="comment">// 初始化信息源，和国际化相关</span></div><div class="line">         initMessageSource();</div><div class="line"></div><div class="line">         <span class="comment">// 初始化容器事件传播器</span></div><div class="line">         initApplicationEventMulticaster();</div><div class="line"></div><div class="line">         <span class="comment">// 调用子类特殊的刷新逻辑</span></div><div class="line">         onRefresh();</div><div class="line"></div><div class="line">         <span class="comment">// 为事件传播器注册事件监听器</span></div><div class="line">         registerListeners();</div><div class="line"></div><div class="line">         <span class="comment">// 实例化所有非懒加载单例</span></div><div class="line">         finishBeanFactoryInitialization(beanFactory);</div><div class="line"></div><div class="line">         <span class="comment">// 初始化容器的生命周期事件处理器，并发布容器的生命周期事件</span></div><div class="line">         finishRefresh();</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">catch</span> (BeansException ex) &#123;</div><div class="line">         <span class="comment">// ...</span></div><div class="line">      &#125;</div><div class="line">      <span class="keyword">finally</span> &#123;</div><div class="line">         <span class="comment">// ...</span></div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="刷新过程详述"><a href="#刷新过程详述" class="headerlink" title="刷新过程详述"></a>刷新过程详述</h2><h3 id="prepareRefresh"><a href="#prepareRefresh" class="headerlink" title="prepareRefresh"></a>prepareRefresh</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">prepareRefresh</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 设置Spring容器的启动时间，撤销关闭状态，开启活跃状态</span></div><div class="line">   <span class="keyword">this</span>.startupDate = System.currentTimeMillis();</div><div class="line">   <span class="keyword">this</span>.closed.set(<span class="keyword">false</span>);</div><div class="line">   <span class="keyword">this</span>.active.set(<span class="keyword">true</span>);</div><div class="line"></div><div class="line">   <span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</div><div class="line">      logger.info(<span class="string">"Refreshing "</span> + <span class="keyword">this</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// 模板方法，设置属性源信息</span></div><div class="line">   initPropertySources();</div><div class="line"></div><div class="line">   <span class="comment">// 验证环境信息里一些必须存在的属性</span></div><div class="line">   getEnvironment().validateRequiredProperties();</div><div class="line"></div><div class="line">   <span class="keyword">this</span>.earlyApplicationEvents = <span class="keyword">new</span> LinkedHashSet&lt;ApplicationEvent&gt;();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="obtainFreshBeanFactory"><a href="#obtainFreshBeanFactory" class="headerlink" title="obtainFreshBeanFactory"></a>obtainFreshBeanFactory</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> ConfigurableListableBeanFactory <span class="title">obtainFreshBeanFactory</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 模板方法</span></div><div class="line">   <span class="comment">// 获取刷新Spring上下文的Bean工厂</span></div><div class="line">   refreshBeanFactory();</div><div class="line">   ConfigurableListableBeanFactory beanFactory = getBeanFactory();</div><div class="line">   <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</div><div class="line">      logger.debug(<span class="string">"Bean factory for "</span> + getDisplayName() + <span class="string">": "</span> + beanFactory);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> beanFactory;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="prepareBeanFactory"><a href="#prepareBeanFactory" class="headerlink" title="prepareBeanFactory"></a>prepareBeanFactory</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">prepareBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> </span>&#123;</div><div class="line">   <span class="comment">// 设置classloader</span></div><div class="line">   beanFactory.setBeanClassLoader(getClassLoader());</div><div class="line">   <span class="comment">// 设置表达式解析器</span></div><div class="line">   beanFactory.setBeanExpressionResolver(<span class="keyword">new</span> StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));</div><div class="line">   <span class="comment">// 添加属性编辑注册器</span></div><div class="line">   beanFactory.addPropertyEditorRegistrar(<span class="keyword">new</span> ResourceEditorRegistrar(<span class="keyword">this</span>, getEnvironment()));</div><div class="line"></div><div class="line">   <span class="comment">// 添加ApplicationContextAwareProcessor这个BeanPostProcessor用于回调</span></div><div class="line">   <span class="comment">// ApplicationContextAwareProcessor主要的作用是给实现XxxxAware的bean注入相关属性</span></div><div class="line">   beanFactory.addBeanPostProcessor(<span class="keyword">new</span> ApplicationContextAwareProcessor(<span class="keyword">this</span>));</div><div class="line">   <span class="comment">// 取消以下接口的自动注入</span></div><div class="line">   beanFactory.ignoreDependencyInterface(EnvironmentAware.class);</div><div class="line">   beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);</div><div class="line">   beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);</div><div class="line">   beanFactory.ignoreDependencyInterface(ApplicationEventPublisherAware.class);</div><div class="line">   beanFactory.ignoreDependencyInterface(MessageSourceAware.class);</div><div class="line">   beanFactory.ignoreDependencyInterface(ApplicationContextAware.class);</div><div class="line"></div><div class="line">   <span class="comment">// 设置特殊的类型对应的bean，修正依赖</span></div><div class="line">   beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);</div><div class="line">   beanFactory.registerResolvableDependency(ResourceLoader.class, <span class="keyword">this</span>);</div><div class="line">   beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, <span class="keyword">this</span>);</div><div class="line">   beanFactory.registerResolvableDependency(ApplicationContext.class, <span class="keyword">this</span>);</div><div class="line"></div><div class="line">   <span class="comment">// Register early post-processor for detecting inner beans as ApplicationListeners.</span></div><div class="line">   beanFactory.addBeanPostProcessor(<span class="keyword">new</span> ApplicationListenerDetector(<span class="keyword">this</span>));</div><div class="line"></div><div class="line">   <span class="comment">// 如果自定义的Bean中没有一个名为”loadTimeWeaver”的Bena</span></div><div class="line">   <span class="comment">// 添加一个LoadTimeWeaverAwareProcessor</span></div><div class="line">   <span class="keyword">if</span> (beanFactory.containsBean(LOAD_TIME_WEAVER_BEAN_NAME)) &#123;</div><div class="line">      beanFactory.addBeanPostProcessor(<span class="keyword">new</span> LoadTimeWeaverAwareProcessor(beanFactory));</div><div class="line">      <span class="comment">// Set a temporary ClassLoader for type matching.</span></div><div class="line">      beanFactory.setTempClassLoader(<span class="keyword">new</span> ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// 如果自定义的Bean中没有名为”systemProperties”和”systemEnvironment”的Bean</span></div><div class="line">   <span class="comment">// 注册两个Bena，Key为”systemProperties”和”systemEnvironment”，Value为Map</span></div><div class="line">   <span class="comment">// 这两个bean包含系统配置和系统环绕信息</span></div><div class="line">   <span class="keyword">if</span> (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) &#123;</div><div class="line">      beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (!beanFactory.containsLocalBean(SYSTEM_PROPERTIES_BEAN_NAME)) &#123;</div><div class="line">      beanFactory.registerSingleton(SYSTEM_PROPERTIES_BEAN_NAME, getEnvironment().getSystemProperties());</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (!beanFactory.containsLocalBean(SYSTEM_ENVIRONMENT_BEAN_NAME)) &#123;</div><div class="line">      beanFactory.registerSingleton(SYSTEM_ENVIRONMENT_BEAN_NAME, getEnvironment().getSystemEnvironment());</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="postProcessBeanFactory"><a href="#postProcessBeanFactory" class="headerlink" title="postProcessBeanFactory"></a>postProcessBeanFactory</h3><p>空实现，由具体子类实现。为子类特殊的 Application Context 实现指定特殊的 bean post 事件处理器</p>
+<h3 id="invokeBeanFactoryPostProcessors"><a href="#invokeBeanFactoryPostProcessors" class="headerlink" title="invokeBeanFactoryPostProcessors"></a>invokeBeanFactoryPostProcessors</h3><p>整个 Spring 流程中非常重要的方法，大量的用户自定义扩展都与这个方法有关。</p>
+<p>第一次读的时候看着怪复杂的直接跳过去了，结果启动过程的好多问题还是没搞清楚。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">invokeBeanFactoryPostProcessors</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> </span>&#123;</div><div class="line">   <span class="comment">// 实例化并调用所有注册的 beanFactoryPostProcessor</span></div><div class="line">   PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());</div><div class="line"></div><div class="line">   <span class="comment">// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime</span></div><div class="line">   <span class="comment">// (e.g. through an @Bean method registered by ConfigurationClassPostProcessor)</span></div><div class="line">   <span class="keyword">if</span> (beanFactory.getTempClassLoader() == <span class="keyword">null</span> &amp;&amp; beanFactory.containsBean(LOAD_TIME_WEAVER_BEAN_NAME)) &#123;</div><div class="line">      beanFactory.addBeanPostProcessor(<span class="keyword">new</span> LoadTimeWeaverAwareProcessor(beanFactory));</div><div class="line">      beanFactory.setTempClassLoader(<span class="keyword">new</span> ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>复杂的东西不在上面，是 PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors 方法的调用</p>
+<p>说明这个方法之前有两个类需要特备说明，这个方法的操作都是围绕这两个类的：</p>
+<ul>
+<li><p>BeanFactoryPostProcessor</p>
+<p>在 bean 实例化阶段开始之前，对注册到容器的 BeanDefinition 保存的原始数据做出修改</p>
+</li>
+<li><p>BeanDefinitionRegistryPostProcessor</p>
+<p>继承自上面的 BeanFactoryPostProcessor</p>
+<p>专门用来对注册的容器的 BeanFactoryPostProcessor 的BeanDefinition 保存的原始数据做出修改</p>
+</li>
+</ul>
+<p>有点拗口，不过意思类似指针与二级指针的关系。</p>
+<p>整个 PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors 的实现太复杂了，但其实就一个意思：</p>
+<ol>
+<li>先用 BeanDefinitionRegistryPostProcessor 修改 BeanFactoryPostProcessor 的 BeanDefinition </li>
+<li>然后用 BeanFactoryPostProcessor 修改普通的 BeanDefinition</li>
+</ol>
+<p>具体在操作过程中 BeanDefinitionRegistryPostProcessor 和 BeanFactoryPostProcessor 执行的顺序有明确的限制，两者都是根据以下规则执行：</p>
+<ol>
+<li>首先执行实现 PriorityOrdered 接口的，调用顺序是按照接口方法 getOrder() 的实现</li>
+<li>其次执行实现 Ordered 接口的，调用顺序是按照接口方法 getOrder() 的实现</li>
+<li>最后执行既没有实现 PriorityOrdered  也没有实现 Ordered 的，调用顺序是 bean 的定义顺序</li>
+</ol>
+<h3 id="registerBeanPostProcessors"><a href="#registerBeanPostProcessors" class="headerlink" title="registerBeanPostProcessors"></a>registerBeanPostProcessors</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">registerBeanPostProcessors</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> </span>&#123;</div><div class="line">   <span class="comment">// 从Spring容器中找出的BeanPostProcessor接口的bean，并设置到BeanFactory的属性中</span></div><div class="line">   PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, <span class="keyword">this</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>思路与 invokeBeanFactoryPostProcessors 方法类似。</p>
+<p>但只是从容器中找出实现 BeanPostProcessor 的bean，排序后设置到BeanFactory的属性中，并不调用。</p>
+<p>具体的排序过程：</p>
+<ol>
+<li>优先调用 PriorityOrdered 接口的子接口，调用顺序依照接口方法getOrder的返回值从小到大排序</li>
+<li>其次调用Ordered接口的子接口，调用顺序依照接口方法getOrder的返回值从小到大排序</li>
+<li>接着按照 BeanPostProcessor 实现类在配置文件中定义的顺序进行调用</li>
+<li>最后调用MergedBeanDefinitionPostProcessor接口的实现Bean，同样按照在配置文件中定义的顺序进行调用</li>
+</ol>
+<h3 id="initMessageSource"><a href="#initMessageSource" class="headerlink" title="initMessageSource"></a>initMessageSource</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initMessageSource</span><span class="params">()</span> </span>&#123;</div><div class="line">   ConfigurableListableBeanFactory beanFactory = getBeanFactory();</div><div class="line">   <span class="keyword">if</span> (beanFactory.containsLocalBean(MESSAGE_SOURCE_BEAN_NAME)) &#123;</div><div class="line">      <span class="comment">// 如果自定义了名为”messageSource”的Bean</span></div><div class="line">      <span class="comment">// 直接实例化Bean，该Bean必须是MessageSource接口的实现Bean</span></div><div class="line">      <span class="comment">// 该Bean如果是HierarchicalMessageSource接口的实现类</span></div><div class="line">      <span class="comment">// 强转为HierarchicalMessageSource接口，并设置一下parentMessageSource</span></div><div class="line">      <span class="keyword">this</span>.messageSource = beanFactory.getBean(MESSAGE_SOURCE_BEAN_NAME, MessageSource.class);</div><div class="line">      <span class="comment">// Make MessageSource aware of parent MessageSource.</span></div><div class="line">      <span class="keyword">if</span> (<span class="keyword">this</span>.parent != <span class="keyword">null</span> &amp;&amp; <span class="keyword">this</span>.messageSource <span class="keyword">instanceof</span> HierarchicalMessageSource) &#123;</div><div class="line">         HierarchicalMessageSource hms = (HierarchicalMessageSource) <span class="keyword">this</span>.messageSource;</div><div class="line">         <span class="keyword">if</span> (hms.getParentMessageSource() == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="comment">// Only set parent context as parent MessageSource if no parent MessageSource</span></div><div class="line">            <span class="comment">// registered already.</span></div><div class="line">            hms.setParentMessageSource(getInternalParentMessageSource());</div><div class="line">         &#125;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</div><div class="line">         logger.debug(<span class="string">"Using MessageSource ["</span> + <span class="keyword">this</span>.messageSource + <span class="string">"]"</span>);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// 如果没有自定义名为”messageSource”的Bean，那么会默认注册一个DelegatingMessageSource并加入</span></div><div class="line">      <span class="comment">// Use empty MessageSource to be able to accept getMessage calls.</span></div><div class="line">      DelegatingMessageSource dms = <span class="keyword">new</span> DelegatingMessageSource();</div><div class="line">      dms.setParentMessageSource(getInternalParentMessageSource());</div><div class="line">      <span class="keyword">this</span>.messageSource = dms;</div><div class="line">      beanFactory.registerSingleton(MESSAGE_SOURCE_BEAN_NAME, <span class="keyword">this</span>.messageSource);</div><div class="line">      <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</div><div class="line">         logger.debug(<span class="string">"Unable to locate MessageSource with name '"</span> + MESSAGE_SOURCE_BEAN_NAME +</div><div class="line">               <span class="string">"': using default ["</span> + <span class="keyword">this</span>.messageSource + <span class="string">"]"</span>);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="initApplicationEventMulticaster"><a href="#initApplicationEventMulticaster" class="headerlink" title="initApplicationEventMulticaster"></a>initApplicationEventMulticaster</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initApplicationEventMulticaster</span><span class="params">()</span> </span>&#123;</div><div class="line">   ConfigurableListableBeanFactory beanFactory = getBeanFactory();</div><div class="line">   <span class="keyword">if</span> (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) &#123;</div><div class="line">      <span class="comment">// 如果自定义了名为”applicationEventMulticaster”的Bean</span></div><div class="line">      <span class="comment">// 实例化自定义的Bean，自定义的Bean必须是ApplicationEventMulticaster接口的实现类</span></div><div class="line">      <span class="keyword">this</span>.applicationEventMulticaster =</div><div class="line">            beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);</div><div class="line">      <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</div><div class="line">         logger.debug(<span class="string">"Using ApplicationEventMulticaster ["</span> + <span class="keyword">this</span>.applicationEventMulticaster + <span class="string">"]"</span>);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// 如果没有自定义名为”ApplicationEventMulticaster”的Bean</span></div><div class="line">      <span class="comment">// 注册一个类型为SimpleApplicationEventMulticaster的Bean</span></div><div class="line">      <span class="keyword">this</span>.applicationEventMulticaster = <span class="keyword">new</span> SimpleApplicationEventMulticaster(beanFactory);</div><div class="line">      beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, <span class="keyword">this</span>.applicationEventMulticaster);</div><div class="line">      <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</div><div class="line">         logger.debug(<span class="string">"Unable to locate ApplicationEventMulticaster with name '"</span> +</div><div class="line">               APPLICATION_EVENT_MULTICASTER_BEAN_NAME +</div><div class="line">               <span class="string">"': using default ["</span> + <span class="keyword">this</span>.applicationEventMulticaster + <span class="string">"]"</span>);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="onRefresh"><a href="#onRefresh" class="headerlink" title="onRefresh"></a>onRefresh</h3><p>空的模板方法，根据不同的 ApplicationContext 子类实现对应的业务逻辑</p>
+<h3 id="registerListeners"><a href="#registerListeners" class="headerlink" title="registerListeners"></a>registerListeners</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">registerListeners</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// Register statically specified listeners first.</span></div><div class="line">   <span class="keyword">for</span> (ApplicationListener&lt;?&gt; listener : getApplicationListeners()) &#123;</div><div class="line">      getApplicationEventMulticaster().addApplicationListener(listener);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// Do not initialize FactoryBeans here: We need to leave all regular beans</span></div><div class="line">   <span class="comment">// uninitialized to let post-processors apply to them!</span></div><div class="line">   String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, <span class="keyword">true</span>, <span class="keyword">false</span>);</div><div class="line">   <span class="keyword">for</span> (String listenerBeanName : listenerBeanNames) &#123;</div><div class="line">      getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// Publish early application events now that we finally have a multicaster...</span></div><div class="line">   Set&lt;ApplicationEvent&gt; earlyEventsToProcess = <span class="keyword">this</span>.earlyApplicationEvents;</div><div class="line">   <span class="keyword">this</span>.earlyApplicationEvents = <span class="keyword">null</span>;</div><div class="line">   <span class="keyword">if</span> (earlyEventsToProcess != <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">for</span> (ApplicationEvent earlyEvent : earlyEventsToProcess) &#123;</div><div class="line">         getApplicationEventMulticaster().multicastEvent(earlyEvent);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="finishBeanFactoryInitialization"><a href="#finishBeanFactoryInitialization" class="headerlink" title="finishBeanFactoryInitialization"></a>finishBeanFactoryInitialization</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">finishBeanFactoryInitialization</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> </span>&#123;</div><div class="line">   <span class="comment">//有容器转换服务bean时先实例化这种Bean</span></div><div class="line">   <span class="keyword">if</span> (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &amp;&amp;</div><div class="line">         beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) &#123;</div><div class="line">      beanFactory.setConversionService(</div><div class="line">            beanFactory.getBean(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class));</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="comment">// 注册一个默认的嵌入式值解析器</span></div><div class="line">   <span class="keyword">if</span> (!beanFactory.hasEmbeddedValueResolver()) &#123;</div><div class="line">      beanFactory.addEmbeddedValueResolver(<span class="keyword">new</span> StringValueResolver() &#123;</div><div class="line">         <span class="meta">@Override</span></div><div class="line">         <span class="function"><span class="keyword">public</span> String <span class="title">resolveStringValue</span><span class="params">(String strVal)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> getEnvironment().resolvePlaceholders(strVal);</div><div class="line">         &#125;</div><div class="line">      &#125;);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// 实例化LoadTimeWeaverAware类型Bean</span></div><div class="line">   String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, <span class="keyword">false</span>, <span class="keyword">false</span>);</div><div class="line">   <span class="keyword">for</span> (String weaverAwareName : weaverAwareNames) &#123;</div><div class="line">      getBean(weaverAwareName);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// 停止使用临时类加载器</span></div><div class="line">   beanFactory.setTempClassLoader(<span class="keyword">null</span>);</div><div class="line"></div><div class="line">   <span class="comment">// 缓存容器中所有注册的BeanDefinition元数据，以防被修改</span></div><div class="line">   beanFactory.freezeConfiguration();</div><div class="line"></div><div class="line">   <span class="comment">// 实例化剩余的所有非lazy-init singleton Bean</span></div><div class="line">   beanFactory.preInstantiateSingletons();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="finishRefresh"><a href="#finishRefresh" class="headerlink" title="finishRefresh"></a>finishRefresh</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">finishRefresh</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 初始化生命周期处理器（LifecycleProcessor）</span></div><div class="line">   <span class="comment">// 先找一下有没有自定义名为lifecycleProcessor的Bean，有的话就实例化出来</span></div><div class="line">   <span class="comment">// 该Bean必须是LifecycleProcessor的实现类</span></div><div class="line">   <span class="comment">// 没有则向Spring上下文中注册一个类型为DefaultLifecycleProcessor的LifecycleProcessor实现类</span></div><div class="line">   initLifecycleProcessor();</div><div class="line"></div><div class="line">   <span class="comment">// 调用生命周期处理器的onRefresh方法</span></div><div class="line">   getLifecycleProcessor().onRefresh();</div><div class="line"></div><div class="line">   <span class="comment">// 发布ContextRefreshedEvent事件告知对应的ApplicationListener进行响应的操作</span></div><div class="line">   publishEvent(<span class="keyword">new</span> ContextRefreshedEvent(<span class="keyword">this</span>));</div><div class="line"></div><div class="line">   <span class="comment">// 如果设置了JMX相关的属性，则就调用该方法</span></div><div class="line">   LiveBeansView.registerApplicationContext(<span class="keyword">this</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>以上就是简单的记录了 Spring 启动过程中容器刷新的动作。</p>
+<hr>
+<p>以上内容除了源码的阅读还参考了其他博客，学习到了很多细节，这里表示感谢了：</p>
+<p><a href="http://fangjian0423.github.io/2017/05/10/springboot-context-refresh/" target="_blank" rel="external">SpringBoot源码分析之Spring容器的refresh过程</a></p>
+<p><a href="http://blog.csdn.net/bubaxiu/article/details/41415685" target="_blank" rel="external">Spring– Ioc 容器Bean实例化的几种场景</a></p>
+<p><a href="http://blog.csdn.net/chjttony/article/details/6278627" target="_blank" rel="external">《Spring技术内幕》学习笔记6——IoC容器的高级特性</a></p>
+<p><a href="http://www.importnew.com/24282.html" target="_blank" rel="external">Spring源码分析：非懒加载的单例Bean初始化前后的一些操作</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/Spring/" rel="tag">#Spring</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/10/【SpringBoot】容器启动/" rel="next" title="【SpringBoot】容器启动">
+                <i class="fa fa-chevron-left"></i> 【SpringBoot】容器启动
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/17/【Netty】IO模型/" rel="prev" title="【Netty】IO模型">
+                【Netty】IO模型 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概览"><span class="nav-number">1.</span> <span class="nav-text">概览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#刷新过程详述"><span class="nav-number">2.</span> <span class="nav-text">刷新过程详述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#prepareRefresh"><span class="nav-number">2.1.</span> <span class="nav-text">prepareRefresh</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#obtainFreshBeanFactory"><span class="nav-number">2.2.</span> <span class="nav-text">obtainFreshBeanFactory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prepareBeanFactory"><span class="nav-number">2.3.</span> <span class="nav-text">prepareBeanFactory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#postProcessBeanFactory"><span class="nav-number">2.4.</span> <span class="nav-text">postProcessBeanFactory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#invokeBeanFactoryPostProcessors"><span class="nav-number">2.5.</span> <span class="nav-text">invokeBeanFactoryPostProcessors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#registerBeanPostProcessors"><span class="nav-number">2.6.</span> <span class="nav-text">registerBeanPostProcessors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initMessageSource"><span class="nav-number">2.7.</span> <span class="nav-text">initMessageSource</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initApplicationEventMulticaster"><span class="nav-number">2.8.</span> <span class="nav-text">initApplicationEventMulticaster</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onRefresh"><span class="nav-number">2.9.</span> <span class="nav-text">onRefresh</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#registerListeners"><span class="nav-number">2.10.</span> <span class="nav-text">registerListeners</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#finishBeanFactoryInitialization"><span class="nav-number">2.11.</span> <span class="nav-text">finishBeanFactoryInitialization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#finishRefresh"><span class="nav-number">2.12.</span> <span class="nav-text">finishRefresh</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/07/16/【Spring】容器刷新/';
+      var disqus_title = "【Spring】容器刷新";
+      var disqus_url = 'https://zhanghtk.github.io/2017/07/16/【Spring】容器刷新/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

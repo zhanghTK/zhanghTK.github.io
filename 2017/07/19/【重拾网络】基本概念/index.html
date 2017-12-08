@@ -1,0 +1,1028 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="网络," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="Netty 还没看几页就碰到 TCP 接收滑块的问题。隐约记得传输层协议学习的时候看过，但也忘的七七八八的了。毕业两年网络相关的知识也差不多丢完了（就好像自己以前会一样），从本文开始回顾一下网络知识。目标至少网络层以上的主要协议大致过程要清楚，尤其是 Web 开发常见协议，总结的顺序依据《计算机网络——自顶向下学习方法》。
+网络构成网络边缘
+主机
+网络应用，模型
+C/S
+P2P
+
+
+
+接入网络
+目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【重拾网络】基本概念">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/07/19/【重拾网络】基本概念/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="Netty 还没看几页就碰到 TCP 接收滑块的问题。隐约记得传输层协议学习的时候看过，但也忘的七七八八的了。毕业两年网络相关的知识也差不多丢完了（就好像自己以前会一样），从本文开始回顾一下网络知识。目标至少网络层以上的主要协议大致过程要清楚，尤其是 Web 开发常见协议，总结的顺序依据《计算机网络——自顶向下学习方法》。
+网络构成网络边缘
+主机
+网络应用，模型
+C/S
+P2P
+
+
+
+接入网络
+目">
+<meta property="og:updated_time" content="2017-07-19T15:26:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【重拾网络】基本概念">
+<meta name="twitter:description" content="Netty 还没看几页就碰到 TCP 接收滑块的问题。隐约记得传输层协议学习的时候看过，但也忘的七七八八的了。毕业两年网络相关的知识也差不多丢完了（就好像自己以前会一样），从本文开始回顾一下网络知识。目标至少网络层以上的主要协议大致过程要清楚，尤其是 Web 开发常见协议，总结的顺序依据《计算机网络——自顶向下学习方法》。
+网络构成网络边缘
+主机
+网络应用，模型
+C/S
+P2P
+
+
+
+接入网络
+目">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/07/19/【重拾网络】基本概念/"/>
+
+  <title> 【重拾网络】基本概念 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【重拾网络】基本概念
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-07-19T23:25:03+08:00" content="2017-07-19">
+              2017-07-19
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/07/19/【重拾网络】基本概念/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/19/【重拾网络】基本概念/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Netty 还没看几页就碰到 TCP 接收滑块的问题。隐约记得传输层协议学习的时候看过，但也忘的七七八八的了。毕业两年网络相关的知识也差不多丢完了（就好像自己以前会一样），从本文开始回顾一下网络知识。目标至少网络层以上的主要协议大致过程要清楚，尤其是 Web 开发常见协议，总结的顺序依据《计算机网络——自顶向下学习方法》。</p>
+<h2 id="网络构成"><a href="#网络构成" class="headerlink" title="网络构成"></a>网络构成</h2><h3 id="网络边缘"><a href="#网络边缘" class="headerlink" title="网络边缘"></a>网络边缘</h3><ul>
+<li>主机</li>
+<li>网络应用，模型<ul>
+<li>C/S</li>
+<li>P2P</li>
+</ul>
+</li>
+</ul>
+<h3 id="接入网络"><a href="#接入网络" class="headerlink" title="接入网络"></a>接入网络</h3><ul>
+<li>目的：将网络边缘接入网络核心（边缘路由器）</li>
+<li>物理介质：有线、无线通信链路</li>
+</ul>
+<ul>
+<li>分类：家庭、机构、移动</li>
+<li>关心主题：带宽、独占 / 共享</li>
+</ul>
+<h4 id="DSL"><a href="#DSL" class="headerlink" title="DSL"></a>DSL</h4><ul>
+<li>利用电话线</li>
+<li>频分多路复用<ul>
+<li>0 ~ 4HKZ：电话</li>
+<li>4KHZ ~ 50KHZ：上行</li>
+<li>50KHZ ~ 1MHZ：下行</li>
+</ul>
+</li>
+<li>带宽：上行 &lt; 2.5 或 1 Mbps, 下行 &gt; 24 或 10 Mbps</li>
+<li>独占</li>
+</ul>
+<h4 id="电缆"><a href="#电缆" class="headerlink" title="电缆"></a>电缆</h4><ul>
+<li>电视网络</li>
+<li>频分多路复用</li>
+<li>HFC：混合光纤同轴电缆</li>
+<li>带宽：上行 2Mbps，下行 20Mbps</li>
+<li>共享</li>
+</ul>
+<h4 id="以太网"><a href="#以太网" class="headerlink" title="以太网"></a>以太网</h4><ul>
+<li>机构使用</li>
+<li>带宽：10Mbps, 100Mbps, 1Gbps, 10Gbps</li>
+</ul>
+<h4 id="无线接入"><a href="#无线接入" class="headerlink" title="无线接入"></a>无线接入</h4><ul>
+<li>共享无线网络</li>
+<li>无线局域网：802.11 b/g, 11Mbps, 50Mbps</li>
+<li>广域无线接入</li>
+</ul>
+<h3 id="网络核心"><a href="#网络核心" class="headerlink" title="网络核心"></a>网络核心</h3><p>目的：数据交换，从源主机通过核心网络送到目的主机</p>
+<h4 id="互联"><a href="#互联" class="headerlink" title="互联"></a>互联</h4><ul>
+<li>路由：确定分组从源主机到目的主机的传输路径</li>
+<li>转发：将分组从路由器输入端口交换至正确的输出端口</li>
+</ul>
+<h4 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h4><p>网络的网络——Internet</p>
+<ul>
+<li>端系统通过接入 ISP 连接到 Internet</li>
+<li>ISP 必须进一步互联，构成复杂网络</li>
+</ul>
+<p>ISP 互联方式：</p>
+<ol>
+<li><p>直接彼此互联</p>
+<p>需要 N * (N-1) / 2 条连接</p>
+</li>
+<li><p>每个接入 ISP 连接到一个国家/全球ISP</p>
+<p>引入交换设备简化了方式 1，问题：1. 距离；规模：瓶颈，端口</p>
+</li>
+<li><p>在方式 2 基础引入竞争者——二级，三级 ISP</p>
+<p>引入交换网络，解决连通性、网络规模问题</p>
+</li>
+<li><p>引入区域 ISP，连接端系统和接入 ISP</p>
+</li>
+<li><p>内容提供网络</p>
+</li>
+</ol>
+<h2 id="数据交换"><a href="#数据交换" class="headerlink" title="数据交换"></a>数据交换</h2><ul>
+<li>交换含义：<ol>
+<li>动态转义</li>
+<li>动态分配传输资源</li>
+</ol>
+</li>
+<li>数据交换方式：电路、报文、分组</li>
+</ul>
+<h3 id="多路复用技术"><a href="#多路复用技术" class="headerlink" title="多路复用技术"></a>多路复用技术</h3><ul>
+<li>链路/网络资源划分为资源片</li>
+<li>将资源片分配给各路呼叫</li>
+<li>每路呼叫独占分配到的资源进行通信</li>
+<li>资源可被闲置</li>
+<li>分配<ul>
+<li>频分复用 FDM，有先电视网络，占用不同频带</li>
+<li>时分复用 TDM，占用不同时间片</li>
+<li>波分复用 WDM，光的频分复用</li>
+<li>码分复用 CDM，无线链路共享</li>
+</ul>
+</li>
+</ul>
+<h3 id="交换技术"><a href="#交换技术" class="headerlink" title="交换技术"></a>交换技术</h3><h4 id="电路交换"><a href="#电路交换" class="headerlink" title="电路交换"></a>电路交换</h4><ul>
+<li>典型：电话网络</li>
+<li>过程：<ol>
+<li>建立连接</li>
+<li>通信</li>
+<li>释放连接</li>
+</ol>
+</li>
+<li>特点：独占资源</li>
+<li>中继线共享——多路复用</li>
+</ul>
+<h4 id="报文交换"><a href="#报文交换" class="headerlink" title="报文交换"></a>报文交换</h4><p>源（应用）发送信息整体，典型：电报</p>
+<h4 id="分组交换"><a href="#分组交换" class="headerlink" title="分组交换"></a>分组交换</h4><p>分组：报文拆分出来的较小的数据包</p>
+<p>过程：报文拆分、重复</p>
+<p>额外开销：1. 拆分，重组；2. 头信息</p>
+<h4 id="报文、分组交换异同"><a href="#报文、分组交换异同" class="headerlink" title="报文、分组交换异同"></a>报文、分组交换异同</h4><ul>
+<li>同：过程都是存储-转发</li>
+<li>异：交换过程是否查分数据</li>
+</ul>
+<h4 id="分组、电路交换特点"><a href="#分组、电路交换特点" class="headerlink" title="分组、电路交换特点"></a>分组、电路交换特点</h4><ul>
+<li>分组不独占，电路独占资源</li>
+<li>分组更适合突发数据传输网络</li>
+<li>分组特点：<ul>
+<li>无需呼叫建立</li>
+<li>资源充分共享</li>
+<li>可能产生拥塞：分组延迟，丢失</li>
+</ul>
+</li>
+</ul>
+<h4 id="分组、报文耗时比较"><a href="#分组、报文耗时比较" class="headerlink" title="分组、报文耗时比较"></a>分组、报文耗时比较</h4><p>发送 M bits 的报文，链路带宽为 R bps，分组长 L bits，跳步数 h，路由器数 n。（n = h -1）</p>
+<p>报文：M / R * h</p>
+<p>报文：(M / R) + (h -1) * L / R -&gt; M / R + nL / R</p>
+<h4 id="分组交换时延-amp-丢包-amp-吞吐量"><a href="#分组交换时延-amp-丢包-amp-吞吐量" class="headerlink" title="分组交换时延 &amp; 丢包 &amp; 吞吐量"></a>分组交换时延 &amp; 丢包 &amp; 吞吐量</h4><ul>
+<li><p>时延：结点处理时延、排队时延、传输时延、传播时延</p>
+</li>
+<li><p>流量强度</p>
+<p>流量强度：分组 * 分组到达平均速率 / 传输速率</p>
+<p>流量强度 &gt; 1：表示比特到达平均速率超过队列传输出去速率，队列趋于无界增加，排队时延趋于无穷大</p>
+</li>
+<li><p>丢包：到达的分组排满一个队列后，路由器将丢弃分组</p>
+</li>
+<li><p>吞吐量：取决于数据流过的链路的传输速率，近似为沿着源和目的地之间路径的最小传输速率</p>
+</li>
+</ul>
+<h2 id="网络分层"><a href="#网络分层" class="headerlink" title="网络分层"></a>网络分层</h2><h3 id="TCP-IP-五层模型"><a href="#TCP-IP-五层模型" class="headerlink" title="TCP/IP 五层模型"></a>TCP/IP 五层模型</h3><table>
+<thead>
+<tr>
+<th style="text-align:center">协议</th>
+<th style="text-align:center">主要作用</th>
+<th style="text-align:center">关注点</th>
+<th>常见协议</th>
+<th>协议数据单位</th>
+<th>物理设备</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">应用层</td>
+<td style="text-align:center">为应用程序提供网络传输接口</td>
+<td style="text-align:center">进程如何通信</td>
+<td>HTTP, DNS</td>
+<td>PDU</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:center">传输层</td>
+<td style="text-align:center">负责将上层数据分段并提供端到端的传输</td>
+<td style="text-align:center">端到端的差错控制和流量控制</td>
+<td>TCP, UDP</td>
+<td>segment</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:center">网络层</td>
+<td style="text-align:center">网络地址翻译成对应的物理地 ，解决如何将数据从发送方路由到接收方</td>
+<td style="text-align:center">对子网间的数据包进行路由选择，实现拥塞控制、网际互连等功能</td>
+<td>ARP, IP</td>
+<td>packet</td>
+<td>路由器</td>
+</tr>
+<tr>
+<td style="text-align:center">连接层</td>
+<td style="text-align:center">控制网络层与物理层之间的通信，在不可靠的物理介质上提供可靠的传输。</td>
+<td style="text-align:center">物理地址寻址、数据的成帧、流量控制、数据的检错、重发等</td>
+<td></td>
+<td>frame</td>
+<td>交换机，网桥</td>
+</tr>
+<tr>
+<td style="text-align:center">物理层</td>
+<td style="text-align:center">为上层协议提供了一个传输数据的物理媒体</td>
+<td style="text-align:center">规定了激活、维持、关闭通信端点之间的机械特性、电气特性、功能特性以及过程特性</td>
+<td></td>
+<td>bit</td>
+<td>集线器，中继器</td>
+</tr>
+</tbody>
+</table>
+<p>为什么强调五层呢？因为还有个 TCP/IP 四层协议把链路层和物理层合并了，统称为网络接口层</p>
+<h3 id="OSI-模型"><a href="#OSI-模型" class="headerlink" title="OSI 模型"></a>OSI 模型</h3><p>实际上 TCP/IP 模型是从 OSI 模型演化来的。学院派先搞出的 OSI 模型，工业使用了更简化的 TCP/IP 协议。</p>
+<p>具体表现是 TCP/IP 协议把 OSI 的应用层、表示层、会话层合同为应用层。</p>
+<h3 id="分层的过程："><a href="#分层的过程：" class="headerlink" title="分层的过程："></a>分层的过程：</h3><ol>
+<li>发送方应用程序的数据总是从最上层开始，层层向下，最终经由物理层发送出去</li>
+<li>接收方的物理层接收到数据后，层层向上，最终经由应用层分发到具体的应用程序进程中</li>
+<li>在数据层层向下的过程中，每一层都会对数据进行一些封装处理（如打包或者编码）</li>
+<li>在数据层层向上的过程中，每一层都会对数据进行一些逆处理（如解包或者解码）</li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/网络/" rel="tag">#网络</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/17/【Netty】IO模型/" rel="next" title="【Netty】IO模型">
+                <i class="fa fa-chevron-left"></i> 【Netty】IO模型
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/20/【重拾网络】应用层/" rel="prev" title="【重拾网络】应用层">
+                【重拾网络】应用层 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#网络构成"><span class="nav-number">1.</span> <span class="nav-text">网络构成</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#网络边缘"><span class="nav-number">1.1.</span> <span class="nav-text">网络边缘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接入网络"><span class="nav-number">1.2.</span> <span class="nav-text">接入网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DSL"><span class="nav-number">1.2.1.</span> <span class="nav-text">DSL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#电缆"><span class="nav-number">1.2.2.</span> <span class="nav-text">电缆</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#以太网"><span class="nav-number">1.2.3.</span> <span class="nav-text">以太网</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#无线接入"><span class="nav-number">1.2.4.</span> <span class="nav-text">无线接入</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网络核心"><span class="nav-number">1.3.</span> <span class="nav-text">网络核心</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#互联"><span class="nav-number">1.3.1.</span> <span class="nav-text">互联</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#结构"><span class="nav-number">1.3.2.</span> <span class="nav-text">结构</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据交换"><span class="nav-number">2.</span> <span class="nav-text">数据交换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#多路复用技术"><span class="nav-number">2.1.</span> <span class="nav-text">多路复用技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#交换技术"><span class="nav-number">2.2.</span> <span class="nav-text">交换技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#电路交换"><span class="nav-number">2.2.1.</span> <span class="nav-text">电路交换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#报文交换"><span class="nav-number">2.2.2.</span> <span class="nav-text">报文交换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分组交换"><span class="nav-number">2.2.3.</span> <span class="nav-text">分组交换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#报文、分组交换异同"><span class="nav-number">2.2.4.</span> <span class="nav-text">报文、分组交换异同</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分组、电路交换特点"><span class="nav-number">2.2.5.</span> <span class="nav-text">分组、电路交换特点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分组、报文耗时比较"><span class="nav-number">2.2.6.</span> <span class="nav-text">分组、报文耗时比较</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分组交换时延-amp-丢包-amp-吞吐量"><span class="nav-number">2.2.7.</span> <span class="nav-text">分组交换时延 & 丢包 & 吞吐量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络分层"><span class="nav-number">3.</span> <span class="nav-text">网络分层</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP-IP-五层模型"><span class="nav-number">3.1.</span> <span class="nav-text">TCP/IP 五层模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OSI-模型"><span class="nav-number">3.2.</span> <span class="nav-text">OSI 模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分层的过程："><span class="nav-number">3.3.</span> <span class="nav-text">分层的过程：</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/07/19/【重拾网络】基本概念/';
+      var disqus_title = "【重拾网络】基本概念";
+      var disqus_url = 'https://zhanghtk.github.io/2017/07/19/【重拾网络】基本概念/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

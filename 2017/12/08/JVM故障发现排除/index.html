@@ -1,0 +1,908 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,JVM," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="最近做了服务器迁移之后，系统运行过程中出现了几次发现不稳定的情况。这次的经历又回想起之前几次碰到类似的问题，类似的问题往往需要能快速排查定位、处理。但相关类似问题又不是经常能够碰到，每次出现问题都是手忙脚乱的查资料，今天根据《深入理解 Java 虚拟机》和自己简单的经验做一下总结，方便日后使用。
+工具目前可用的 JVM 监控工具还是蛮多的，这里只列出实际操作中我使用的几个。其中有命令行工具也有第可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM故障发现排除">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/12/08/JVM故障发现排除/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="最近做了服务器迁移之后，系统运行过程中出现了几次发现不稳定的情况。这次的经历又回想起之前几次碰到类似的问题，类似的问题往往需要能快速排查定位、处理。但相关类似问题又不是经常能够碰到，每次出现问题都是手忙脚乱的查资料，今天根据《深入理解 Java 虚拟机》和自己简单的经验做一下总结，方便日后使用。
+工具目前可用的 JVM 监控工具还是蛮多的，这里只列出实际操作中我使用的几个。其中有命令行工具也有第可">
+<meta property="og:updated_time" content="2017-12-08T13:31:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JVM故障发现排除">
+<meta name="twitter:description" content="最近做了服务器迁移之后，系统运行过程中出现了几次发现不稳定的情况。这次的经历又回想起之前几次碰到类似的问题，类似的问题往往需要能快速排查定位、处理。但相关类似问题又不是经常能够碰到，每次出现问题都是手忙脚乱的查资料，今天根据《深入理解 Java 虚拟机》和自己简单的经验做一下总结，方便日后使用。
+工具目前可用的 JVM 监控工具还是蛮多的，这里只列出实际操作中我使用的几个。其中有命令行工具也有第可">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/12/08/JVM故障发现排除/"/>
+
+  <title> JVM故障发现排除 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                JVM故障发现排除
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-12-08T21:20:40+08:00" content="2017-12-08">
+              2017-12-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">JVM</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/12/08/JVM故障发现排除/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/12/08/JVM故障发现排除/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近做了服务器迁移之后，系统运行过程中出现了几次发现不稳定的情况。这次的经历又回想起之前几次碰到类似的问题，类似的问题往往需要能快速排查定位、处理。但相关类似问题又不是经常能够碰到，每次出现问题都是手忙脚乱的查资料，今天根据《深入理解 Java 虚拟机》和自己简单的经验做一下总结，方便日后使用。</p>
+<h2 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h2><p>目前可用的 JVM 监控工具还是蛮多的，这里只列出实际操作中我使用的几个。其中有命令行工具也有第可视化工具，从使用的便捷性上讲，可视化的工具无疑是更好的。但生产环境处于安全，性能的考虑往往不开放远程连接，这时还是得用命令行工具处理。</p>
+<h3 id="命令行工具"><a href="#命令行工具" class="headerlink" title="命令行工具"></a>命令行工具</h3><ul>
+<li><p>jps：JVM 进程状况工具，主要作用是查看 LVMID，-v 参数可以输出 JMV 启动参数</p>
+</li>
+<li><p>jstat：JVM 统计信息监控工具，主要是查看 GC 相关信息：</p>
+<ul>
+<li>-gc：监视 Java 堆状况</li>
+<li>-gccapacity：监视 Java 堆状况，最大，最小空间</li>
+<li>-gcutil：监视 Java 堆状况，已使用百分比</li>
+</ul>
+<p>输出列含义见文末</p>
+</li>
+<li><p>jinfo：Java 配置信息工具，查看设置 JVM 启动参数</p>
+<ul>
+<li>查看：-flag &lt; name &gt;：输出指定名称参数值，作为 jps -v 补充</li>
+<li>设置：<ul>
+<li>-flag [+|-] &lt; name &gt;：设置指定 JVM 参数的布尔值</li>
+<li>-flag &lt; name &gt; = &lt; value &gt;：设置指定 JVM 参数的值</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>jmap：Java 内存映像工具，主要参数：</p>
+<ul>
+<li>-dump：生成快照，例如：-dump:format=b,file=&lt; filename.bin &gt; &lt; pid &gt;</li>
+<li>-heap：显示 Java 堆详细信息</li>
+<li>-histo：像是堆中对象统计信息</li>
+<li>-permstat：以 ClassLoader 为统计口径显示永久代内存状况</li>
+</ul>
+</li>
+<li><p>jstack：Java 堆栈跟踪工具，用于生成 JVM 当前线程快照，-l 参数显示关于加锁信息，-F 参数强制 dump</p>
+</li>
+</ul>
+<h3 id="可视化工具"><a href="#可视化工具" class="headerlink" title="可视化工具"></a>可视化工具</h3><ul>
+<li>VisualVM：多合一故障处理工具，这个几乎涵盖了我用到上面命令行的所有功能</li>
+<li>MemoryAnalyzerTool：用于分析 dump 堆文件，对比 VisualVM 功能单一，但是提供了报表功能可以协助分析问题</li>
+</ul>
+<h2 id="问题排查一般思路"><a href="#问题排查一般思路" class="headerlink" title="问题排查一般思路"></a>问题排查一般思路</h2><p>目前我在实际开发过程中碰到的 JVM 问题主要可以分类两类：内存溢出和系统运行缓慢</p>
+<h3 id="内存溢出"><a href="#内存溢出" class="headerlink" title="内存溢出"></a>内存溢出</h3><p>这种场景是影响最恶劣，但也是最容易排查的。通常的错误就能告诉说明溢出区域：</p>
+<ul>
+<li>outOfMemoryError ：年老代内存不足</li>
+<li>outOfMemoryError:PermGen Space：永久代内存不足</li>
+<li>outOfMemoryError:GC overhead limit exceed：垃圾回收时间占用系统运行时间的98%或以上</li>
+</ul>
+<p>生产环境碰到这类情况为了确保系统可用，可以先使用 jstat 查看 Java 堆的空间使用情况确定到底是哪部分溢出，其最大可用空间是多少，然后直接扩大该区域空间即可。重启时建议加上 -XX:+HeapDumpOnOutMemoryError 作为启动参数，在下次溢出可以获得快照文件。</p>
+<p>上面的做法作为临时解决方案可以解决一般性的问题，但没有系统的快照无法深入分析问题产生的原因，如果想分析问题根源需要在重启前使用 jmap 生成快照。获得快照文件后可以在本地使用可视化工具分析。使用 MemoryAnalyzer 打开快照文件就能获得一个分析报表，里面列出了可能出现泄露的地方。目前我碰到的内存溢出问题一般从这个分析报表里面就可以确定了，如果不能确定就需要根据加载的类，类的实例，引用关系进一步分析了。</p>
+<p>我目前碰到的都是 Java 堆的溢出，以上的思路基本可以解决。但除此还有其他的内存溢出需要注意：</p>
+<ul>
+<li>Direct Memory</li>
+<li>线程堆栈：StackOverflowError，OutOfMemoryError：unable to create new native thread</li>
+<li>Socket 缓冲区：IOException：Too many open files</li>
+</ul>
+<h3 id="系统运行缓慢"><a href="#系统运行缓慢" class="headerlink" title="系统运行缓慢"></a>系统运行缓慢</h3><p>系统运行缓慢可能出现的原因就比较多了，通常就是找到导致系统缓慢的具体代码段，然后修复。一般化的解决思路是从系统到应用，从应用到线程。</p>
+<p>具体来说：首先使用系统监控工具（例如 top，vmstat）查看当前系统运行状况，确认哪个应用的资源占用过大，是否是 Java 应用的问题；其次使用 jps 获得具体应用的 LVMID，根据 LVMID 查看应用的具体运行状况，如线程情况，系统信息等。还可以根据系统工具 pidstat 进一步查看线程的运行信息来辅助确定问题。以上基本就可以确定问题。</p>
+<h3 id="本地应用"><a href="#本地应用" class="headerlink" title="本地应用"></a>本地应用</h3><p>如果是本地应用或者可以远程访问的应用排查起来就更方便了，直接使用 VisualVM 连接上去，从系统到线程的一切信息都了如指掌，还可以直接运行 GC，dump 快照等。</p>
+<hr>
+<ul>
+<li><p>关于工具使用的一些参考：</p>
+<p><a href="https://my.oschina.net/feichexia/blog/196575" target="_blank" rel="external">JVM性能调优监控工具jps、jstack、jmap、jhat、jstat、hprof使用详解</a></p>
+<p><a href="http://www.lightskystreet.com/2015/09/01/mat_usage/" target="_blank" rel="external">MAT - Memory Analyzer Tool 使用进阶</a></p>
+</li>
+<li><p>jstat 输出列含义：</p>
+<p>S0C：年轻代中第一个survivor的容量 (字节) </p>
+<p>S1C：年轻代中第二个survivor的容量 (字节) </p>
+<p>S0U：年轻代中第一个survivor目前已使用空间 (字节) </p>
+<p>S1U：年轻代中第二个survivor目前已使用空间 (字节) </p>
+<p>EC：年轻代中Eden的容量 (字节) </p>
+<p>EU：年轻代中Eden目前已使用空间 (字节) </p>
+<p>OC：Old代的容量 (字节) </p>
+<p>OU：Old代目前已使用空间 (字节) </p>
+<p>PC：Perm(持久代)的容量 (字节) </p>
+<p>PU：Perm(持久代)目前已使用空间 (字节) </p>
+<p>YGC：从应用程序启动到采样时年轻代中gc次数 </p>
+<p>YGCT：从应用程序启动到采样时年轻代中gc所用时间(s) </p>
+<p>FGC：从应用程序启动到采样时old代(全gc)gc次数 </p>
+<p>FGCT：从应用程序启动到采样时old代(全gc)gc所用时间(s) </p>
+<p>GCT：从应用程序启动到采样时gc用的总时间(s) </p>
+<p>NGCMN：年轻代中初始化(最小)的大小 (字节) </p>
+<p>NGCMX：年轻代的最大容量 (字节) </p>
+<p>NGC：年轻代中当前的容量 (字节) </p>
+<p>OGCMN：old代中初始化(最小)的大小 (字节) </p>
+<p>OGCMX：old代的最大容量 (字节) </p>
+<p>OGC：old代当前新生成的容量 (字节) </p>
+<p>PGCMN：perm代中初始化(最小)的大小 (字节) </p>
+<p>PGCMX：perm代的最大容量 (字节) </p>
+<p>PGC：perm代当前新生成的容量 (字节) </p>
+<p>S0：年轻代中第一个survivor已使用的占当前容量百分比 </p>
+<p>S1：年轻代中第二个survivor已使用的占当前容量百分比 </p>
+<p>E：年轻代中Eden已使用的占当前容量百分比 </p>
+<p>O：old代已使用的占当前容量百分比 </p>
+<p>P：perm代已使用的占当前容量百分比 </p>
+<p>S0CMX：年轻代中第一个survivor的最大容量 (字节) </p>
+<p>S1CMX ：年轻代中第二个survivor的最大容量 (字节) </p>
+<p>ECMX：年轻代中Eden的最大容量 (字节) </p>
+<p>DSS：当前需要survivor的容量 (字节)（Eden区已满） </p>
+<p>TT： 持有次数限制 </p>
+<p>MTT ： 最大持有次数限制 </p>
+</li>
+</ul>
+<hr>
+<p>  20171208 补充</p>
+<p>  目前系统接入了 APM（Application Performance Management） 对整个系统的运行进行监控。监控内容包括但不限 JVM 相关内容，非常值得参考。<br>  <a href="https://github.com/naver/pinpoint" target="_blank" rel="external">APM 传送问</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/JVM/" rel="tag">#JVM</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/08/Spring事务行为/" rel="next" title="Spring事务行为">
+                <i class="fa fa-chevron-left"></i> Spring事务行为
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/08/JVM知识拾遗/" rel="prev" title="JVM知识拾遗">
+                JVM知识拾遗 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#工具"><span class="nav-number">1.</span> <span class="nav-text">工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行工具"><span class="nav-number">1.1.</span> <span class="nav-text">命令行工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可视化工具"><span class="nav-number">1.2.</span> <span class="nav-text">可视化工具</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题排查一般思路"><span class="nav-number">2.</span> <span class="nav-text">问题排查一般思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内存溢出"><span class="nav-number">2.1.</span> <span class="nav-text">内存溢出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统运行缓慢"><span class="nav-number">2.2.</span> <span class="nav-text">系统运行缓慢</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地应用"><span class="nav-number">2.3.</span> <span class="nav-text">本地应用</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/12/08/JVM故障发现排除/';
+      var disqus_title = "JVM故障发现排除";
+      var disqus_url = 'https://zhanghtk.github.io/2017/12/08/JVM故障发现排除/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

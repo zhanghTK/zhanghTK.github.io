@@ -1,0 +1,878 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Spring," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="事件驱动模式关于事件驱动模式，这又是个大话题了，不是本文的核心关注点，开涛的博客中以用户注册为例子做了介绍，这里就不做搬运工了。总结起来，事件驱动的关键点：松散耦合对象间的一对多依赖关系。
+具体到实现可以在语言层面使用观察者模式进行对象解耦，也可以使用消息队列对服务进行解耦，下面看看观察者模式。
+观察者模式JDK 支持JDK 中直接提供了对观察者模式的抽象：
+
+被观察者：java.util.Obs">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring事件驱动模型与观察者模式">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/08/14/Spring事件驱动模型与观察者模式/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="事件驱动模式关于事件驱动模式，这又是个大话题了，不是本文的核心关注点，开涛的博客中以用户注册为例子做了介绍，这里就不做搬运工了。总结起来，事件驱动的关键点：松散耦合对象间的一对多依赖关系。
+具体到实现可以在语言层面使用观察者模式进行对象解耦，也可以使用消息队列对服务进行解耦，下面看看观察者模式。
+观察者模式JDK 支持JDK 中直接提供了对观察者模式的抽象：
+
+被观察者：java.util.Obs">
+<meta property="og:image" content="https://i.loli.net/2017/08/14/5991c0618bfb4.jpeg">
+<meta property="og:image" content="https://i.loli.net/2017/08/14/5991bfaf3c0a7.jpeg">
+<meta property="og:image" content="https://i.loli.net/2017/08/14/599114f2dda29.png">
+<meta property="og:updated_time" content="2017-08-14T15:26:23.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring事件驱动模型与观察者模式">
+<meta name="twitter:description" content="事件驱动模式关于事件驱动模式，这又是个大话题了，不是本文的核心关注点，开涛的博客中以用户注册为例子做了介绍，这里就不做搬运工了。总结起来，事件驱动的关键点：松散耦合对象间的一对多依赖关系。
+具体到实现可以在语言层面使用观察者模式进行对象解耦，也可以使用消息队列对服务进行解耦，下面看看观察者模式。
+观察者模式JDK 支持JDK 中直接提供了对观察者模式的抽象：
+
+被观察者：java.util.Obs">
+<meta name="twitter:image" content="https://i.loli.net/2017/08/14/5991c0618bfb4.jpeg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/08/14/Spring事件驱动模型与观察者模式/"/>
+
+  <title> Spring事件驱动模型与观察者模式 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spring事件驱动模型与观察者模式
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-08-14T23:25:10+08:00" content="2017-08-14">
+              2017-08-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/14/Spring事件驱动模型与观察者模式/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/14/Spring事件驱动模型与观察者模式/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="事件驱动模式"><a href="#事件驱动模式" class="headerlink" title="事件驱动模式"></a>事件驱动模式</h2><p>关于事件驱动模式，这又是个大话题了，不是本文的核心关注点，开涛的博客中以用户注册为例子做了<a href="http://jinnianshilongnian.iteye.com/blog/1902886" target="_blank" rel="external">介绍</a>，这里就不做搬运工了。总结起来，事件驱动的关键点：松散耦合对象间的一对多依赖关系。</p>
+<p>具体到实现可以在语言层面使用观察者模式进行对象解耦，也可以使用消息队列对服务进行解耦，下面看看观察者模式。</p>
+<h2 id="观察者模式"><a href="#观察者模式" class="headerlink" title="观察者模式"></a>观察者模式</h2><h3 id="JDK-支持"><a href="#JDK-支持" class="headerlink" title="JDK 支持"></a>JDK 支持</h3><p>JDK 中直接提供了对观察者模式的抽象：</p>
+<ul>
+<li>被观察者：java.util.Observable</li>
+<li>观察者：java.util.Observer</li>
+</ul>
+<p>JDK 观察者模式的简单使用 <a href="https://github.com/zhanghTK/JPattern/tree/master/src/main/java/tk/zhangh/pattern/behavior/observer" target="_blank" rel="external">demo</a></p>
+<p>值得注意的是：JDK 的观察者模式同时支持了 push 和 pull 两种模式，具体来说：</p>
+<p>push：每当被观察者（主题）更新，被观察者主动推送消息到各个观察者</p>
+<p>pull：每当被观察者（主题）更新，被观察者仅通知观察者已更新，由观察者自行决定更新策略</p>
+<h3 id="push-amp-pull"><a href="#push-amp-pull" class="headerlink" title="push &amp; pull"></a>push &amp; pull</h3><p>push 的优点，被观察者（主题）可控：</p>
+<ol>
+<li>可以实时推送，事件发生后第一时间即可触发通知操作</li>
+<li>延迟推送，避开繁忙时间、明确事件发生顺序</li>
+</ol>
+<p>pull 的优点：</p>
+<ol>
+<li>减轻被观察者（主题类）负担</li>
+<li>更新策略策略自定义，何时更新，更新哪些内容都由观察者自定义</li>
+<li>权限管控，被观察者（主题类）可以根据不同主题集中处理权限管控</li>
+</ol>
+<p>网上看到关系新浪微博的推/拉架构的讨论：</p>
+<p><a href="http://www.jianshu.com/p/dfb7fd88cd33" target="_blank" rel="external">软件架构模式-事件驱动不错哦</a></p>
+<p><a href="http://www.cnblogs.com/sunli/archive/2010/08/24/twitter_feeds_push_pull.html" target="_blank" rel="external">微博feed系统的推(push)模式和拉(pull)模式和时间分区拉模式架构探讨</a></p>
+<h2 id="Spring-事件机制"><a href="#Spring-事件机制" class="headerlink" title="Spring 事件机制"></a>Spring 事件机制</h2><p>其实之前在<a href="http://zhangh.tk/2017/07/05/%E3%80%90SpringBoot%E3%80%91%E7%9B%91%E5%90%AC%E5%99%A8%E7%AF%87/" target="_blank" rel="external">【SpringBoot】监听器篇</a>，<a href="http://zhangh.tk/2017/07/16/%E3%80%90Spring%E3%80%91%E5%AE%B9%E5%99%A8%E5%88%B7%E6%96%B0/" target="_blank" rel="external">【Spring】容器刷新</a> 中已经把 Spring 中的使用到的场景说的七七八八了，这里做一下补充和归纳，合起来阅读效果更佳。</p>
+<p>Spring 事件体系包括三个组件：事件，事件监听器，事件广播器。</p>
+<h3 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h3><p><img src="https://i.loli.net/2017/08/14/5991c0618bfb4.jpeg" alt="Spring 事件"></p>
+<p>Spring 默认对 ApplicationEvent 事件提供了如下实现：</p>
+<ul>
+<li>ContextStoppedEvent：ApplicationContext停止后触发的事件；</li>
+<li>ContextRefreshedEvent：ApplicationContext初始化或刷新完成后触发的事件；</li>
+<li><p>ContextClosedEvent：ApplicationContext关闭后触发的事件；（如web容器关闭时自动会触发spring容器的关闭，如果是普通java应用，需要调用ctx.registerShutdownHook();注册虚拟机关闭时的钩子才行）</p>
+</li>
+<li><p>ContextStartedEvent：ApplicationContext启动后触发的事件；</p>
+</li>
+</ul>
+<p>Spring Boot 额外支持的事件类型：</p>
+<ul>
+<li>ApplicationStartingEvent</li>
+<li>ApplicationEnvironmentPreparedEvent</li>
+<li>ApplicationFailedEvent</li>
+<li>ApplicationPreparedEvent</li>
+</ul>
+<h3 id="事件监听器"><a href="#事件监听器" class="headerlink" title="事件监听器"></a>事件监听器</h3><p><img src="https://i.loli.net/2017/08/14/5991bfaf3c0a7.jpeg" alt="Spring事件监听器"></p>
+<p>Spring 事件监听器注册：<a href="http://zhangh.tk/2017/07/16/%E3%80%90Spring%E3%80%91%E5%AE%B9%E5%99%A8%E5%88%B7%E6%96%B0/#registerListeners" target="_blank" rel="external">Spring 事件监听器注册</a></p>
+<p>Spring Boot 事件监听器：<a href="http://zhangh.tk/2017/07/05/%E3%80%90SpringBoot%E3%80%91%E7%9B%91%E5%90%AC%E5%99%A8%E7%AF%87/" target="_blank" rel="external">【SpringBoot】监听器篇</a></p>
+<p>自定义事件、事件监听器的使用：</p>
+<ul>
+<li><a href="https://github.com/zhanghTK/spring-boot-start/tree/master/listener" target="_blank" rel="external">Spring Boot 自定义事件监听器</a></li>
+<li><a href="https://github.com/zhanghTK/spring-boot-start/tree/master/refresh" target="_blank" rel="external">Spring 自定义事件监听器</a></li>
+</ul>
+<h3 id="事件广播器"><a href="#事件广播器" class="headerlink" title="事件广播器"></a>事件广播器</h3><p><img src="https://i.loli.net/2017/08/14/599114f2dda29.png" alt="事件广播器.png"></p>
+<p>Spring 事件广播器的初始化：<a href="http://zhangh.tk/2017/07/16/%E3%80%90Spring%E3%80%91%E5%AE%B9%E5%99%A8%E5%88%B7%E6%96%B0/#initMessageSource" target="_blank" rel="external">Spring 事件广播器的初始化</a></p>
+<h4 id="事件同步、异步广播"><a href="#事件同步、异步广播" class="headerlink" title="事件同步、异步广播"></a>事件同步、异步广播</h4><p>事件广播：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">multicastEvent</span><span class="params">(<span class="keyword">final</span> ApplicationEvent event, ResolvableType eventType)</span> </span>&#123;</div><div class="line">   ResolvableType type = (eventType != <span class="keyword">null</span> ? eventType : resolveDefaultEventType(event));</div><div class="line">   <span class="keyword">for</span> (<span class="keyword">final</span> ApplicationListener&lt;?&gt; listener : getApplicationListeners(event, type)) &#123;</div><div class="line">      Executor executor = getTaskExecutor();</div><div class="line">      <span class="keyword">if</span> (executor != <span class="keyword">null</span>) &#123;</div><div class="line">         executor.execute(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">               invokeListener(listener, event);</div><div class="line">            &#125;</div><div class="line">         &#125;);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">else</span> &#123;</div><div class="line">         invokeListener(listener, event);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>方法一：指定线程池</p>
+<p>当未指定线程池时（getTaskExecutor = null），使用同步的方式广播线程，因此可以同步指定线程池开启异步调用。缺点：全局异步，无法对指定的事件进行异步处理。</p>
+<p>方法二：@Aync 注解</p>
+<p>使用 @Aync 注解指定需要异步调用的事件监听器监听器。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/Spring/" rel="tag">#Spring</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/20/【重拾网络】DNS/" rel="next" title="【重拾网络】DNS">
+                <i class="fa fa-chevron-left"></i> 【重拾网络】DNS
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/31/【SpringBoot】Servlet容器/" rel="prev" title="【SpringBoot】Servlet容器">
+                【SpringBoot】Servlet容器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#事件驱动模式"><span class="nav-number">1.</span> <span class="nav-text">事件驱动模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#观察者模式"><span class="nav-number">2.</span> <span class="nav-text">观察者模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JDK-支持"><span class="nav-number">2.1.</span> <span class="nav-text">JDK 支持</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#push-amp-pull"><span class="nav-number">2.2.</span> <span class="nav-text">push & pull</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-事件机制"><span class="nav-number">3.</span> <span class="nav-text">Spring 事件机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#事件"><span class="nav-number">3.1.</span> <span class="nav-text">事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件监听器"><span class="nav-number">3.2.</span> <span class="nav-text">事件监听器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件广播器"><span class="nav-number">3.3.</span> <span class="nav-text">事件广播器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#事件同步、异步广播"><span class="nav-number">3.3.1.</span> <span class="nav-text">事件同步、异步广播</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/08/14/Spring事件驱动模型与观察者模式/';
+      var disqus_title = "Spring事件驱动模型与观察者模式";
+      var disqus_url = 'https://zhanghtk.github.io/2017/08/14/Spring事件驱动模型与观察者模式/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

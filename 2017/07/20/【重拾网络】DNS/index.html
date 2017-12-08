@@ -1,0 +1,924 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="网络," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="DNS 是什么了解网络的同学应该都是知道 DNS的，它提供最基本的从域名到 IP 地址的转换服务。简单可以把 DNS 理解成一个翻译官，这位翻译官每天默默地为我们处理上网请求时域名到 IP 的转换。
+上网时每次对域名的请求使用的是 HTTP 协议，而作为翻译官 DNS 发生在HTTP 真实请求之前。尽管 DNS 协议执行在 HTTP 请求之前，但与 HTTP 一样，DNS 也是 TP/IP 协议模">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【重拾网络】DNS">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/07/20/【重拾网络】DNS/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="DNS 是什么了解网络的同学应该都是知道 DNS的，它提供最基本的从域名到 IP 地址的转换服务。简单可以把 DNS 理解成一个翻译官，这位翻译官每天默默地为我们处理上网请求时域名到 IP 的转换。
+上网时每次对域名的请求使用的是 HTTP 协议，而作为翻译官 DNS 发生在HTTP 真实请求之前。尽管 DNS 协议执行在 HTTP 请求之前，但与 HTTP 一样，DNS 也是 TP/IP 协议模">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/07/05/595c6d4dc5144.jpg">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/07/05/595c6c612da55.jpg">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/07/05/595c5beaef747.png">
+<meta property="og:updated_time" content="2017-07-20T14:07:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【重拾网络】DNS">
+<meta name="twitter:description" content="DNS 是什么了解网络的同学应该都是知道 DNS的，它提供最基本的从域名到 IP 地址的转换服务。简单可以把 DNS 理解成一个翻译官，这位翻译官每天默默地为我们处理上网请求时域名到 IP 的转换。
+上网时每次对域名的请求使用的是 HTTP 协议，而作为翻译官 DNS 发生在HTTP 真实请求之前。尽管 DNS 协议执行在 HTTP 请求之前，但与 HTTP 一样，DNS 也是 TP/IP 协议模">
+<meta name="twitter:image" content="https://ooo.0o0.ooo/2017/07/05/595c6d4dc5144.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/07/20/【重拾网络】DNS/"/>
+
+  <title> 【重拾网络】DNS | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【重拾网络】DNS
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-07-20T21:55:21+08:00" content="2017-07-20">
+              2017-07-20
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/07/20/【重拾网络】DNS/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/20/【重拾网络】DNS/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="DNS-是什么"><a href="#DNS-是什么" class="headerlink" title="DNS 是什么"></a>DNS 是什么</h2><p>了解网络的同学应该都是知道 DNS的，它提供最基本的从域名到 IP 地址的转换服务。简单可以把 DNS 理解成一个翻译官，这位翻译官每天默默地为我们处理上网请求时域名到 IP 的转换。</p>
+<p>上网时每次对域名的请求使用的是 HTTP 协议，而作为翻译官 DNS 发生在HTTP 真实请求之前。尽管 DNS 协议执行在 HTTP 请求之前，但与 HTTP 一样，DNS 也是 TP/IP 协议模型中应用层协议。更具体一点默认使用的是 UDP 的传输方式，端口号为 53 。</p>
+<p>补充一下，除了基本的域名到 IP 的转换服务， DNS 还可以提供主机别名，邮件服务器别名，负载均衡功能。</p>
+<h2 id="DNS-结构"><a href="#DNS-结构" class="headerlink" title="DNS 结构"></a>DNS 结构</h2><p>从功能上来看，DNS 只提供了非常简单的字符串到字符串的转换服务。类似于程序语言中的字典结构就可以完成映射转换。所以在很多网络结构图中 DNS 服务往往被描述成一台服务器，在客户端与服务器请求之前，首先在 DNS 服务器上查询服务器对应的 IP 即可。我们日常的使用中 DNS 也确实扮演了这样一个默默无闻的角色，运行的过程对用户非常透明。</p>
+<p>为了使 DNS 可以做到全球范围的高可用，一台简单的服务器肯定是无法满足的。实际上DNS 根据域名的层级也划分出不同的 DNS 层级。</p>
+<h3 id="域名层级"><a href="#域名层级" class="headerlink" title="域名层级"></a>域名层级</h3><p>域名层级的划分示意：</p>
+<p><img src="https://ooo.0o0.ooo/2017/07/05/595c6d4dc5144.jpg" alt="Name_schema.jpg"></p>
+<p>域名的层级结构：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">主机名.次级域名.顶级域名.根域名</div><div class="line"></div><div class="line">host.sld.tld.root</div></pre></td></tr></table></figure>
+<p>以  www.example.com 域名为例，看看域名的划分：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">域名</th>
+<th style="text-align:center">值</th>
+<th style="text-align:center">备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">使用的域名</td>
+<td style="text-align:center">www.example.com</td>
+<td style="text-align:center">日常真实使用的域名</td>
+</tr>
+<tr>
+<td style="text-align:center">真正的域名</td>
+<td style="text-align:center">www.example.com.root</td>
+<td style="text-align:center">.root通常省略</td>
+</tr>
+<tr>
+<td style="text-align:center">根域名</td>
+<td style="text-align:center">.root</td>
+<td style="text-align:center">对所有域名</td>
+</tr>
+<tr>
+<td style="text-align:center">顶级域名</td>
+<td style="text-align:center">.com</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">次顶级域名</td>
+<td style="text-align:center">.example</td>
+<td style="text-align:center">用户可注册的</td>
+</tr>
+<tr>
+<td style="text-align:center">三级域名（主机名）</td>
+<td style="text-align:center">www</td>
+<td style="text-align:center">用户在自己的域里面为服务器分配的名称</td>
+</tr>
+</tbody>
+</table>
+<h3 id="DNS-层级"><a href="#DNS-层级" class="headerlink" title="DNS 层级"></a>DNS 层级</h3><p>域名层级结构对应的 DNS 服务结构划分： </p>
+<p><img src="https://ooo.0o0.ooo/2017/07/05/595c6c612da55.jpg" alt="Structure_DNS.jpg"></p>
+<p>上面 DNS 的层级结构很明显是一个树型的结构，解析的过程就是从根到叶子节点的访问过程。作为基础的网络服务，单节点肯定是不可靠的，所以上图的节点实际中不是孤立存在的，而是由一组服务器构成。例如根节点就对应了全世界 13 台根服务器。</p>
+<h2 id="DNS-查询过程"><a href="#DNS-查询过程" class="headerlink" title="DNS 查询过程"></a>DNS 查询过程</h2><p>既然树型的 DNS 的结构不能一步获取到最终查询结果，这里就有两种方式处理处理查询过程了：</p>
+<ul>
+<li><p>递归查询</p>
+<p>客户端发出查询请求后，只接受一个准确的查询结果，而不能是查询的中间过程</p>
+</li>
+<li><p>迭代查询</p>
+<p>客户端发出查询请求后，DNS 服务器不直接回复查询结果，而是告诉客户端另一台 DNS 服务器地址，客户端再向这台 DNS 服务器请求解析，依此循环直到返回查询的结果</p>
+</li>
+</ul>
+<p>两者各有利弊，通常是将两者结合在一起，一个 DNS 的解析大致可以分两个部分：</p>
+<ol>
+<li>客户端向 Local DNS 的请求，通常这部分使用递归请求</li>
+<li>Local DNS 的请求，通常这部分使用迭代请求</li>
+</ol>
+<p>按照上述规则一个基本的 DNS 解析过程：</p>
+<p><img src="https://ooo.0o0.ooo/2017/07/05/595c5beaef747.png" alt="dn-sresolution.png"></p>
+<ol>
+<li>发出域名解析请求</li>
+<li>本机的域名解析器 resolver 程序查询本地缓存和 host 文件中是否为域名的映射关系</li>
+<li>本地解析器向 TCP/IP 参数中设置的首选 DNS 服务器（我们叫它 Local DNS 服务器）发起一个递归的查询请求</li>
+<li>服务器收到查询时<ol>
+<li>如果要查询的域名由 Local DNS 服务器负责解析，则返回解析结果给客户机，完成域名解析，且此解析具有权威性</li>
+<li>如果要查询的域名不由 Local DNS 服务器解析，则调用这个 IP 地址映射，完成域名解析，且此解析不具有权威性</li>
+</ol>
+</li>
+<li>根据 Local DNS 服务器的设置（是否递归）进行查询<ol>
+<li>如果是迭代查询，Local DNS 就把请求发至13台 Root DNS</li>
+<li>如果是递归查询，Local DNS 就会把请求转发至上一级 DNS 服务器，由上一级服务器进行解析，上一级服务器如果不能解析，或找根 DNS 或把转请求转至上上级，以此循环</li>
+</ol>
+</li>
+<li>Root DNS 服务器收到请求后会判断这个域名是谁来授权管理，并会返回一个负责该顶级域名服务器的一个 IP</li>
+<li>Local DNS 服务器收到 IP 信息后，将会联系负责 .edu 域的这台服务器</li>
+<li>负责 .edu 域的服务器收到请求后，如果自己无法解析，它就会找一个管理 .edu 域的下一级 DNS 服务器地址给 Local DNS 服务器</li>
+<li>当 Local DNS 服务器收到这个地址后，就会找 googleplex.edu 域服务器</li>
+<li>负责 googleplex.edu 域的服务器接收到请求后，如果自己无法解析，继续找管理 googleplex.edu 域的下一级 DNS 服务器地址给 Local DNS 服务器</li>
+<li>当 Local DNS 服务器收到这个地址后，就会找 compsci.googleplex.edu 域服务器</li>
+<li>最后 compsci.googleplex.edu 域服务器返回需要解析的域名的 IP 地址给 Local DNS 服务器</li>
+<li>Local DNS 服务器缓存这个解析结果（同时也会缓存，6、8、10返回的结果）</li>
+<li>Local DNS 服务器同时将结果返回给本机域名解析器</li>
+<li>本机缓存解析结果</li>
+<li>本机解析器将结果返回给浏览器</li>
+<li>浏览器通过返回的 IP 地址发起请求</li>
+</ol>
+<h2 id="DNS-记录"><a href="#DNS-记录" class="headerlink" title="DNS 记录"></a>DNS 记录</h2><p>资源记录：name, value, type, ttl</p>
+<p>ttl：记录存活时间</p>
+<p>type 分类：</p>
+<ul>
+<li>A：name：主机域名，value：IP地址</li>
+<li>NS：name：域，value：域的权威域名解析服务的主机域名</li>
+<li>CNAME：name：真实域名的别名，value：真实域名</li>
+<li>MX：value是与name相对应的邮件服务器</li>
+</ul>
+<h2 id="其他-DNS-相关"><a href="#其他-DNS-相关" class="headerlink" title="其他 DNS 相关"></a>其他 DNS 相关</h2><h3 id="常见的-DNS-功能说明"><a href="#常见的-DNS-功能说明" class="headerlink" title="常见的 DNS 功能说明"></a>常见的 DNS 功能说明</h3><ul>
+<li>权威 DNS： 最终决定域名解析结果的服务器，可以在其上配置具体域名的对应解析结果信息</li>
+<li>递归 DNS 或本地 DNS：有域名解析结果的决定权，但代理了用户向权威DNS获取域名解析结果的过程，不属于 DNS 层次体系</li>
+<li>公共 DNS：全网开放的递归 DNS，不同于一般的本地 DNS 由 ISP 提供</li>
+</ul>
+<h3 id="DNS-相关命令"><a href="#DNS-相关命令" class="headerlink" title="DNS 相关命令"></a>DNS 相关命令</h3><ul>
+<li>dig</li>
+<li>host</li>
+<li>nslookup</li>
+</ul>
+<p>命令的参考：<a href="http://luodw.cc/2015/12/27/dns03/" target="_blank" rel="external">域名解析之dig,host,nslookup命令</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/网络/" rel="tag">#网络</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/20/【重拾网络】应用层/" rel="next" title="【重拾网络】应用层">
+                <i class="fa fa-chevron-left"></i> 【重拾网络】应用层
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/14/Spring事件驱动模型与观察者模式/" rel="prev" title="Spring事件驱动模型与观察者模式">
+                Spring事件驱动模型与观察者模式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS-是什么"><span class="nav-number">1.</span> <span class="nav-text">DNS 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS-结构"><span class="nav-number">2.</span> <span class="nav-text">DNS 结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#域名层级"><span class="nav-number">2.1.</span> <span class="nav-text">域名层级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS-层级"><span class="nav-number">2.2.</span> <span class="nav-text">DNS 层级</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS-查询过程"><span class="nav-number">3.</span> <span class="nav-text">DNS 查询过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS-记录"><span class="nav-number">4.</span> <span class="nav-text">DNS 记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他-DNS-相关"><span class="nav-number">5.</span> <span class="nav-text">其他 DNS 相关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常见的-DNS-功能说明"><span class="nav-number">5.1.</span> <span class="nav-text">常见的 DNS 功能说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS-相关命令"><span class="nav-number">5.2.</span> <span class="nav-text">DNS 相关命令</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/07/20/【重拾网络】DNS/';
+      var disqus_title = "【重拾网络】DNS";
+      var disqus_url = 'https://zhanghtk.github.io/2017/07/20/【重拾网络】DNS/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

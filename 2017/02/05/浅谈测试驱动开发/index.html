@@ -1,0 +1,913 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="设计模式," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="近两日参加了名为“软件测试质量体系最佳实践”的分享，其中着重介绍了质量体系的建设，测试的经验以及方法，就我个人最大的收获更多的是关于TDD的思考，在此简单记录。
+Bug的影响不成熟的团队中一个常见情况：
+频繁被突发问题打断，响应式的处理，目标达成率低，可以称这样的团队为响应式的团队。
+为什么频繁的响应Bug会严重消耗团队资源？
+
+完整的Bug处理的过程时间长
+一个Bug导致多个Bug的产生
+人员缺">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈测试驱动开发">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/02/05/浅谈测试驱动开发/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="近两日参加了名为“软件测试质量体系最佳实践”的分享，其中着重介绍了质量体系的建设，测试的经验以及方法，就我个人最大的收获更多的是关于TDD的思考，在此简单记录。
+Bug的影响不成熟的团队中一个常见情况：
+频繁被突发问题打断，响应式的处理，目标达成率低，可以称这样的团队为响应式的团队。
+为什么频繁的响应Bug会严重消耗团队资源？
+
+完整的Bug处理的过程时间长
+一个Bug导致多个Bug的产生
+人员缺">
+<meta property="og:updated_time" content="2017-02-05T14:13:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅谈测试驱动开发">
+<meta name="twitter:description" content="近两日参加了名为“软件测试质量体系最佳实践”的分享，其中着重介绍了质量体系的建设，测试的经验以及方法，就我个人最大的收获更多的是关于TDD的思考，在此简单记录。
+Bug的影响不成熟的团队中一个常见情况：
+频繁被突发问题打断，响应式的处理，目标达成率低，可以称这样的团队为响应式的团队。
+为什么频繁的响应Bug会严重消耗团队资源？
+
+完整的Bug处理的过程时间长
+一个Bug导致多个Bug的产生
+人员缺">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/02/05/浅谈测试驱动开发/"/>
+
+  <title> 浅谈测试驱动开发 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                浅谈测试驱动开发
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-02-05T21:58:28+08:00" content="2017-02-05">
+              2017-02-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/设计模式/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/02/05/浅谈测试驱动开发/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/02/05/浅谈测试驱动开发/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>近两日参加了名为“软件测试质量体系最佳实践”的分享，其中着重介绍了质量体系的建设，测试的经验以及方法，就我个人最大的收获更多的是关于TDD的思考，在此简单记录。</p>
+<h1 id="Bug的影响"><a href="#Bug的影响" class="headerlink" title="Bug的影响"></a>Bug的影响</h1><p>不成熟的团队中一个常见情况：</p>
+<p>频繁被突发问题打断，响应式的处理，目标达成率低，可以称这样的团队为响应式的团队。</p>
+<p>为什么频繁的响应Bug会严重消耗团队资源？</p>
+<ol>
+<li>完整的Bug处理的过程时间长</li>
+<li>一个Bug导致多个Bug的产生</li>
+<li>人员缺乏动力</li>
+</ol>
+<h1 id="预防Bug"><a href="#预防Bug" class="headerlink" title="预防Bug"></a>预防Bug</h1><p>然而解决Bug并不能算作突出的贡献，针对Bug的预防工作要优于Bug解决。从被动的救火到主动的预防问题发生，减少突发问题。</p>
+<p>一个团队的重要指标，是有效代码的产出，而不是代码的产出。</p>
+<p>有效代码，如同字面意思，有效的，可复用的，没有大量Bug，可以赚钱的代码。</p>
+<p>如何保证代码有效？测试！</p>
+<h1 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h1><p>手工测试无法做到连续提供测试服务，存在间断，代码修改后测试报告随即失效。为了解决测试的间断问题，必须引入自动化测试。</p>
+<p>开发工作中耗时最多的是在调试，如果能减少问题的出现，避免反复调试，可以节省大量的时间、精力。</p>
+<p>因此，测试并不会让团队的工作量出现明显增加，最终开发与测试的人数趋于接近。</p>
+<p>测试短期可以帮助我们找Bug，长期可以帮助我们建设质量体系。</p>
+<h1 id="质量体系"><a href="#质量体系" class="headerlink" title="质量体系"></a>质量体系</h1><p>系统的健康状况，项目的完成情况应当从质量体系中直观，实时的获取，而不是通过大量的会议，讨论得出。</p>
+<p>数据的三个来源</p>
+<ul>
+<li><p>用例库</p>
+<p>积累的测试用例</p>
+<p>要求能复用（良好的测试框架）</p>
+<p>能够与其它平台，系统方便集成（一个test case对应多个test Run）</p>
+</li>
+<li><p>缺陷库</p>
+<p>Bug的完整生命周期记录</p>
+</li>
+<li><p>结果库</p>
+<p>每次自动化测试的结果</p>
+<p>最小的单位不是test case，而是test run</p>
+</li>
+</ul>
+<p>质量体系，不仅用于预防问题，长远看还需要提供数据支持，需要辅助决策，辅助管理。</p>
+<h1 id="团队"><a href="#团队" class="headerlink" title="团队"></a>团队</h1><p>当一个团队可以很好的预防问题的发生时，可以称这样的团队为建设型的团队。</p>
+<p>传统的瀑布模型中开发完成开始测试是导致项目进度缓慢的一个重要原因。</p>
+<p>如何让开发与测试并行？测试始终伴随开发，甚至优先于开发。</p>
+<p>开发，测试并行的三个重要保障：需求文档，开发文档，测试文档</p>
+<h1 id="TDD"><a href="#TDD" class="headerlink" title="TDD"></a>TDD</h1><p><strong>文档评审</strong></p>
+<p>从执行过程上来看，当需求文档出来后，开发和测试需要同时整理对应文档，然后进入评审环节。</p>
+<p>需求作为开发，测试的输入项，要求需求文档不能出现偏差。</p>
+<p>从制度上可以做出一些规范化，例如：</p>
+<ul>
+<li>需求文档、开发文档、测试文档作为三个关键文档，任何一个都一定不能或缺</li>
+<li>三个关键文档都要有评审，三次的评审都要求产品、开发、测试负责的人员到场确认</li>
+<li>文档可以驳回，但确认后的文档不可更改</li>
+<li>任何一个文档出现滞后，都要记录，分析问题</li>
+</ul>
+<p>文档内容要细致，需求文档作为开发文档和测试文档输入，尤其重要。</p>
+<p>各个文档的基本标准：</p>
+<ul>
+<li>需求文档：明确各步骤输入输出</li>
+<li>测试文档：明确各个测试点，需要进行什么测试，是否要求自动化等信息，设计（复用）测试框架</li>
+<li>开发文档：提供设计架构，需要细致到开发阶段填充代码就可以了</li>
+</ul>
+<p>一个优秀文档的重要标准：评审打回次数。</p>
+<p><strong>开发，测试并行</strong></p>
+<p>三个文档评审结束后，开发和测试同时开始工作。</p>
+<h1 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h1><p><strong>关于需求分析</strong></p>
+<p>需求分析需要专业的人专门处理，需求分析的过程如同医生看病：</p>
+<p>医生不能问病人想吃什么药，想怎么治疗，而是需要找到病人病因</p>
+<p>产品不能表面的询问用户想要什么，而是要发现用户的真实需求</p>
+<p>需求分析过程展开：</p>
+<ol>
+<li><p>获取</p>
+<p>得到最原始的需求，这些需求可能是凌乱的，甚至是矛盾的，不能直接用来开发</p>
+</li>
+<li><p>分析</p>
+<p>剔除原始需求中的噪音，获取真实的需求，这个阶段产品应该基本确认需求</p>
+</li>
+<li><p>细化</p>
+<p>产出原型，与美术，设计确认沟通，明确每步的输入输出</p>
+</li>
+<li><p>固化</p>
+<p>与用户确认，得到最终版本的需求文档</p>
+</li>
+</ol>
+<p><strong>关于团队成员能力</strong></p>
+<ol>
+<li>不能迁就最低能力人员，要推动团队成长，进步</li>
+<li>开发与测试要互相促进，测试需要考虑开发设计的文档是否可以进行测试，有哪些改进，开发需要考虑代码的覆盖</li>
+<li>通过模板让人员能力可流动，可转化。总结高质量方法，模板，流程给团队复用，提高整体质量</li>
+</ol>
+<p><strong>关于测试</strong></p>
+<ul>
+<li>Bug分级</li>
+<li>不要首先搞UI测试</li>
+<li>尽量使用真实数据，边界数据</li>
+<li>避免对其它模块，代码的依赖</li>
+<li>发布时不一定就能做到所有测试都通过</li>
+<li>测试要可复用，粒度，范围要注意</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/设计模式/" rel="tag">#设计模式</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/25/【翻译】《OSGI官方指南》首页/" rel="next" title="【翻译】《OSGI官方指南》首页">
+                <i class="fa fa-chevron-left"></i> 【翻译】《OSGI官方指南》首页
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/13/Spring之BeanFactory/" rel="prev" title="Spring之BeanFactory">
+                Spring之BeanFactory <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Bug的影响"><span class="nav-number">1.</span> <span class="nav-text">Bug的影响</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#预防Bug"><span class="nav-number">2.</span> <span class="nav-text">预防Bug</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#测试"><span class="nav-number">3.</span> <span class="nav-text">测试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#质量体系"><span class="nav-number">4.</span> <span class="nav-text">质量体系</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#团队"><span class="nav-number">5.</span> <span class="nav-text">团队</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TDD"><span class="nav-number">6.</span> <span class="nav-text">TDD</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其它"><span class="nav-number">7.</span> <span class="nav-text">其它</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/02/05/浅谈测试驱动开发/';
+      var disqus_title = "浅谈测试驱动开发";
+      var disqus_url = 'https://zhanghtk.github.io/2017/02/05/浅谈测试驱动开发/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

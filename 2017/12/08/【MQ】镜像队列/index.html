@@ -1,0 +1,960 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="MQ," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="前面提到持久化和消息确认可以确保消息的可靠，但在默认情况下 MQ 的可靠性完全没有保障，通过集群的方式确保服务的可靠往往是高可用的第一步。本文记录一下 Rabbit MQ 的集群和镜像。
+集群集群能够带来的好处主要有两点：
+
+允许消费者和生产者在 Rabbit MQ 节点崩溃的情况下继续运行
+通过添加更多节点线性的扩展消息通信吞吐量
+
+模式在介绍集群之前先看看从单节点到集群的模式异同：
+
+相同：任">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【MQ】镜像队列">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/12/08/【MQ】镜像队列/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="前面提到持久化和消息确认可以确保消息的可靠，但在默认情况下 MQ 的可靠性完全没有保障，通过集群的方式确保服务的可靠往往是高可用的第一步。本文记录一下 Rabbit MQ 的集群和镜像。
+集群集群能够带来的好处主要有两点：
+
+允许消费者和生产者在 Rabbit MQ 节点崩溃的情况下继续运行
+通过添加更多节点线性的扩展消息通信吞吐量
+
+模式在介绍集群之前先看看从单节点到集群的模式异同：
+
+相同：任">
+<meta property="og:image" content="https://i.loli.net/2017/08/23/599ce92322b59.png">
+<meta property="og:image" content="https://i.loli.net/2017/08/23/599ce7656d746.png">
+<meta property="og:image" content="https://i.loli.net/2017/08/23/599ce8d6ae6a3.png">
+<meta property="og:updated_time" content="2017-12-08T13:59:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【MQ】镜像队列">
+<meta name="twitter:description" content="前面提到持久化和消息确认可以确保消息的可靠，但在默认情况下 MQ 的可靠性完全没有保障，通过集群的方式确保服务的可靠往往是高可用的第一步。本文记录一下 Rabbit MQ 的集群和镜像。
+集群集群能够带来的好处主要有两点：
+
+允许消费者和生产者在 Rabbit MQ 节点崩溃的情况下继续运行
+通过添加更多节点线性的扩展消息通信吞吐量
+
+模式在介绍集群之前先看看从单节点到集群的模式异同：
+
+相同：任">
+<meta name="twitter:image" content="https://i.loli.net/2017/08/23/599ce92322b59.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/12/08/【MQ】镜像队列/"/>
+
+  <title> 【MQ】镜像队列 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【MQ】镜像队列
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-12-08T21:57:51+08:00" content="2017-12-08">
+              2017-12-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/MQ/" itemprop="url" rel="index">
+                    <span itemprop="name">MQ</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/12/08/【MQ】镜像队列/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/12/08/【MQ】镜像队列/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>前面提到持久化和消息确认可以确保消息的可靠，但在默认情况下 MQ 的可靠性完全没有保障，通过集群的方式确保服务的可靠往往是高可用的第一步。本文记录一下 Rabbit MQ 的集群和镜像。</p>
+<h2 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h2><p>集群能够带来的好处主要有两点：</p>
+<ol>
+<li>允许消费者和生产者在 Rabbit MQ 节点崩溃的情况下继续运行</li>
+<li>通过添加更多节点线性的扩展消息通信吞吐量</li>
+</ol>
+<h3 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h3><p>在介绍集群之前先看看从单节点到集群的模式异同：</p>
+<ul>
+<li><p>相同：任何模式下节点内部都需要维护基本元数据信息：队列元数据、交换器元数据、绑定元数据、vhost 元数据。不同模式</p>
+</li>
+<li><p>差异：</p>
+<ul>
+<li><p>单一节点模式：</p>
+<p>默认基本元数据信息存储在内存，被标记持久化的队列和交换器已经它们的绑定存储到磁盘</p>
+</li>
+<li><p>普通集群模式</p>
+<p><img src="https://i.loli.net/2017/08/23/599ce92322b59.png" alt="cluster.PNG"></p>
+<p><img src="https://i.loli.net/2017/08/23/599ce7656d746.png" alt="cluster.PNG"></p>
+<p>除了基本元数据，还有集群相关元数据。与单一节点模式的不同主要在集群对队列，交换器，数据存储的差异。</p>
+<p>队列：只会在单个节点而不是所有节点上创建完整队列信息，其余节点只保存队列的元数据。虽然只在一个节点保存完整队列，但消息可以在不同节点之间临时传输（消费者感知到每个节点都有完整的队列）。如果保存队列的单个节点挂了，则消费者对其订阅丢失，即将投递到该队列的信息消息也丢失。如果挂掉的队列是持久化队列则无法重新创建队列，必须恢复该队列</p>
+<p>交换器：交换器实质是一张查询表（消息的转发路由是由信道完成），集群内所有的节点拥有所有交换器的信息</p>
+<p>数据存储：分为内存节点和硬盘节点，硬盘节点防止重启后元数据信息丢失。元数据的创建更新在集群所有节点操作完成后才返回。集群下要求任何时刻集群中至少有一个磁盘节点，如果唯一的磁盘节点挂了，集群只能路由消息但不能创建更新元数据</p>
+</li>
+<li><p>镜像队列</p>
+<p><img src="https://i.loli.net/2017/08/23/599ce8d6ae6a3.png" alt="image_queues.PNG"></p>
+<p>镜像不在单独存在在唯一节点，而是冗余在多个节点</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="镜像队列"><a href="#镜像队列" class="headerlink" title="镜像队列"></a>镜像队列</h2><p>因为普通集群模式相对基础，而镜像队列复杂，这里重点讨论一下镜像队列。</p>
+<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>队列镜像通常包括一个 master 节点和多个 slave 节点，每个节点都复制队列数据。当一个节点失效时，可以自动切换到另一个节点确保可用。在镜像队列模式下，除了 publish 外的所有动作都只会向 master 发送，然后 master 将命令执行的结果广播为所有 slave，publish 到镜像的所有消息总是被直接 publish 到所有 slave 之上（类似与 fanout 交换器）。</p>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><h4 id="普通队列结构"><a href="#普通队列结构" class="headerlink" title="普通队列结构"></a>普通队列结构</h4><p>普通队列由两部分组成：</p>
+<ul>
+<li>AMQQueue：主要负责 AMQP 协议的逻辑功能</li>
+<li>BackingQueue：存储消息</li>
+</ul>
+<p>对于 BackingQueue 又由五个子队列组成：Q1, Q1, Delta, Q3, Q4，MQ 的消息进入队列后会随着系统负载在队列中流动，BackingQueue 中的消息可以分为四个状态：</p>
+<ul>
+<li>Alpha：消息的内容和索引都在内存中，Q1 和 Q4 的状态</li>
+<li>Beta：消息的内容在硬盘，消息的索引在内存，Q2 和 Q3 的状态</li>
+<li>Gamma：消息内容在硬盘，消息的索引在硬盘和内存都有，Q2 和 Q3 的状态</li>
+<li>Delta：消息的内容和消息的索引都在硬盘上，Delta 状态</li>
+</ul>
+<p>对于持久化的消息，消息内容和消息索引都必须先保存到磁盘上，才会处于上述状态中的一种，而Gamma状态的消息只有持久化的消息才会有该状态。</p>
+<p>从 Q1 到 Q4，基本的经历是由内存到硬盘再到内存的设计，分层的好处使得整个队列有很好的弹性:</p>
+<ul>
+<li>当队列负载很高的情况下，能够通过将一部分消息由磁盘保存来节省内存空间</li>
+<li>当负载降低的时候，这部分消息又渐渐回到内存，被消费者获取</li>
+</ul>
+<p>引起消息流动的两种情况：消费者获取消息，内存不足</p>
+<p>当系统处于正常负载，对消息的消费速度不小于接收速度，对于非消息极可能只会有 Alpha 状态。对于持久化消息一定会进入 gamma 状态。如果开启 confirm 机制，只有到了这个阶段才会确认消息已经被接受，当消费足够快且内存充足消息不会继续走到下一状态。</p>
+<p>当系统处于高负载，已接受的消息不能很快被消费，这些消息就会进入很深的队列中去，增加处理每个消息的平均开销。因为平均开销增加，处理速度更慢，由此恶性循环，使得系统的处理能力大大降低。</p>
+<p>改善措施：</p>
+<ol>
+<li>进行流程控制</li>
+<li>增加 prefetch 的值，一次发送更多消息给消费者</li>
+<li>采用 multiple ack</li>
+</ol>
+<h4 id="镜像队列结构"><a href="#镜像队列结构" class="headerlink" title="镜像队列结构"></a>镜像队列结构</h4><p>在镜像队列中 AMQQueue 仍旧负责 AMQP 协议的逻辑功能，而 backing_queue 已不是简单的单节点 backing_queue 了。</p>
+<p>backing_queue 是由 master 和 slave 节点组成的特殊 backing_queue，所有对 mirror_queue_master 的操作，会通过 GM 同步到 slave 节点，slave 节点上 mirror_queue_slave 负责回调，master 节点上 coordinato 负责回调。</p>
+<p>镜像队列对消息的操作：</p>
+<ul>
+<li>basic.publish 操作：操作直接同步到所有节点</li>
+<li>其他操作：通过 master 操作，由 master 将结果给 slave</li>
+</ul>
+<h5 id="GM"><a href="#GM" class="headerlink" title="GM"></a>GM</h5><p>GM(Guarenteed Multicast)，实现可靠组播通讯协议的模块，确保组播消息的原子性：</p>
+<ul>
+<li>将所有节点形成一个收尾相连的循环链表</li>
+<li>当有节点新增时，相邻的节点保证当前广播的消息会复制到新的节点上</li>
+<li>当有节点失效时，相邻的节点会接管保证本次广播的消息会复制到所有节点</li>
+<li>消息从master节点对应的gm发出后，顺着链表依次传送到所有节点</li>
+</ul>
+<h3 id="镜像队列细节备忘"><a href="#镜像队列细节备忘" class="headerlink" title="镜像队列细节备忘"></a>镜像队列细节备忘</h3><p>镜像队列细节太多，这里整理网上一个注意事项：</p>
+<ol>
+<li><p>镜像队列不能作为负载均衡使用，因为每个操作在所有节点都要做一遍</p>
+</li>
+<li><p>ha-mode 参数与 durable, declare 对 exclusive 队列都不生效。exclusive队列是连接独占的，当连接断开，队列自动删除，这两个参数对exclusive队列没有意义</p>
+</li>
+<li><p>将新节点加入已存在的镜像队列时，默认情况下 ha-sync-mode=manual，镜像队列中的消息不会主动同步到新节点，除非显式调用同步命令。当调用同步命令后，队列开始阻塞，无法对其进行操作，直到同步完毕。当 ha-sync-mode=automatic 时，新加入节点时会默认同步已知的镜像队列。由于同步过程的限制，所以不建议在生产环境的active队列(有生产消费消息)中操作</p>
+</li>
+<li><p>每当一个节点加入或者重新加入(例如从网络分区中恢复回来)镜像队列，之前保存的队列内容会被清空</p>
+</li>
+<li><p>镜像队列有主从之分，一个主节点(master)，0个或多个从节点(slave)。当 master 宕掉后，会在 slave中 选举新的master。选举算法为最早启动的节点</p>
+</li>
+<li><p>当所有slave都处在(与master)未同步状态时，并且 ha-promote-on-shutdown policy 设置为 when-syned(默认) 时，如果 master 因为主动的原因停掉，比如是通过 rabbitmqctl stop 命令停止或者优雅关闭 OS，那么slave不会接管 master，也就是说此时镜像队列不可用</p>
+<p>但是如果master因为被动原因停掉，比如 VM 或者 OS crash了，那么 slave 会接管 master。这个配置项隐含的价值取向是优先保证消息可靠不丢失，放弃可用性。</p>
+<p>如果 ha-promote-on-shutdown policy 设置为 alway，那么不论 master 因为何种原因停止，slave 都会接管 master，优先保证可用性</p>
+</li>
+<li><p>镜像队列中最后一个停止的节点会是 master，启动顺序必须是 master 先起，如果 slave 先起，它会有 30 秒的等待时间，等待 master 启动，然后加入 cluster。</p>
+<p>当所有节点因故(断电等)同时离线时，每个节点都认为自己不是最后一个停止的节点。要恢复镜像队列，可以尝试在 30 秒之内同时启动所有节点</p>
+</li>
+<li><p>对于镜像队列，客户端basic.publish操作会同步到所有节点；而其他操作则是通过master中转，再由master将操作作用于salve。比如一个basic.get操作，假如客户端与slave建立了TCP连接，首先是slave将basic.get请求发送至master，由master备好数据，返回至slave，投递给消费者</p>
+</li>
+<li><p>当 slave 宕掉时，除了与 slave 相连的客户端连接全部断开之外，没有其他影响。</p>
+<p>当 master 宕掉时，会有以下连锁反应：</p>
+<ol>
+<li>与 master 相连的客户端连接全部断开。</li>
+<li>选举最老的 slave 为 master。若此时所有 slave 处于未同步状态，则未同步部分消息丢失。</li>
+<li>新的 master 节点 requeue 所有 unack 消息，因为这个新节点无法区分这些 unack 消息是否已经到达客户端，亦或是 ack 消息丢失在到老master的通路上，亦或是丢在老 master 组播 ack 消息到所有 slave 的通路上。所以处于消息可靠性的考虑，requeue 所有 unack 的消息。此时客户端可能受到重复消息。</li>
+<li>如果客户端连着 slave，并且 basic.consume 消息时指定了x-cancel-on-ha-failover参数，那么客户端会收到一个 Consumer Cancellation Notification 通知，Java SDK中会回调 Consumer 接口的handleCancel() 方法，故需覆盖此方法。如果不指定 x-cancel-on-ha-failover 参数，那么消费者就无法感知 master 宕机，会一直等待下去</li>
+</ol>
+</li>
+</ol>
+<h3 id="镜像队列的恢复"><a href="#镜像队列的恢复" class="headerlink" title="镜像队列的恢复"></a>镜像队列的恢复</h3><p>前提：两个节点 A 和 B 组成以镜像队列</p>
+<ul>
+<li><p>场景一：A 先停，B 后停</p>
+<p>该场景下 B 是 master，只要先启动 B，再启动 A 即可。或者先启动 A，再在 30s 之内启动 B 即可恢复镜像队列。如果没有在 30s 内恢复 B，那么 A 自己就停掉自己</p>
+</li>
+<li><p>场景二：A，B 同时停</p>
+<p>该场景可能是由掉电等原因造成，只需在 30s 之内连续启动 A 和 B 即可恢复镜像队列</p>
+</li>
+<li><p>场景三：A 先停，B 后停，且 A 无法恢复</p>
+<p>因为 B 是 master，所以等 B 起来后，在 B 节点上调用 rabbitmqctl forget_cluster_node A 以解除 A 的 cluster 关系，再将新的 slave 节点加入 B 即可重新恢复镜像队列</p>
+</li>
+<li><p>场景四：A 先停，B 后停，且 B 无法恢复</p>
+<p>此时 B 是 master，所以直接启动 A 是不行的，当 A 无法启动时，也就没办法在 A 节点上调用 rabbitmqctl forget_cluster_node B。新版本中，forget_cluster_node 支持 –offline 参数，offline 参数允许 rabbitmqctl 在离线节点上执行 forget_cluster_node 命令，迫使 RabbitMQ 在未启动的 slave 节点中选择一个作为 master。当在 A 节点执行 rabbitmqctl forget_cluster_node –offline B 时，RabbitMQ 会 mock 一个节点代表 A，执行 forget_cluster_node 命令将 B 剔出 cluster，然后 A 就能正常启动了。最后将新的 slave 节点加入 A 即可重新恢复镜像队列</p>
+</li>
+<li><p>场景五：A 先停，B 后停，且 A 和 B 均无法恢复，但是能得到 A 或 B 的磁盘文件</p>
+<p>这个场景更加难以处理。将A或B的数据库文件（$RabbitMQ_HOME/var/lib目录中）copy至新节点C的目录下，再将 C 的 hostname 改成 A 或者 B 的 hostname。如果 copy 过来的是 A 节点磁盘文件，按场景四处理，如果拷贝过来的是 B 节点的磁盘文件，按场景三处理。最后将新的 slave 节点加入 C 即可重新恢复镜像队列</p>
+</li>
+<li><p>场景六：A 先停，B 后停，且 A 和 B 均无法恢复，且无法得到 A 和 B 的磁盘文件</p>
+<p>跑路吧</p>
+</li>
+</ul>
+<hr>
+<p>参考：</p>
+<p><a href="http://chyufly.github.io/blog/2016/04/10/rabbitmq-cluster/" target="_blank" rel="external">RabbitMQ分布式集群架构和高可用性（HA）</a></p>
+<p><a href="https://my.oschina.net/hncscwc/blog/186350" target="_blank" rel="external">rabbitmq——镜像队列</a></p>
+<p><a href="http://jzhihui.iteye.com/blog/1582294" target="_blank" rel="external">RabbitMQ源码分析 - 队列机制</a></p>
+<p><a href="http://backend.blog.163.com/blog/static/202294126201322511327882/" target="_blank" rel="external">RabbitMQ系列三 （深入消息队列）</a></p>
+<p><a href="http://fengchj.com/?p=2273" target="_blank" rel="external">RabbitMQ镜像队列的故障恢复</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MQ/" rel="tag">#MQ</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/08/【MQ】可靠消息/" rel="next" title="【MQ】可靠消息">
+                <i class="fa fa-chevron-left"></i> 【MQ】可靠消息
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/08/【MQ】使用扩展/" rel="prev" title="【MQ】使用扩展">
+                【MQ】使用扩展 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#集群"><span class="nav-number">1.</span> <span class="nav-text">集群</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#模式"><span class="nav-number">1.1.</span> <span class="nav-text">模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#镜像队列"><span class="nav-number">2.</span> <span class="nav-text">镜像队列</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">2.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原理"><span class="nav-number">2.2.</span> <span class="nav-text">原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#普通队列结构"><span class="nav-number">2.2.1.</span> <span class="nav-text">普通队列结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#镜像队列结构"><span class="nav-number">2.2.2.</span> <span class="nav-text">镜像队列结构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#GM"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">GM</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#镜像队列细节备忘"><span class="nav-number">2.3.</span> <span class="nav-text">镜像队列细节备忘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#镜像队列的恢复"><span class="nav-number">2.4.</span> <span class="nav-text">镜像队列的恢复</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/12/08/【MQ】镜像队列/';
+      var disqus_title = "【MQ】镜像队列";
+      var disqus_url = 'https://zhanghtk.github.io/2017/12/08/【MQ】镜像队列/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

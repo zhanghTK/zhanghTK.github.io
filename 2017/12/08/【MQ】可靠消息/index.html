@@ -1,0 +1,906 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="MQ," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="初始【MQ】最后说到默认情况下，消息发送后 MQ 不会向发送方确认消息到达，也不会进行持久化处理。即在发送方眼里消息只要发出去，就不再关心消息消息了。这确实做到了生产者与 MQ 的解耦，并且效率很高。但缺点也非常明显，无法确定消息投递是可靠的：
+
+正在运行的 MQ 宕机后，无法恢复已发送的消息（持久化问题）
+没有匹配的 queue，那么消息将被 exchange 直接丢弃，而发送方对此毫不知情（确">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【MQ】可靠消息">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/12/08/【MQ】可靠消息/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="初始【MQ】最后说到默认情况下，消息发送后 MQ 不会向发送方确认消息到达，也不会进行持久化处理。即在发送方眼里消息只要发出去，就不再关心消息消息了。这确实做到了生产者与 MQ 的解耦，并且效率很高。但缺点也非常明显，无法确定消息投递是可靠的：
+
+正在运行的 MQ 宕机后，无法恢复已发送的消息（持久化问题）
+没有匹配的 queue，那么消息将被 exchange 直接丢弃，而发送方对此毫不知情（确">
+<meta property="og:updated_time" content="2017-12-08T13:57:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【MQ】可靠消息">
+<meta name="twitter:description" content="初始【MQ】最后说到默认情况下，消息发送后 MQ 不会向发送方确认消息到达，也不会进行持久化处理。即在发送方眼里消息只要发出去，就不再关心消息消息了。这确实做到了生产者与 MQ 的解耦，并且效率很高。但缺点也非常明显，无法确定消息投递是可靠的：
+
+正在运行的 MQ 宕机后，无法恢复已发送的消息（持久化问题）
+没有匹配的 queue，那么消息将被 exchange 直接丢弃，而发送方对此毫不知情（确">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/12/08/【MQ】可靠消息/"/>
+
+  <title> 【MQ】可靠消息 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【MQ】可靠消息
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-12-08T21:55:53+08:00" content="2017-12-08">
+              2017-12-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/MQ/" itemprop="url" rel="index">
+                    <span itemprop="name">MQ</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/12/08/【MQ】可靠消息/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/12/08/【MQ】可靠消息/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>初始【MQ】最后说到默认情况下，消息发送后 MQ 不会向发送方确认消息到达，也不会进行持久化处理。即在发送方眼里消息只要发出去，就不再关心消息消息了。这确实做到了生产者与 MQ 的解耦，并且效率很高。但缺点也非常明显，无法确定消息投递是可靠的：</p>
+<ul>
+<li>正在运行的 MQ 宕机后，无法恢复已发送的消息（持久化问题）</li>
+<li>没有匹配的 queue，那么消息将被 exchange 直接丢弃，而发送方对此毫不知情（确认问题）</li>
+<li>消息发送过程中在网络中丢失，发送方毫不知情（确认问题）</li>
+</ul>
+<p>Rabbit MQ 是被设计为金融行业服务的，在这些方面当然有考虑。本文将从持久化和消息确认两方面来了解 Rabbit MQ 的可靠消息实践。</p>
+<h2 id="持久化"><a href="#持久化" class="headerlink" title="持久化"></a>持久化</h2><p>为了确保消息在 MQ 各个环节的不丢失，需要将 exchange, queue, 投递方式都进行持久化声明。具体持久化的方式很简单，调用 API 就可以了。</p>
+<h3 id="exchange-持久化"><a href="#exchange-持久化" class="headerlink" title="exchange 持久化"></a>exchange 持久化</h3><p>exchange 声明时，将 durable 设置为 true 就可以了。这顺便看一下 exchange 创建方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">Exchange.<span class="function">DeclareOk <span class="title">exchangeDeclare</span><span class="params">(String exchange, String type, <span class="keyword">boolean</span> durable)</span> </span></div><div class="line">  <span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line">Exchange.<span class="function">DeclareOk <span class="title">exchangeDeclare</span><span class="params">(String exchange, String type, <span class="keyword">boolean</span> durable, </span></span></div><div class="line">                                   <span class="keyword">boolean</span> autoDelete,Map&lt;String, Object&gt; arguments) </div><div class="line">  <span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line">Exchange.<span class="function">DeclareOk <span class="title">exchangeDeclare</span><span class="params">(String exchange, String type)</span> </span></div><div class="line">  <span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line">Exchange.<span class="function">DeclareOk <span class="title">exchangeDeclare</span><span class="params">(String exchange,  // 交换器名称</span></span></div><div class="line">                                   String type,  // 交换器类型</div><div class="line">                                   <span class="keyword">boolean</span> durable, // 是否持久化</div><div class="line">                                   <span class="keyword">boolean</span> autoDelete,  // 是否自动删除</div><div class="line">                                   <span class="keyword">boolean</span> internal,  // 内部</div><div class="line">                                   Map&lt;String, Object&gt; arguments  // 其他构造参数</div><div class="line">                                  ) <span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line"><span class="comment">// 等价于 exchangeDeclare 方法设置 nowait 参数</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">exchangeDeclareNoWait</span><span class="params">(String exchange, String type, <span class="keyword">boolean</span> durable, <span class="keyword">boolean</span> autoDelete,</span></span></div><div class="line">                           <span class="keyword">boolean</span> internal, Map&lt;String, Object&gt; arguments) </div><div class="line">  <span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line"><span class="comment">// 被动声明队列，声明前先检查</span></div><div class="line">Exchange.<span class="function">DeclareOk <span class="title">exchangeDeclarePassive</span><span class="params">(String name)</span> <span class="keyword">throws</span> IOException</span>;</div></pre></td></tr></table></figure>
+<p>exchange 声明持久化后只能确保重启后 exchange 重新创建。否则 exchange 将丢失，生产者就无法正常发送消息了。</p>
+<h3 id="queue-持久化"><a href="#queue-持久化" class="headerlink" title="queue 持久化"></a>queue 持久化</h3><p>queue 持久化也是一样的套路，将 durable 设置为 true 就可以了。queue 创建的 AIP：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">Queue.<span class="function">DeclareOk <span class="title">queueDeclare</span><span class="params">()</span> <span class="keyword">throws</span> IOException</span>;</div><div class="line"></div><div class="line">Queue.<span class="function">DeclareOk <span class="title">queueDeclare</span><span class="params">(String queue,  // queue 名称 </span></span></div><div class="line">                             <span class="keyword">boolean</span> durable,  // 持久化</div><div class="line">                             <span class="keyword">boolean</span> exclusive,  // 排他队列</div><div class="line">                             <span class="keyword">boolean</span> autoDelete,  // 自动删除</div><div class="line">                             Map&lt;String, Object&gt; arguments  // 其他构造参数</div><div class="line">                            ) <span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">queueDeclareNoWait</span><span class="params">(String queue, <span class="keyword">boolean</span> durable, <span class="keyword">boolean</span> exclusive, <span class="keyword">boolean</span> autoDelete, </span></span></div><div class="line">                        Map&lt;String, Object&gt; arguments) <span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line">Queue.<span class="function">DeclareOk <span class="title">queueDeclarePassive</span><span class="params">(String queue)</span> <span class="keyword">throws</span> IOException</span>;</div></pre></td></tr></table></figure>
+<p>对 durable 没什么好说的，确保重启后 queue 重新创建，但消息无法恢复，消息的持久化依赖于投递方式的持久化。</p>
+<p>注意一下 exclusive 参数：一个队列被声明为排他队列，该队列仅对首次申明它的连接可见，并在连接断开时自动删除：</p>
+<ol>
+<li>排他队列是基于连接可见的，同一连接的不同信道是可以同时访问同一连接创建的排他队列；</li>
+<li>“首次”，如果一个连接已经声明了一个排他队列，其他连接是不允许建立同名的排他队列的，这个与普通队列不同；</li>
+<li>即使该队列是持久化的，一旦连接关闭或者客户端退出，该排他队列都会被自动删除的，这种队列适用于一个客户端发送读取消息的应用场景。</li>
+</ol>
+<h3 id="投递方式持久化声明"><a href="#投递方式持久化声明" class="headerlink" title="投递方式持久化声明"></a>投递方式持久化声明</h3><p>套路基本一致，还是看 API：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">basicPublish</span><span class="params">(String exchange, String routingKey, BasicProperties props, <span class="keyword">byte</span>[] body)</span> </span></div><div class="line">  <span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">basicPublish</span><span class="params">(String exchange, String routingKey, <span class="keyword">boolean</span> mandatory, BasicProperties props,</span></span></div><div class="line">                  <span class="keyword">byte</span>[] body)<span class="keyword">throws</span> IOException;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">basicPublish</span><span class="params">(String exchange,  // 交换器</span></span></div><div class="line">                  String routingKey,  // routing key</div><div class="line">                  <span class="keyword">boolean</span> mandatory,  // 消息确认</div><div class="line">                  <span class="keyword">boolean</span> immediate,  // 废弃</div><div class="line">                  BasicProperties props,  // 参数</div><div class="line">                  <span class="keyword">byte</span>[] body  // 消息有效负载</div><div class="line">                 ) <span class="keyword">throws</span> IOException;</div></pre></td></tr></table></figure>
+<p>持久化的参数包含在 BasicProperties 定义中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">BasicProperties</span> <span class="keyword">extends</span> <span class="title">AMQBasicProperties</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> String contentType;  <span class="comment">// 消息类型</span></div><div class="line">    <span class="keyword">private</span> String contentEncoding;  <span class="comment">// 编码</span></div><div class="line">    <span class="keyword">private</span> Map&lt;String, Object&gt; headers;</div><div class="line">    <span class="keyword">private</span> Integer deliveryMode;  <span class="comment">// 持久化。1：非持久化；2：持久化</span></div><div class="line">    <span class="keyword">private</span> Integer priority;  <span class="comment">// 优先级</span></div><div class="line">    <span class="keyword">private</span> String correlationId;</div><div class="line">    <span class="keyword">private</span> String replyTo;  <span class="comment">// 反馈队列</span></div><div class="line">    <span class="keyword">private</span> String expiration;  <span class="comment">// expiration到期时间</span></div><div class="line">    <span class="keyword">private</span> String messageId;</div><div class="line">    <span class="keyword">private</span> Date timestamp;</div><div class="line">    <span class="keyword">private</span> String type;</div><div class="line">    <span class="keyword">private</span> String userId;</div><div class="line">    <span class="keyword">private</span> String appId;</div><div class="line">    <span class="keyword">private</span> String clusterId;</div><div class="line">    <span class="comment">// 省略方法   </span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>BasicProperties 的构造除了提供默认的方法外，对常用的参数可以直接获得，还支持使用 builder 模式构造。</p>
+<p><strong>如果单独持久化投递方式，重启后因为交换器、队列已不存在所以毫无意义</strong></p>
+<h3 id="持久化的影响"><a href="#持久化的影响" class="headerlink" title="持久化的影响"></a>持久化的影响</h3><ul>
+<li><p>性能</p>
+<p>《Rabbit MQ 实战》 一书在说明持久化对性能影响时，举例：“使用持久化机制而导致消息吞吐量降低至少 10 倍的情况并不少见”。这个说法还是很让我震惊的，很好奇 Rabbit MQ 的持久化策略是怎么做的影响这么大，还是说非持久化策略太优秀了，以至于磁盘性能极大影响了整体吞吐量。这里挖个坑，争取以后看看内部实现吧，毕竟 erlang 对我是个大问题。</p>
+</li>
+<li><p>集群模式下工作的不好</p>
+<p>暂时不清楚集群模式下的影响，先 mark 一下</p>
+</li>
+<li><p>依旧无法 100% 数据不丢失</p>
+<p>即使 exchange，queue，投递方式都进行持久化声明依旧不能做到 100% 数据不丢失，原因有二：</p>
+<ol>
+<li><p>Rabbit MQ 不是为每条消息进行 fsync（同步 IO） 处理</p>
+<p>依旧可能出现挂掉时有消息没有持久化的情况，解决有两种方式：镜像队列和消息确认</p>
+</li>
+<li><p>看到网上有提到 erlang 写文件的实时问题，不懂，先 mark，待求证</p>
+</li>
+</ol>
+</li>
+</ul>
+<h2 id="消息确认"><a href="#消息确认" class="headerlink" title="消息确认"></a>消息确认</h2><p>消息确认可以分为生产者确认消息正确投递和消费者确认消息正确接收，对  Rabbit MQ 有三种更具体的情况：</p>
+<ul>
+<li>confire/事务：确认消息到达 broker，避免消息在生产者发出后丢失</li>
+<li>客户端 ACK：确认消费者接收消息，避免消息在消息队列发出后丢失</li>
+<li>mandatory/immediate：确认消息到达队列，避免到达交换器后找不到队列而丢弃</li>
+</ul>
+<h3 id="事务-confire"><a href="#事务-confire" class="headerlink" title="事务/confire"></a>事务/confire</h3><h4 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h4><p>确认消息成功被 exchange 接收。事务是 AMQP 协议内定义的， Rabbit MQ 也做了相应的实现。与事务相关有三个方法，具体使用的模板：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span> &#123;</div><div class="line">  channel.txSelect();</div><div class="line">  channel.basicPublish(...);</div><div class="line">  channel.txCommit();</div><div class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">  e.printStackTrace();</div><div class="line">  channel.txRollback();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>事务缺点：最大的问题是执行前后需要开启事务，提交/回滚事务，而这几个过程又必须是同步的因此会造成很大的性能问题</p>
+<h4 id="confire"><a href="#confire" class="headerlink" title="confire"></a>confire</h4><p>confire 是 Rabbit MQ 为解决事务性能问题设计的确认机制，主要的做法是为每条消息都设置唯一 ID 且 ID 以 1  为步长生序，MQ 通过发送 ACK, NACK 异步确认消息是否到达交换器。</p>
+<p>网上普遍对 confire 的描述都集中在异步性上。除了异步，可以设置 basic.ack 的 multiple 域进行累计确认，这有点 TCP 的确认方式。</p>
+<p>confire 最大的问题是无法回滚，导致生产者本身也不确定消息是否放成功。如果程序需要实现类似回滚功能，则维护一个 unconfire 消息的集合，每次收到 ACK/NACK 时更新集合（还需要考虑是否是累计确认）</p>
+<p>我使用了三种方式实现 confire 并进行对比：</p>
+<ul>
+<li>对每条消息要求接收对应的 confire 消息</li>
+<li>对一组消息要求接收一条 confire 消息</li>
+<li>使用监听器完全异步的接收 confire 消息</li>
+</ul>
+<p>不出意外的第三种方式的性能是最好的。</p>
+<h3 id="客户端-ACK"><a href="#客户端-ACK" class="headerlink" title="客户端 ACK"></a>客户端 ACK</h3><p>声明队列时指定 noAck 参数：</p>
+<ul>
+<li>noAck=false：Rabbit MQ 向消费者发出消息后等待消费者显式发出 ack 信号后才移除消息</li>
+<li>noAck=true：Rabbit MQ 向消费者发出消息后立即移除消息</li>
+</ul>
+<p>当设置队列 noAck 为 false 时，客户端必须根据消息的处理情况向 MQ 反馈，默认情况下 会自动确认。如果希望手动确认需要关闭自动确认。</p>
+<p>客户端除了 ACK 为还可以向 MQ 反馈其他信息，反馈的 API 分别有：</p>
+<ul>
+<li>channel.basicAck：向 MQ 确认消息正确接收</li>
+<li>channel.basicRecover：向 MQ 确认消息需要重发，可以根据参数重发给当前消费者或重新入队</li>
+<li>channel.basicReject：向 MQ 确认消息退回</li>
+<li>channel.basicNack：向 MQ 确认批量退回消息，可以根据参数选择是否批量</li>
+</ul>
+<h3 id="mandatory-immediate"><a href="#mandatory-immediate" class="headerlink" title="mandatory/immediate"></a>mandatory/immediate</h3><h4 id="mandatory"><a href="#mandatory" class="headerlink" title="mandatory"></a>mandatory</h4><p>mandatory 设置为 true 时：MQ 至少将该消息路由到至少一个队列中，否则将消息返还给生产者</p>
+<p>mandatory 实现时只需要：</p>
+<ol>
+<li><p>投递消息时设置 mandatory 参数为true</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">basicPublish</span><span class="params">(String exchange,  // 交换器</span></span></div><div class="line">              String routingKey,  // routing key</div><div class="line">              <span class="keyword">boolean</span> mandatory,  // 消息确认</div><div class="line">              <span class="keyword">boolean</span> immediate,  // 废弃</div><div class="line">              BasicProperties props,  // 参数</div><div class="line">              <span class="keyword">byte</span>[] body  // 消息有效负载</div><div class="line">             ) <span class="keyword">throws</span> IOException;</div></pre></td></tr></table></figure>
+</li>
+<li><p>设置监听器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">channel.addReturnListener(<span class="keyword">new</span> ReturnListener() &#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleReturn</span><span class="params">(<span class="keyword">int</span> replyCode, String replyText, String exchange,</span></span></div><div class="line">                             String routingKey, AMQP.BasicProperties basicProperties,</div><div class="line">                             <span class="keyword">byte</span>[] body) <span class="keyword">throws</span> IOException &#123;</div><div class="line">                               <span class="comment">// TODO</span></div><div class="line">                             &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>当消息没有被正确路由到至少一个队列时，AMQP协议会返回对应消息，监听器内的代码将被调用；</p>
+<p><strong>当消息正确投递，什么也不发生</strong></p>
+<h4 id="immediate"><a href="#immediate" class="headerlink" title="immediate"></a>immediate</h4><p><strong>Rabbit MQ 3.0 之后已移除</strong>。设置为 true 时：消息路由到 queue 前，如果 queue 有消费者，则马上将消息投递给 queue，否则直接把消息返还给生产者，消息不再入队。</p>
+<hr>
+<p>参考：</p>
+<p>《Rabbit MQ 实战》</p>
+<p><a href="http://www.cnblogs.com/520playboy/p/6925196.html" target="_blank" rel="external">RabbitMQ(二)：mandatory标志的作用</a></p>
+<p><a href="https://github.com/pzxwhc/MineKnowContainer/issues/49" target="_blank" rel="external">RabbitMQ：Publisher的消息确认机制</a></p>
+<p><a href="http://blog.csdn.net/u013256816/article/details/54914525" target="_blank" rel="external">RabbitMQ之mandatory和immediate</a></p>
+<p> <a href="http://blog.csdn.net/u013256816/article/details/55515234" target="_blank" rel="external">RabbitMQ之消息确认机制（事务+Confirm）</a></p>
+<p><a href="http://blog.csdn.net/u014045580/article/details/70311746" target="_blank" rel="external">rabbitMq生产者角度:消息持久化、事务机制、PublisherConfirm、mandatory</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MQ/" rel="tag">#MQ</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/08/【MQ】初始MQ/" rel="next" title="【MQ】初始MQ">
+                <i class="fa fa-chevron-left"></i> 【MQ】初始MQ
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/08/【MQ】镜像队列/" rel="prev" title="【MQ】镜像队列">
+                【MQ】镜像队列 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#持久化"><span class="nav-number">1.</span> <span class="nav-text">持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#exchange-持久化"><span class="nav-number">1.1.</span> <span class="nav-text">exchange 持久化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#queue-持久化"><span class="nav-number">1.2.</span> <span class="nav-text">queue 持久化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#投递方式持久化声明"><span class="nav-number">1.3.</span> <span class="nav-text">投递方式持久化声明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#持久化的影响"><span class="nav-number">1.4.</span> <span class="nav-text">持久化的影响</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息确认"><span class="nav-number">2.</span> <span class="nav-text">消息确认</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#事务-confire"><span class="nav-number">2.1.</span> <span class="nav-text">事务/confire</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#事务"><span class="nav-number">2.1.1.</span> <span class="nav-text">事务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#confire"><span class="nav-number">2.1.2.</span> <span class="nav-text">confire</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端-ACK"><span class="nav-number">2.2.</span> <span class="nav-text">客户端 ACK</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mandatory-immediate"><span class="nav-number">2.3.</span> <span class="nav-text">mandatory/immediate</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#mandatory"><span class="nav-number">2.3.1.</span> <span class="nav-text">mandatory</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#immediate"><span class="nav-number">2.3.2.</span> <span class="nav-text">immediate</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/12/08/【MQ】可靠消息/';
+      var disqus_title = "【MQ】可靠消息";
+      var disqus_url = 'https://zhanghtk.github.io/2017/12/08/【MQ】可靠消息/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

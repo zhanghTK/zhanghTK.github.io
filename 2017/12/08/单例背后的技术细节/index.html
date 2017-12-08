@@ -1,0 +1,974 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,设计模式," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="单例是最简单的设计模式，这基本上是大家的共识。然而单例也是最经常被问及的基础面试题，各个语言下单例的实现通常都是以私有构造方法的方式实现，一个优雅的单例往往涉及线程，序列化等内容。 这里以 Java 实现单例，并总结一下各种单例的实现方式的特点。
+单例的各种写法饿汉单例123456789public class HungrySingleton &amp;#123;    private static Hu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="单例背后的技术细节">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/12/08/单例背后的技术细节/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="单例是最简单的设计模式，这基本上是大家的共识。然而单例也是最经常被问及的基础面试题，各个语言下单例的实现通常都是以私有构造方法的方式实现，一个优雅的单例往往涉及线程，序列化等内容。 这里以 Java 实现单例，并总结一下各种单例的实现方式的特点。
+单例的各种写法饿汉单例123456789public class HungrySingleton &amp;#123;    private static Hu">
+<meta property="og:updated_time" content="2017-12-08T13:43:55.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="单例背后的技术细节">
+<meta name="twitter:description" content="单例是最简单的设计模式，这基本上是大家的共识。然而单例也是最经常被问及的基础面试题，各个语言下单例的实现通常都是以私有构造方法的方式实现，一个优雅的单例往往涉及线程，序列化等内容。 这里以 Java 实现单例，并总结一下各种单例的实现方式的特点。
+单例的各种写法饿汉单例123456789public class HungrySingleton &amp;#123;    private static Hu">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/12/08/单例背后的技术细节/"/>
+
+  <title> 单例背后的技术细节 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                单例背后的技术细节
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-12-08T21:40:46+08:00" content="2017-12-08">
+              2017-12-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/设计模式/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/12/08/单例背后的技术细节/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/12/08/单例背后的技术细节/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>单例是最简单的设计模式，这基本上是大家的共识。然而单例也是最经常被问及的基础面试题，各个语言下单例的实现通常都是以私有构造方法的方式实现，一个优雅的单例往往涉及线程，序列化等内容。 这里以 Java 实现单例，并总结一下各种单例的实现方式的特点。</p>
+<h2 id="单例的各种写法"><a href="#单例的各种写法" class="headerlink" title="单例的各种写法"></a>单例的各种写法</h2><h3 id="饿汉单例"><a href="#饿汉单例" class="headerlink" title="饿汉单例"></a>饿汉单例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HungrySingleton</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> HungrySingleton instance = <span class="keyword">new</span> HungrySingleton();</div><div class="line">  </div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">HungrySingleton</span><span class="params">()</span></span>&#123;&#125;</div><div class="line">  </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> HungrySingleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> instance;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>优点：简单、线程安全</li>
+<li>缺点：无法延迟创建，无法防御反射、序列化重复创建</li>
+</ul>
+<h3 id="简单懒汉单例"><a href="#简单懒汉单例" class="headerlink" title="简单懒汉单例"></a>简单懒汉单例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LazySingletonSimple</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> LazySingletonSimple instance;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">LazySingletonSimple</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> LazySingletonSimple <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</div><div class="line">            instance = <span class="keyword">new</span> LazySingletonSimple();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> instance;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>优点：简单，延迟创建</li>
+<li>缺点：线程不安全，无法防御反射、序列化重复创建</li>
+</ul>
+<h3 id="内部类懒汉单例"><a href="#内部类懒汉单例" class="headerlink" title="内部类懒汉单例"></a>内部类懒汉单例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LazySingletonStatic</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">SingletonHolder</span></span>&#123;</div><div class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> LazySingletonStatic INSTANCE = <span class="keyword">new</span> LazySingletonStatic();</div><div class="line">    &#125;</div><div class="line"><span class="comment">//    可以使用静态初始化块的方式实现饿汉单例</span></div><div class="line"><span class="comment">//    private LazySingletonSimple instance;</span></div><div class="line"><span class="comment">//    static &#123;</span></div><div class="line"><span class="comment">//        instance = new LazySingletonSimple();</span></div><div class="line"><span class="comment">//    &#125;</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">LazySingletonStatic</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> LazySingletonStatic <span class="title">getInstance</span><span class="params">()</span></span>&#123;</div><div class="line">        <span class="keyword">return</span> SingletonHolder.INSTANCE;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>优点：延迟创建，线程安全</li>
+<li>缺点：较复杂，无法防御反射、序列化重复创建</li>
+</ul>
+<h3 id="加锁懒汉单例"><a href="#加锁懒汉单例" class="headerlink" title="加锁懒汉单例"></a>加锁懒汉单例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LazySingletonSafe</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> LazySingletonSafe instance;</div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">LazySingletonSafe</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> LazySingletonSafe <span class="title">getInstance</span><span class="params">()</span></span>&#123;</div><div class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>)&#123;</div><div class="line">            instance = <span class="keyword">new</span> LazySingletonSafe();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> instance;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>优点：延迟创建，线程安全</li>
+<li>缺点：性能差，无法防御反射、序列化重复创建</li>
+</ul>
+<h3 id="双锁懒汉单例"><a href="#双锁懒汉单例" class="headerlink" title="双锁懒汉单例"></a>双锁懒汉单例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DoubleCheckLockSingleton</span> </span>&#123;</div><div class="line">    <span class="comment">// 指令重排可能影响执行指令的执行顺序</span></div><div class="line">    <span class="comment">// volatile 声明的变量会禁止指令重排</span></div><div class="line">    <span class="comment">// 只在 JDK5 之后生效</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> DoubleCheckLockSingleton instance;</div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">DoubleCheckLockSingleton</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> DoubleCheckLockSingleton <span class="title">getInstance</span><span class="params">()</span></span>&#123;</div><div class="line">        <span class="keyword">if</span>(instance == <span class="keyword">null</span>)&#123;</div><div class="line">            <span class="keyword">synchronized</span> (DoubleCheckLockSingleton.class)&#123;</div><div class="line">                <span class="keyword">if</span>(instance == <span class="keyword">null</span>)&#123;</div><div class="line">                    instance = <span class="keyword">new</span> DoubleCheckLockSingleton();</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> instance;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>优点：延迟创建，线程安全</li>
+<li>缺点：无法防御反射、序列化重复创建</li>
+</ul>
+<h3 id="改进加锁懒汉单例"><a href="#改进加锁懒汉单例" class="headerlink" title="改进加锁懒汉单例"></a>改进加锁懒汉单例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DefReflectAndSerialSingleton</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> DefReflectAndSerialSingleton instance;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 防止反射创建多个单例</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">DefReflectAndSerialSingleton</span><span class="params">()</span></span>&#123;</div><div class="line">        <span class="keyword">if</span> (instance != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 防止序列化创建多个单例</div><div class="line">     * <span class="doctag">@return</span></div><div class="line">     * <span class="doctag">@throws</span> ObjectStreamException</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">readResolve</span><span class="params">()</span> <span class="keyword">throws</span> ObjectStreamException </span>&#123;</div><div class="line">        <span class="keyword">return</span> instance;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> DefReflectAndSerialSingleton <span class="title">getInstance</span><span class="params">()</span></span>&#123;</div><div class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>)&#123;</div><div class="line">            instance = <span class="keyword">new</span> DefReflectAndSerialSingleton();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> instance;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>优点：延迟创建，线程安全，可以防御反射、序列化重复创建</li>
+<li>缺点：复杂，性能差</li>
+</ul>
+<h3 id="枚举单例"><a href="#枚举单例" class="headerlink" title="枚举单例"></a>枚举单例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">enum</span> EnumSingleton &#123;</div><div class="line">    INSTANCE;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">functionInEnum</span><span class="params">()</span></span>&#123;</div><div class="line">        System.out.println(<span class="string">"function in enum"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>优点：延迟创建，线程安全，可以防御反射、序列化重复创建</li>
+<li>缺点：用的人太少</li>
+</ul>
+<h2 id="单例背后的技术细节"><a href="#单例背后的技术细节" class="headerlink" title="单例背后的技术细节"></a>单例背后的技术细节</h2><h3 id="饿汉单例-amp-简单懒汉单例"><a href="#饿汉单例-amp-简单懒汉单例" class="headerlink" title="饿汉单例 &amp; 简单懒汉单例"></a>饿汉单例 &amp; 简单懒汉单例</h3><p>最简单的写法，直接私有化构造器，区别在初始化单例的时机。这是初学者最容易掌握的单例写法，并没有什么太多值得说的。在一般的场景下使用也并没有太大问题，但如果考虑线程安全，序列化，反射场景时，这两种写法都不可取。</p>
+<h3 id="内部类懒汉单例-1"><a href="#内部类懒汉单例-1" class="headerlink" title="内部类懒汉单例"></a>内部类懒汉单例</h3><p>使用内部类机制形成懒加载，其过程涉及到了类加载机制</p>
+<h4 id="类加载"><a href="#类加载" class="headerlink" title="类加载"></a>类加载</h4><p>类加载、使用的完整过程：</p>
+<p>加载 -&gt; 验证 -&gt; 准备 -&gt; 解析 -&gt; 初始化 -&gt; 使用 -&gt; 卸载</p>
+<p>对内部类懒汉单例来说，初始化阶段影响了单例对象实例化的时间，这里具体看一下初始化阶段</p>
+<h4 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h4><p>初始化阶段有两个东西比较重要：</p>
+<ol>
+<li>初始化条件</li>
+<li>初始化过程</li>
+</ol>
+<h5 id="初始化条件"><a href="#初始化条件" class="headerlink" title="初始化条件"></a>初始化条件</h5><p>类初始化的条件在 JVM 规范中有明确要求：</p>
+<ol>
+<li>遇到 new、getstatic、putstatic、invokestatic 这四条字节码指令时，如果类还没有进行过初始化，则需要先触发其初始化</li>
+<li>使用 Java.lang.refect 包的方法对类进行反射调用时，如果类还没有进行过初始化，则需要先触发其初始化</li>
+<li>当初始化一个类的时候，如果发现其父类还没有进行初始化，则需要先触发其父类的初始化</li>
+<li>当虚拟机启动时，用户需要指定一个要执行的主类，虚拟机会先执行该主类</li>
+<li>当使用jdk1.7 的动态语言支持时，如果一个 java.lang.invoke.MethodHandle 实例最后的解析结果 REF_getStatic ,  REF_putStatic ,  REF_invokeStatic 的方法句柄，并且这个方法句柄所对应的类没有进行过初始化，则需要先触发其初始化</li>
+</ol>
+<p>在上面代码中的场景，只有 SingletonHolder.INSTANCE; 代码执行时才会初始化 SingletonHolder 类</p>
+<h5 id="初始化过程"><a href="#初始化过程" class="headerlink" title="初始化过程"></a>初始化过程</h5><p>初始化阶段真正开始执行代码中定义的 Java 程序代码，初始化阶段会执行类构造器  <clinit>() 方法。</clinit></p>
+<p><clinit>() 方法是 Java 编译器生成的，内容是收集代码中所有类变量的赋值语句和静态语句块中的语句合并而成，顺序由源文件中出现顺序决定。</clinit></p>
+<p>在上面的场景中，只有类变量赋值的语句：private static final LazySingletonStatic INSTANCE = new LazySingletonStatic();</p>
+<h5 id="线程安全"><a href="#线程安全" class="headerlink" title="线程安全"></a>线程安全</h5><p>单线程环境下初始化大致的过程清楚后，还需要说明一下 Java 中初始化一个类或接口是是加锁的同步操作，而这个操作是自动，可以确保当多个线程同时加载一个类时的线程安全。</p>
+<h4 id="懒汉-or-饿汉"><a href="#懒汉-or-饿汉" class="headerlink" title="懒汉 or 饿汉"></a>懒汉 or 饿汉</h4><p>内部类懒汉单例中通过调用实例时调用内部类的静态属性达到延迟初始化目的。如果使用静态代码块的方式则可以在类初始化阶段完成实例变量的初始化实现饿汉单例，如上面的注释代码所示。</p>
+<p>但需要注意生成的 <clinit>() 方法内代码的顺序，一个错误的初始化：</clinit></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Single</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Single single = <span class="keyword">new</span> Single();</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Map&lt;String, String&gt; cache;</div><div class="line"></div><div class="line">    <span class="keyword">static</span> &#123;</div><div class="line">        cache = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">        cache.put(<span class="string">"0"</span>, <span class="string">"0"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Single</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == cache) &#123;</div><div class="line">            cache = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">        &#125;</div><div class="line">        cache.put(<span class="string">"1"</span>, <span class="string">"1"</span>);</div><div class="line">        cache.put(<span class="string">"2"</span>, <span class="string">"2"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Single <span class="title">getSingle</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> single;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>根据  <clinit>() 对语句的收集，会先执行 new Single()，然后执行静态代码块，所以 Single() 构造的内容将丢失。</clinit></p>
+<h3 id="加锁懒汉单例-1"><a href="#加锁懒汉单例-1" class="headerlink" title="加锁懒汉单例"></a>加锁懒汉单例</h3><p>前面的单例都是线程不安全的。以下的操作不满足原子性，当多个线程访问时会出现竞争：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</div><div class="line">    instance = <span class="keyword">new</span> Singleton();</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> instance;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>要避免这种竞争的产生最简单的方式是使用 Java 提供的内置锁（synchronized）机制来保护同步代码块。当一个线程进入加锁的同步代码块之前会获得锁，直到离开同步代码块时释放锁，当一个线程持有锁时会，其他线程将无法获得锁而被阻塞。</p>
+<p>内置锁可以完全避免竞争的产生，但同时产生了严重的性能问题，所有线程访问 getInstance 方法都必须是顺序进行的，而getInstance 的核心逻辑是对第一次访问生效的，其余每次都判断是没有意义的。</p>
+<h3 id="双锁懒汉单例-1"><a href="#双锁懒汉单例-1" class="headerlink" title="双锁懒汉单例"></a>双锁懒汉单例</h3><p>双锁懒汉单例也是常见的一种单例写法，其主要改进是确保线程安全的同时避免了每次调用 getInstance 方法时都要加锁，锁操作在大多数场景下都是不必要的，竞争只发生在初始情况下（instance 为 null）时，而之后大部分时间的操作加锁就显得没意义了。双锁可以很好的区分这两种场景：</p>
+<ul>
+<li>初始情况下（instance 为 null），多个线程同时访问都满足 instance == null，但进一步会在加锁的位置阻塞，以顺序执行</li>
+</ul>
+<ul>
+<li>单例实例产生后，后面的线程再访问时将不满足 instance ==  null 的条件，直接返回实例，从而避免加锁的开销</li>
+</ul>
+<p>这种做法确实很好的做到加锁同时兼顾了性能，但最大的问题在于人们常常忘记 volatile 关键字，因为原子性和指令重排造成多线程下不安全的操作。</p>
+<h4 id="原子操作"><a href="#原子操作" class="headerlink" title="原子操作"></a>原子操作</h4><p>前面已经提到 if 代码块不满足原子性，这里看更局部的地方：instance = new DoubleCheckLockSingleton(); </p>
+<p>尽管只是一条语句但它也不是原子操作，在执行过程中会以三条指令执行，伪代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">memory = allocate();  // 1. 分配对象的内存空间</div><div class="line">ctorInstance(memory);  // 2. 初始化对象</div><div class="line">instance = memory;  // 3. 设置 instance 指向刚分配的内存地址</div></pre></td></tr></table></figure>
+<h4 id="指令重排"><a href="#指令重排" class="headerlink" title="指令重排"></a>指令重排</h4><p>非原子的操作本身并不影响程序的执行，我们甚至感受不到这是一个非原子的操作。但为了执行效率，指令可以发生重新排序，而指令重排让程序的执行充满了不确定性。上面的三条指令有可能会以下顺序执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">memory = allocate();  // 1. 分配对象的内存空间</div><div class="line">instance = memory;  // 3. 设置 instance 指向刚分配的内存地址</div><div class="line">ctorInstance(memory);  // 2. 初始化对象</div></pre></td></tr></table></figure>
+<p>同样我们对此毫无感受，在单线程下程序的正确性也没有收到影响。然而多线程环境下问题将变得很诡异，比如下面的场景：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>线程A</th>
+<th>线程B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t1</td>
+<td>A1:分配对象的内存空间</td>
+<td></td>
+</tr>
+<tr>
+<td>t2</td>
+<td>A3:设置 instance 执行内存空间</td>
+<td></td>
+</tr>
+<tr>
+<td>t3</td>
+<td></td>
+<td>B1:判断 instance 是否 null</td>
+</tr>
+<tr>
+<td>t4</td>
+<td></td>
+<td>B2:instance 不为 null，访问 instance 引用对象</td>
+</tr>
+<tr>
+<td>t5</td>
+<td>A2:初始化对象</td>
+<td></td>
+</tr>
+<tr>
+<td>t6</td>
+<td>A4:访问 instance 引用对象</td>
+</tr>
+</tbody>
+</table>
+<p>在 t3, t4 时刻，线程B 居然访问到了一个没有完全初始化的对象。</p>
+<h4 id="volatile"><a href="#volatile" class="headerlink" title="volatile"></a>volatile</h4><p>将实例变量用 volatile 修饰后就可以解决这个问题。在 volatile 背后，JVM 实际做了两件事：</p>
+<ol>
+<li>每次读取/写入变量都访问线程共享的存储数据，而不是线程私有区域缓存的数据</li>
+<li>禁止指令重排优化</li>
+</ol>
+<p>这样上面演示的可能的重排操作将被避免，在多线程的环境下线程也将不会访问到未完全初始化的对象</p>
+<h3 id="改进加锁懒汉单例-1"><a href="#改进加锁懒汉单例-1" class="headerlink" title="改进加锁懒汉单例"></a>改进加锁懒汉单例</h3><p>单例属于创建型的设计模式，所以先看看 Java 中创建对象的几种方式：</p>
+<ol>
+<li>使用 new 关键字，最常见的方式</li>
+<li>反射创建，更具体有两种方式：Class.newInstance 和 Contructor,newInstance</li>
+<li>clone 对象，需要实现 Cloneable 接口，并实现 clone 方法</li>
+<li>反序列化：需要实现 Serializable 接口</li>
+</ol>
+<p>对于每种创建方式的禁用方式也很简单：</p>
+<ol>
+<li>私有构造禁止外部创建</li>
+<li>构造方法添加判断逻辑，如果已将判断抛出异常</li>
+<li>直接在 clone 方法抛出异常</li>
+<li>构造方法添加判断逻辑，定制 readResolve 方法</li>
+</ol>
+<h3 id="枚举"><a href="#枚举" class="headerlink" title="枚举"></a>枚举</h3><p>枚举这个东西一直用起来，怪怪的。《Effective Java》里建议的单例实现方式也是使用枚举，但基本没见过有人这么用。具体的使用没什么太多好说的，这里总结一下枚举的相关特性吧。</p>
+<p>首先枚举是 Java 的句法糖，枚举最终会被转换为普通类。例如下面定义的枚举：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">enum</span> Color  &#123;  </div><div class="line">  RED,BLUE,BLACK,YELLOW,GREEN  <span class="comment">// 最后没有分号，也没有逗号</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>会被转换成：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Color</span> <span class="keyword">extends</span>  <span class="title">java</span>.<span class="title">lang</span>.<span class="title">Enum</span></span>&#123;   </div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Color RED;   </div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Color BLUE;   </div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Color BLACK;   </div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Color YELLOW;   </div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Color GREEN;   </div><div class="line">  <span class="keyword">static</span> &#123;&#125;;   </div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> Color[] values();   </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Color <span class="title">valueOf</span><span class="params">(java.lang.String)</span></span>;   </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到枚举继承了 Enum，因此枚举获得了如下方法：</p>
+<ul>
+<li><p>ordinal：返回枚举值在枚举类种的顺序</p>
+<p><code>Color.RED.ordinal();  // 返回结果：0</code></p>
+</li>
+<li><p>name：枚举类型名称</p>
+</li>
+<li><p>compareTo：比较象与指定对象的顺序</p>
+<p><code>Color.RED.compareTo(Color.BLUE);  // 返回结果 -1</code></p>
+</li>
+<li><p>values：静态方法，获得全部枚举值的数组</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Color[] colors=Color.values();</div><div class="line"><span class="keyword">for</span>(Color c:colors)&#123;</div><div class="line">  System.out.print(c+<span class="string">","</span>); </div><div class="line">&#125;</div><div class="line"><span class="comment">//返回结果：RED,BLUE,BLACK YELLOW,GREEN,</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>toString：获得枚举常量的名称</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Color c=Color.RED;</div><div class="line">System.out.println(c);<span class="comment">//返回结果: RED</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>valueOf：静态方法，获得带指定名称的指定枚举类型的枚举常量</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Color.valueOf(<span class="string">"BLUE"</span>);  <span class="comment">// 返回结果: Color.BLUE</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>equals：比较两个枚举对象的引用</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/设计模式/" rel="tag">#设计模式</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/08/JVM知识拾遗/" rel="next" title="JVM知识拾遗">
+                <i class="fa fa-chevron-left"></i> JVM知识拾遗
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/08/【MQ】初始MQ/" rel="prev" title="【MQ】初始MQ">
+                【MQ】初始MQ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#单例的各种写法"><span class="nav-number">1.</span> <span class="nav-text">单例的各种写法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#饿汉单例"><span class="nav-number">1.1.</span> <span class="nav-text">饿汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单懒汉单例"><span class="nav-number">1.2.</span> <span class="nav-text">简单懒汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内部类懒汉单例"><span class="nav-number">1.3.</span> <span class="nav-text">内部类懒汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加锁懒汉单例"><span class="nav-number">1.4.</span> <span class="nav-text">加锁懒汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双锁懒汉单例"><span class="nav-number">1.5.</span> <span class="nav-text">双锁懒汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#改进加锁懒汉单例"><span class="nav-number">1.6.</span> <span class="nav-text">改进加锁懒汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#枚举单例"><span class="nav-number">1.7.</span> <span class="nav-text">枚举单例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#单例背后的技术细节"><span class="nav-number">2.</span> <span class="nav-text">单例背后的技术细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#饿汉单例-amp-简单懒汉单例"><span class="nav-number">2.1.</span> <span class="nav-text">饿汉单例 & 简单懒汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内部类懒汉单例-1"><span class="nav-number">2.2.</span> <span class="nav-text">内部类懒汉单例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#类加载"><span class="nav-number">2.2.1.</span> <span class="nav-text">类加载</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#初始化"><span class="nav-number">2.2.2.</span> <span class="nav-text">初始化</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#初始化条件"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">初始化条件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#初始化过程"><span class="nav-number">2.2.2.2.</span> <span class="nav-text">初始化过程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#线程安全"><span class="nav-number">2.2.2.3.</span> <span class="nav-text">线程安全</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#懒汉-or-饿汉"><span class="nav-number">2.2.3.</span> <span class="nav-text">懒汉 or 饿汉</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加锁懒汉单例-1"><span class="nav-number">2.3.</span> <span class="nav-text">加锁懒汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双锁懒汉单例-1"><span class="nav-number">2.4.</span> <span class="nav-text">双锁懒汉单例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原子操作"><span class="nav-number">2.4.1.</span> <span class="nav-text">原子操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#指令重排"><span class="nav-number">2.4.2.</span> <span class="nav-text">指令重排</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#volatile"><span class="nav-number">2.4.3.</span> <span class="nav-text">volatile</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#改进加锁懒汉单例-1"><span class="nav-number">2.5.</span> <span class="nav-text">改进加锁懒汉单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#枚举"><span class="nav-number">2.6.</span> <span class="nav-text">枚举</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/12/08/单例背后的技术细节/';
+      var disqus_title = "单例背后的技术细节";
+      var disqus_url = 'https://zhanghtk.github.io/2017/12/08/单例背后的技术细节/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

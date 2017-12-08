@@ -1,0 +1,828 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Spring," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="条件注解ConditionOnClass以 ConditionOnClass 为例分析：
+12345678910111213@Target(&amp;#123; ElementType.TYPE, ElementType.METHOD &amp;#125;)@Retention(RetentionPolicy.RUNTIME)@Documented@Conditional(OnClassCondition.cla">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【SpringBoot】条件注解">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/12/08/【SpringBoot】条件注解/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="条件注解ConditionOnClass以 ConditionOnClass 为例分析：
+12345678910111213@Target(&amp;#123; ElementType.TYPE, ElementType.METHOD &amp;#125;)@Retention(RetentionPolicy.RUNTIME)@Documented@Conditional(OnClassCondition.cla">
+<meta property="og:updated_time" content="2017-12-08T13:46:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【SpringBoot】条件注解">
+<meta name="twitter:description" content="条件注解ConditionOnClass以 ConditionOnClass 为例分析：
+12345678910111213@Target(&amp;#123; ElementType.TYPE, ElementType.METHOD &amp;#125;)@Retention(RetentionPolicy.RUNTIME)@Documented@Conditional(OnClassCondition.cla">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/12/08/【SpringBoot】条件注解/"/>
+
+  <title> 【SpringBoot】条件注解 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【SpringBoot】条件注解
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-12-08T20:45:21+08:00" content="2017-12-08">
+              2017-12-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/12/08/【SpringBoot】条件注解/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/12/08/【SpringBoot】条件注解/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="条件注解"><a href="#条件注解" class="headerlink" title="条件注解"></a>条件注解</h2><h3 id="ConditionOnClass"><a href="#ConditionOnClass" class="headerlink" title="ConditionOnClass"></a>ConditionOnClass</h3><p>以 ConditionOnClass 为例分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Target</span>(&#123; ElementType.TYPE, ElementType.METHOD &#125;)</div><div class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</div><div class="line"><span class="meta">@Documented</span></div><div class="line"><span class="meta">@Conditional</span>(OnClassCondition.class)</div><div class="line"><span class="keyword">public</span> <span class="meta">@interface</span> ConditionalOnClass &#123;</div><div class="line"></div><div class="line">   <span class="comment">// The classes that must be present.</span></div><div class="line">   Class&lt;?&gt;[] value() <span class="keyword">default</span> &#123;&#125;;</div><div class="line"></div><div class="line">   <span class="comment">// The classes names that must be present.</span></div><div class="line">   String[] name() <span class="keyword">default</span> &#123;&#125;;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>ConditionOnClass 注解使用 Conditional 注解修饰：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Target</span>(&#123;ElementType.TYPE, ElementType.METHOD&#125;)</div><div class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</div><div class="line"><span class="meta">@Documented</span></div><div class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Conditional &#123;</div><div class="line">  </div><div class="line">   <span class="comment">// All Conditions that must match in order for the component to be registered.</span></div><div class="line">   Class&lt;? extends Condition&gt;[] value();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Conditional 定义了一个条件数组 Condition[]，条件的定义：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Condition</span> </span>&#123;</div><div class="line">   <span class="function"><span class="keyword">boolean</span> <span class="title">matches</span><span class="params">(ConditionContext context, AnnotatedTypeMetadata metadata)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>看一下上面 Conditional 注解使用的 OnClassCondition。</p>
+<p>首先其继承于 SpringBootCondition，SpringBoot 中条件注解都继承这个抽象类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">SpringBootCondition</span> <span class="keyword">implements</span> <span class="title">Condition</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">matches</span><span class="params">(ConditionContext context,</span></span></div><div class="line">         AnnotatedTypeMetadata metadata) &#123;</div><div class="line">      <span class="comment">// 得到类名或者方法名(条件注解可以作用的类或者方法上)</span></div><div class="line">      String classOrMethodName = getClassOrMethodName(metadata);</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">         <span class="comment">// 抽象方法，具体子类实现</span></div><div class="line">         <span class="comment">// ConditionOutcome记录了匹配结果boolean和log信息</span></div><div class="line">         ConditionOutcome outcome = getMatchOutcome(context, metadata);</div><div class="line">         <span class="comment">// log记录一下匹配信息</span></div><div class="line">         logOutcome(classOrMethodName, outcome);</div><div class="line">         <span class="comment">// 报告记录一下匹配信息</span></div><div class="line">         recordEvaluation(context, classOrMethodName, outcome);</div><div class="line">         <span class="keyword">return</span> outcome.isMatch();</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">catch</span> (...) &#123;</div><div class="line">        <span class="comment">// ...</span></div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// 省略其他</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>OnClassCondition 实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> ConditionOutcome <span class="title">getMatchOutcome</span><span class="params">(ConditionContext context,</span></span></div><div class="line">      AnnotatedTypeMetadata metadata) &#123;</div><div class="line">   ClassLoader classLoader = context.getClassLoader();</div><div class="line">   ConditionMessage matchMessage = ConditionMessage.empty();</div><div class="line">   <span class="comment">// 得到 @ConditionalOnClass 注解的类</span></div><div class="line">   List&lt;String&gt; onClasses = getCandidates(metadata, ConditionalOnClass.class);</div><div class="line">   <span class="keyword">if</span> (onClasses != <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="comment">// 如果类存在</span></div><div class="line">      <span class="comment">// 得到在类加载器中不存在的类</span></div><div class="line">      List&lt;String&gt; missing = getMatches(onClasses, MatchType.MISSING, classLoader);</div><div class="line">      <span class="keyword">if</span> (!missing.isEmpty()) &#123;</div><div class="line">         <span class="comment">// 如果存在类加载器中不存在对应的类，返回一个匹配失败的 ConditionalOutcome</span></div><div class="line">         <span class="keyword">return</span> ConditionOutcome</div><div class="line">               .noMatch(ConditionMessage.forCondition(ConditionalOnClass.class)</div><div class="line">                     .didNotFind(<span class="string">"required class"</span>, <span class="string">"required classes"</span>)</div><div class="line">                     .items(Style.QUOTE, missing));</div><div class="line">      &#125;</div><div class="line">      <span class="comment">// 如果类加载器中有所有的对应类，匹配信息进行记录</span></div><div class="line">      matchMessage = matchMessage.andCondition(ConditionalOnClass.class)</div><div class="line">            .found(<span class="string">"required class"</span>, <span class="string">"required classes"</span>).items(Style.QUOTE,</div><div class="line">                  getMatches(onClasses, MatchType.PRESENT, classLoader));</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 对@ConditionalOnMissingClass注解做相同的逻辑处理</span></div><div class="line">   <span class="comment">// @ConditionalOnClass和@ConditionalOnMissingClass可以一起使用</span></div><div class="line">   List&lt;String&gt; onMissingClasses = getCandidates(metadata,</div><div class="line">         ConditionalOnMissingClass.class);</div><div class="line">   <span class="keyword">if</span> (onMissingClasses != <span class="keyword">null</span>) &#123;</div><div class="line">      List&lt;String&gt; present = getMatches(onMissingClasses, MatchType.PRESENT,</div><div class="line">            classLoader);</div><div class="line">      <span class="keyword">if</span> (!present.isEmpty()) &#123;</div><div class="line">         <span class="keyword">return</span> ConditionOutcome.noMatch(</div><div class="line">               ConditionMessage.forCondition(ConditionalOnMissingClass.class)</div><div class="line">                     .found(<span class="string">"unwanted class"</span>, <span class="string">"unwanted classes"</span>)</div><div class="line">                     .items(Style.QUOTE, present));</div><div class="line">      &#125;</div><div class="line">      matchMessage = matchMessage.andCondition(ConditionalOnMissingClass.class)</div><div class="line">            .didNotFind(<span class="string">"unwanted class"</span>, <span class="string">"unwanted classes"</span>).items(Style.QUOTE,</div><div class="line">                  getMatches(onMissingClasses, MatchType.MISSING, classLoader));</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> ConditionOutcome.match(matchMessage);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="ConditionalOnBean"><a href="#ConditionalOnBean" class="headerlink" title="ConditionalOnBean"></a>ConditionalOnBean</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Target</span>(&#123; ElementType.TYPE, ElementType.METHOD &#125;)</div><div class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</div><div class="line"><span class="meta">@Documented</span></div><div class="line"><span class="meta">@Conditional</span>(OnBeanCondition.class)</div><div class="line"><span class="keyword">public</span> <span class="meta">@interface</span> ConditionalOnBean &#123;</div><div class="line">   <span class="comment">// 匹配的bean类型</span></div><div class="line">   Class&lt;?&gt;[] value() <span class="keyword">default</span> &#123;&#125;;</div><div class="line"></div><div class="line">   <span class="comment">// 匹配的bean类型的类名</span></div><div class="line">   String[] type() <span class="keyword">default</span> &#123;&#125;;</div><div class="line"></div><div class="line">   <span class="comment">// 匹配的bean注解</span></div><div class="line">   Class&lt;? extends Annotation&gt;[] annotation() <span class="keyword">default</span> &#123;&#125;;</div><div class="line"></div><div class="line">   <span class="comment">// 匹配的bean的名字</span></div><div class="line">   String[] name() <span class="keyword">default</span> &#123;&#125;;</div><div class="line"></div><div class="line">   <span class="comment">// 搜索策略</span></div><div class="line">   <span class="comment">// CURRENT(只在当前容器中找)</span></div><div class="line">   <span class="comment">// PARENTS(只在所有的父容器中找；但是不包括当前容器)</span></div><div class="line">   <span class="comment">// ALL(CURRENT和PARENTS的组合)</span></div><div class="line">   <span class="function">SearchStrategy <span class="title">search</span><span class="params">()</span> <span class="keyword">default</span> SearchStrategy.ALL</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>OnBeanCondition 实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> ConditionOutcome <span class="title">getMatchOutcome</span><span class="params">(ConditionContext context,</span></span></div><div class="line">      AnnotatedTypeMetadata metadata) &#123;</div><div class="line">   ConditionMessage matchMessage = ConditionMessage.empty();</div><div class="line">   <span class="keyword">if</span> (metadata.isAnnotated(ConditionalOnBean.class.getName())) &#123;</div><div class="line">      <span class="comment">// 针对 @ConditionalOnBean 注解</span></div><div class="line">      <span class="comment">// 构造一个BeanSearchSpec，会从@ConditionalOnBean注解中获取属性，然后设置到BeanSearchSpec中</span></div><div class="line">      BeanSearchSpec spec = <span class="keyword">new</span> BeanSearchSpec(context, metadata,</div><div class="line">            ConditionalOnBean.class);</div><div class="line">      <span class="comment">// 从BeanFactory中根据策略找出所有匹配的bean</span></div><div class="line">      List&lt;String&gt; matching = getMatchingBeans(context, spec);</div><div class="line">      <span class="keyword">if</span> (matching.isEmpty()) &#123;</div><div class="line">         <span class="comment">// 如果没有匹配的bean，返回一个没有匹配成功的ConditionalOutcome</span></div><div class="line">         <span class="keyword">return</span> ConditionOutcome.noMatch(</div><div class="line">               ConditionMessage.forCondition(ConditionalOnBean.class, spec)</div><div class="line">                     .didNotFind(<span class="string">"any beans"</span>).atAll());</div><div class="line">      &#125;</div><div class="line">      <span class="comment">// 如果找到匹配的bean，匹配信息进行记录</span></div><div class="line">      matchMessage = matchMessage.andCondition(ConditionalOnBean.class, spec)</div><div class="line">            .found(<span class="string">"bean"</span>, <span class="string">"beans"</span>).items(Style.QUOTE, matching);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (metadata.isAnnotated(ConditionalOnSingleCandidate.class.getName())) &#123;</div><div class="line">      <span class="comment">// 相同的逻辑，针对@ConditionalOnSingleCandidate注解</span></div><div class="line">      BeanSearchSpec spec = <span class="keyword">new</span> SingleCandidateBeanSearchSpec(context, metadata,</div><div class="line">            ConditionalOnSingleCandidate.class);</div><div class="line">      List&lt;String&gt; matching = getMatchingBeans(context, spec);</div><div class="line">      <span class="keyword">if</span> (matching.isEmpty()) &#123;</div><div class="line">         <span class="keyword">return</span> ConditionOutcome.noMatch(ConditionMessage</div><div class="line">               .forCondition(ConditionalOnSingleCandidate.class, spec)</div><div class="line">               .didNotFind(<span class="string">"any beans"</span>).atAll());</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (!hasSingleAutowireCandidate(context.getBeanFactory(), matching,</div><div class="line">            spec.getStrategy() == SearchStrategy.ALL)) &#123;</div><div class="line">         <span class="comment">// 多了一层判断，判断是否只有一个bean</span></div><div class="line">         <span class="keyword">return</span> ConditionOutcome.noMatch(ConditionMessage</div><div class="line">               .forCondition(ConditionalOnSingleCandidate.class, spec)</div><div class="line">               .didNotFind(<span class="string">"a primary bean from beans"</span>)</div><div class="line">               .items(Style.QUOTE, matching));</div><div class="line">      &#125;</div><div class="line">      matchMessage = matchMessage</div><div class="line">            .andCondition(ConditionalOnSingleCandidate.class, spec)</div><div class="line">            .found(<span class="string">"a primary bean from beans"</span>).items(Style.QUOTE, matching);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (metadata.isAnnotated(ConditionalOnMissingBean.class.getName())) &#123;</div><div class="line">      <span class="comment">// 相同的逻辑，针对 @ConditionalOnMissingBean 注解</span></div><div class="line">      BeanSearchSpec spec = <span class="keyword">new</span> BeanSearchSpec(context, metadata,</div><div class="line">            ConditionalOnMissingBean.class);</div><div class="line">      List&lt;String&gt; matching = getMatchingBeans(context, spec);</div><div class="line">      <span class="keyword">if</span> (!matching.isEmpty()) &#123;</div><div class="line">         <span class="keyword">return</span> ConditionOutcome.noMatch(ConditionMessage</div><div class="line">               .forCondition(ConditionalOnMissingBean.class, spec)</div><div class="line">               .found(<span class="string">"bean"</span>, <span class="string">"beans"</span>).items(Style.QUOTE, matching));</div><div class="line">      &#125;</div><div class="line">      matchMessage = matchMessage.andCondition(ConditionalOnMissingBean.class, spec)</div><div class="line">            .didNotFind(<span class="string">"any beans"</span>).atAll();</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> ConditionOutcome.match(matchMessage);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="条件注解激活"><a href="#条件注解激活" class="headerlink" title="条件注解激活"></a>条件注解激活</h2><p><a href="http://zhangh.tk/2017/07/16/%E3%80%90Spring%E3%80%91%E5%AE%B9%E5%99%A8%E5%88%B7%E6%96%B0/" target="_blank" rel="external">【Spring】容器刷新 </a> 中 invokeBeanFactoryPostProcessors 方法会处理 BeanDefinitionRegistryPostProcessor 和 BeanDefinitionRegistryPostProcessor 的实现。其中 ConfigurationClassPostProcessor 是最低优先级执行的 BeanDefinitionRegistryPostProcessor。</p>
+<p>ConfigurationClassPostProcessor 会使用 ConfigurationClassParser 的 ConditionEvaluator 解析所有 @Configuration 注解的bean。</p>
+<p>ConfigurationClassParser 使用 ConditionEvaluator 解析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (<span class="keyword">this</span>.conditionEvaluator.shouldSkip(configClass.getMetadata(),</div><div class="line">                                       ConfigurationPhase.PARSE_CONFIGURATION)) &#123;</div><div class="line">  <span class="keyword">return</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>ConditionEvaluator的 shouldSkip 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">shouldSkip</span><span class="params">(AnnotatedTypeMetadata metadata, ConfigurationPhase phase)</span> </span>&#123;</div><div class="line">   <span class="comment">// 如果这个类没有被@Conditional注解所修饰，不会skip</span></div><div class="line">   <span class="keyword">if</span> (metadata == <span class="keyword">null</span> || !metadata.isAnnotated(Conditional.class.getName())) &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 如果参数中沒有设置条件注解的生效阶段</span></div><div class="line">   <span class="keyword">if</span> (phase == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="comment">// 是配置类的话直接使用PARSE_CONFIGURATION阶段</span></div><div class="line">      <span class="keyword">if</span> (metadata <span class="keyword">instanceof</span> AnnotationMetadata &amp;&amp;</div><div class="line">            ConfigurationClassUtils.isConfigurationCandidate((AnnotationMetadata) metadata)) &#123;</div><div class="line">         <span class="keyword">return</span> shouldSkip(metadata, ConfigurationPhase.PARSE_CONFIGURATION);</div><div class="line">      &#125;</div><div class="line">      <span class="comment">// 否则使用REGISTER_BEAN阶段</span></div><div class="line">      <span class="keyword">return</span> shouldSkip(metadata, ConfigurationPhase.REGISTER_BEAN);</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 获取配置类的条件注解得到条件数据，并添加到集合中</span></div><div class="line">   List&lt;Condition&gt; conditions = <span class="keyword">new</span> ArrayList&lt;Condition&gt;();</div><div class="line">   <span class="keyword">for</span> (String[] conditionClasses : getConditionClasses(metadata)) &#123;</div><div class="line">      <span class="keyword">for</span> (String conditionClass : conditionClasses) &#123;</div><div class="line">         Condition condition = getCondition(conditionClass, <span class="keyword">this</span>.context.getClassLoader());</div><div class="line">         conditions.add(condition);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 对条件集合做个排序</span></div><div class="line">   AnnotationAwareOrderComparator.sort(conditions);</div><div class="line">   <span class="comment">// 遍历条件集合</span></div><div class="line">   <span class="keyword">for</span> (Condition condition : conditions) &#123;</div><div class="line">      ConfigurationPhase requiredPhase = <span class="keyword">null</span>;</div><div class="line">      <span class="keyword">if</span> (condition <span class="keyword">instanceof</span> ConfigurationCondition) &#123;</div><div class="line">         requiredPhase = ((ConfigurationCondition) condition).getConfigurationPhase();</div><div class="line">      &#125;</div><div class="line">      <span class="comment">// 没有这个解析类不需要阶段的判断或者解析类和参数中的阶段一致才会继续进行</span></div><div class="line">      <span class="keyword">if</span> (requiredPhase == <span class="keyword">null</span> || requiredPhase == phase) &#123;</div><div class="line">         <span class="comment">// 不满足条件返回 true</span></div><div class="line">         <span class="keyword">if</span> (!condition.matches(<span class="keyword">this</span>.context, metadata)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">         &#125;</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>条件注入激活还是在容器 refresh 过程中，更具体是在 invokeBeanFactoryPostProcessors 方法中解析配置类时，会跳过不满足条件的类。</p>
+<hr>
+<p>注解条件使用的 demo：<a href="http://fangjian0423.github.io/2017/05/16/springboot-condition-annotation/" target="_blank" rel="external">SpringBoot源码分析之条件注解的底层实现</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/Spring/" rel="tag">#Spring</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/18/【SpringBoot】配置加载/" rel="next" title="【SpringBoot】配置加载">
+                <i class="fa fa-chevron-left"></i> 【SpringBoot】配置加载
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/08/Spring事务行为/" rel="prev" title="Spring事务行为">
+                Spring事务行为 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#条件注解"><span class="nav-number">1.</span> <span class="nav-text">条件注解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ConditionOnClass"><span class="nav-number">1.1.</span> <span class="nav-text">ConditionOnClass</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ConditionalOnBean"><span class="nav-number">1.2.</span> <span class="nav-text">ConditionalOnBean</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#条件注解激活"><span class="nav-number">2.</span> <span class="nav-text">条件注解激活</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/12/08/【SpringBoot】条件注解/';
+      var disqus_title = "【SpringBoot】条件注解";
+      var disqus_url = 'https://zhanghtk.github.io/2017/12/08/【SpringBoot】条件注解/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

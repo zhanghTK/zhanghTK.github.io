@@ -1,0 +1,870 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="引用分类
+强引用：日常使用的引用
+软引用：当内存空间不足时，不论是否引用都进行回收的引用
+弱引用：只要发生GC，就被回收的引用
+虚引用：“引用不到”的引用类型
+
+四个引用强度自上而下逐级递减，一个对象存在多个引用时以最强的引用类型为准；
+除了以上四个引用类型其实还有两个：FinalReference，Finalizer
+使用SoftReference非常适合拿来做缓存，实现类似下面：
+123456">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对象回收与引用类型">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/03/22/对象回收与引用类型/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="引用分类
+强引用：日常使用的引用
+软引用：当内存空间不足时，不论是否引用都进行回收的引用
+弱引用：只要发生GC，就被回收的引用
+虚引用：“引用不到”的引用类型
+
+四个引用强度自上而下逐级递减，一个对象存在多个引用时以最强的引用类型为准；
+除了以上四个引用类型其实还有两个：FinalReference，Finalizer
+使用SoftReference非常适合拿来做缓存，实现类似下面：
+123456">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/03/21/58d0b23d82ce2.png">
+<meta property="og:image" content="https://ooo.0o0.ooo/2017/03/21/58d0d5c346f6f.png">
+<meta property="og:updated_time" content="2017-03-22T14:19:21.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="对象回收与引用类型">
+<meta name="twitter:description" content="引用分类
+强引用：日常使用的引用
+软引用：当内存空间不足时，不论是否引用都进行回收的引用
+弱引用：只要发生GC，就被回收的引用
+虚引用：“引用不到”的引用类型
+
+四个引用强度自上而下逐级递减，一个对象存在多个引用时以最强的引用类型为准；
+除了以上四个引用类型其实还有两个：FinalReference，Finalizer
+使用SoftReference非常适合拿来做缓存，实现类似下面：
+123456">
+<meta name="twitter:image" content="https://ooo.0o0.ooo/2017/03/21/58d0b23d82ce2.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/03/22/对象回收与引用类型/"/>
+
+  <title> 对象回收与引用类型 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                对象回收与引用类型
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-03-22T22:16:45+08:00" content="2017-03-22">
+              2017-03-22
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/03/22/对象回收与引用类型/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/22/对象回收与引用类型/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引用分类"><a href="#引用分类" class="headerlink" title="引用分类"></a>引用分类</h2><ul>
+<li>强引用：日常使用的引用</li>
+<li>软引用：当内存空间不足时，不论是否引用都进行回收的引用</li>
+<li>弱引用：只要发生GC，就被回收的引用</li>
+<li>虚引用：“引用不到”的引用类型</li>
+</ul>
+<p>四个引用强度自上而下逐级递减，一个对象存在多个引用时以最强的引用类型为准；</p>
+<p>除了以上四个引用类型其实还有两个：FinalReference，Finalizer</p>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><h3 id="SoftReference"><a href="#SoftReference" class="headerlink" title="SoftReference"></a>SoftReference</h3><p>非常适合拿来做缓存，实现类似下面：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">ReferenceQueue&lt;Map&lt;String, Object&gt;&gt; queue = <span class="keyword">new</span> ReferenceQueue&lt;&gt;();</div><div class="line">Map&lt;String, Object&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">SoftReference&lt;Map&lt;String, Object&gt;&gt; softReference = <span class="keyword">new</span> SoftReference&lt;&gt;(map, queue);</div><div class="line">Map&lt;String, Object&gt; cache = softReference.get();</div><div class="line"></div><div class="line"><span class="comment">// 使用cache</span></div><div class="line"><span class="keyword">if</span> (cache == <span class="keyword">null</span>) &#123;</div><div class="line">  cache = <span class="keyword">new</span> HashMap();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 清理</span></div><div class="line">Reference reference;</div><div class="line"><span class="keyword">while</span> ((reference = queue.poll()) != <span class="keyword">null</span>) &#123;</div><div class="line">  clearn();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="WeakReference"><a href="#WeakReference" class="headerlink" title="WeakReference"></a>WeakReference</h3><p>通常只要发生GC，就会回收WeakReference引用的对象。</p>
+<p>当引用时常量是无法回收，还是可以通过弱引用获取，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">weakReference</span><span class="params">()</span> </span>&#123;</div><div class="line">  String string = <span class="keyword">new</span> String(<span class="string">"zhangh.tk"</span>);</div><div class="line">  WeakReference&lt;String&gt; reference = <span class="keyword">new</span> WeakReference&lt;&gt;(string);</div><div class="line">  <span class="keyword">assert</span> reference.get() != <span class="keyword">null</span>;</div><div class="line">  string = <span class="keyword">null</span>;</div><div class="line">  runFinalization();</div><div class="line">  <span class="keyword">assert</span> reference.get() == <span class="keyword">null</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">weakReferenceWithFinal</span><span class="params">()</span> </span>&#123;</div><div class="line">  String finalStr = <span class="string">"zhangh.tk"</span>;</div><div class="line">  WeakReference&lt;String&gt; reference = <span class="keyword">new</span> WeakReference&lt;&gt;(finalStr);</div><div class="line">  <span class="keyword">assert</span> reference.get() != <span class="keyword">null</span>;</div><div class="line">  finalStr = <span class="keyword">null</span>;</div><div class="line">  runFinalization();</div><div class="line">  <span class="keyword">assert</span> reference.get() != <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>典型的使用场景：</p>
+<p>Thread实例中维护的ThreadLocalMap中key使用的是<code>WeakReference&lt;ThreadLocal&lt;?&gt;&gt;</code>。</p>
+<p>当不存在对ThreadLocal的强引用时，只有ThreadLocalMap对它存在弱引用，GC就可以回收ThreadLocal对象。否则只要Thread对象存在，那么始终保持对ThreadLocal的引用，就不能回收ThreadLocal，造成内存泄露。</p>
+<p><img src="https://ooo.0o0.ooo/2017/03/21/58d0b23d82ce2.png" alt="ThreadLocal.png"></p>
+<p>与上面ThreadLocalMap用法类似，JDK提供了WeakHashMap。</p>
+<p>无论WeakHashMap还是ThreadLocalMap都存在当key被回收，value仍然存在的问题。</p>
+<p>两者解决此问题的思路也很类似，都是在类似size，add等方法时清理key为null的value避免内存泄露。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">weakHashMapOOM</span><span class="params">()</span> </span>&#123;</div><div class="line">  List&lt;WeakHashMap&lt;<span class="keyword">byte</span>[][], <span class="keyword">byte</span>[][]&gt;&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; Integer.MAX_VALUE; i++) &#123;</div><div class="line">    WeakHashMap&lt;<span class="keyword">byte</span>[][], <span class="keyword">byte</span>[][]&gt; map = <span class="keyword">new</span> WeakHashMap&lt;&gt;();</div><div class="line">    map.put(<span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">10000</span>][<span class="number">1000</span>], <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">10000</span>][<span class="number">1000</span>]);</div><div class="line">    list.add(map);</div><div class="line">    runFinalization();</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">weakHashMapNotOOM</span><span class="params">()</span> </span>&#123;</div><div class="line">  List&lt;WeakHashMap&lt;<span class="keyword">byte</span>[][], <span class="keyword">byte</span>[][]&gt;&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; Integer.MAX_VALUE; i++) &#123;</div><div class="line">    WeakHashMap&lt;<span class="keyword">byte</span>[][], <span class="keyword">byte</span>[][]&gt; map = <span class="keyword">new</span> WeakHashMap&lt;&gt;();</div><div class="line">    map.put(<span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">10000</span>][<span class="number">1000</span>], <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">10000</span>][<span class="number">1000</span>]);</div><div class="line">    list.add(map);</div><div class="line">    runFinalization();</div><div class="line">    map.size();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="PhantomReference"><a href="#PhantomReference" class="headerlink" title="PhantomReference"></a>PhantomReference</h3><p>说它是引用不到的引用类型是因为使用PhantomReference无法获取到指向的对象，如果引用有强度那他的引用强度实在是太弱了。</p>
+<p>使用PhantomReference必须配合ReferenceQueue，关于ReferenceQueue后面再说。</p>
+<h3 id="FinalReference-amp-Finalizer"><a href="#FinalReference-amp-Finalizer" class="headerlink" title="FinalReference&amp;Finalizer"></a>FinalReference&amp;Finalizer</h3><p>这两个类是父子关系，并且都是不公开的。若一个对象没有实现finalize方法，可以直接被回收，若实现了finalize方法由Finalizer处理。</p>
+<p>对象回收执行大致过程：</p>
+<ol>
+<li>当对象不可达时，若未覆盖finalize方法直接回收，否则加入F-Queue队列</li>
+<li>FinalizerThread线程从F-Queue里面,不停的获取数据,然后调用相应的finalize方法</li>
+<li>finalize方法完毕后，GC会再次判断该对象是否可达，若不可达，则进行回收，否则，对象“复活”</li>
+</ol>
+<p>关于对象复活：finalize方法只能被JVM调用一次，也就是最多两条命，不存在不停复活的情况。</p>
+<p>对象从创建到被回收状态转换：</p>
+<p><img src="https://ooo.0o0.ooo/2017/03/21/58d0d5c346f6f.png" alt="Finalizer.png"></p>
+<p>对象复活示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Reclaimable</span> </span>&#123;</div><div class="line">  <span class="keyword">static</span> Reclaimable staticVar;</div><div class="line">  </div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">finalize</span><span class="params">()</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">    staticVar = <span class="keyword">this</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">reclaimed</span><span class="params">()</span> </span>&#123;</div><div class="line">  Reclaimable reclaimable = <span class="keyword">new</span> Reclaimable();</div><div class="line">  reclaimable = <span class="keyword">null</span>;</div><div class="line">  runFinalization();</div><div class="line">  <span class="keyword">assert</span> Reclaimable.staticVar != <span class="keyword">null</span>;</div><div class="line">  Reclaimable.staticVar = <span class="keyword">null</span>;</div><div class="line">  runFinalization();</div><div class="line">  <span class="keyword">assert</span> Reclaimable.staticVar == <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="引用队列"><a href="#引用队列" class="headerlink" title="引用队列"></a>引用队列</h3><p>引用队列是垃圾收集器向应用程序返回关于对象生命周期的信息的一种方式。当一个引用对象被回收后可以选择加入引用队列，做最后的清理工作。</p>
+<p>例如上文提到的WeakHashMap就是用引用队列收集失效引用，根据引用队列数据清除Entry和值对象。</p>
+<p>再例如，因为不能从PhantomReference获得引用的对象，但是可以从引用队列中获得对象被回收的通知。</p>
+<p>可以使用引用队列和PhantomReference观察对象的复活：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">phantomQueueWithUnReclaimed</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="class"><span class="keyword">class</span> <span class="title">A</span></span>&#123;&#125;</div><div class="line">  ReferenceQueue&lt;A&gt; queue = <span class="keyword">new</span> ReferenceQueue&lt;&gt;();</div><div class="line">  PhantomReference&lt;A&gt; reference = <span class="keyword">new</span> PhantomReference&lt;&gt;(<span class="keyword">new</span> A(), queue);</div><div class="line">  <span class="keyword">assert</span> reference.get() == <span class="keyword">null</span>;</div><div class="line">  <span class="keyword">assert</span> queue.poll() == <span class="keyword">null</span>;</div><div class="line">  runFinalization();</div><div class="line">  <span class="keyword">assert</span> reference.get() == <span class="keyword">null</span>;</div><div class="line">  <span class="keyword">assert</span> queue.poll() != <span class="keyword">null</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">phantomQueueWithReclaimed</span><span class="params">()</span> </span>&#123;</div><div class="line">  ReferenceQueue&lt;Reclaimable&gt; queue = <span class="keyword">new</span> ReferenceQueue&lt;&gt;();</div><div class="line">  PhantomReference&lt;Reclaimable&gt; reference = <span class="keyword">new</span> PhantomReference&lt;&gt;(<span class="keyword">new</span> Reclaimable(), queue);</div><div class="line">  <span class="keyword">assert</span> reference.get() == <span class="keyword">null</span>;</div><div class="line">  <span class="keyword">assert</span> queue.poll() == <span class="keyword">null</span>;</div><div class="line">  runFinalization();</div><div class="line">  <span class="keyword">assert</span> reference.get() == <span class="keyword">null</span>;</div><div class="line">  <span class="keyword">assert</span> queue.poll() == <span class="keyword">null</span>;</div><div class="line">  Reclaimable.staticVar = <span class="keyword">null</span>;</div><div class="line">  runFinalization();</div><div class="line">  <span class="keyword">assert</span> queue.poll() != <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/20/Spring之AOP【一】/" rel="next" title="Spring之AOP【一】">
+                <i class="fa fa-chevron-left"></i> Spring之AOP【一】
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/25/Spring之AOP【二】/" rel="prev" title="Spring之AOP【二】">
+                Spring之AOP【二】 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引用分类"><span class="nav-number">1.</span> <span class="nav-text">引用分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-number">2.</span> <span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SoftReference"><span class="nav-number">2.1.</span> <span class="nav-text">SoftReference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WeakReference"><span class="nav-number">2.2.</span> <span class="nav-text">WeakReference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PhantomReference"><span class="nav-number">2.3.</span> <span class="nav-text">PhantomReference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FinalReference-amp-Finalizer"><span class="nav-number">2.4.</span> <span class="nav-text">FinalReference&Finalizer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引用队列"><span class="nav-number">2.5.</span> <span class="nav-text">引用队列</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/03/22/对象回收与引用类型/';
+      var disqus_title = "对象回收与引用类型";
+      var disqus_url = 'https://zhanghtk.github.io/2017/03/22/对象回收与引用类型/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

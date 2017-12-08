@@ -1,0 +1,869 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Netty," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="网络 IO 模型UNIX 网络编程对 IO 模型分类， UNIX 提供 5 种 IO 模型
+在这 5 个 IO 模型之前，先看看这五个 IO 模型最后的关注点：
+用户 &amp;amp; 内核空间内核：操作系统的核心，独立于普通的应用程序，可以访问受保护的内存空间，有访问底层硬件设备的所有权限
+为了保证用户进程不能直接操作内核（kernel），保证内核的安全，操作系统将虚拟空间划分为两部分，一部分为内核空">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Netty】IO模型">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/07/17/【Netty】IO模型/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="网络 IO 模型UNIX 网络编程对 IO 模型分类， UNIX 提供 5 种 IO 模型
+在这 5 个 IO 模型之前，先看看这五个 IO 模型最后的关注点：
+用户 &amp;amp; 内核空间内核：操作系统的核心，独立于普通的应用程序，可以访问受保护的内存空间，有访问底层硬件设备的所有权限
+为了保证用户进程不能直接操作内核（kernel），保证内核的安全，操作系统将虚拟空间划分为两部分，一部分为内核空">
+<meta property="og:image" content="https://i.loli.net/2017/07/16/596b64fa04869.png">
+<meta property="og:updated_time" content="2017-07-16T16:24:47.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Netty】IO模型">
+<meta name="twitter:description" content="网络 IO 模型UNIX 网络编程对 IO 模型分类， UNIX 提供 5 种 IO 模型
+在这 5 个 IO 模型之前，先看看这五个 IO 模型最后的关注点：
+用户 &amp;amp; 内核空间内核：操作系统的核心，独立于普通的应用程序，可以访问受保护的内存空间，有访问底层硬件设备的所有权限
+为了保证用户进程不能直接操作内核（kernel），保证内核的安全，操作系统将虚拟空间划分为两部分，一部分为内核空">
+<meta name="twitter:image" content="https://i.loli.net/2017/07/16/596b64fa04869.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/07/17/【Netty】IO模型/"/>
+
+  <title> 【Netty】IO模型 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【Netty】IO模型
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-07-17T00:14:18+08:00" content="2017-07-17">
+              2017-07-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Netty/" itemprop="url" rel="index">
+                    <span itemprop="name">Netty</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/07/17/【Netty】IO模型/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/17/【Netty】IO模型/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="网络-IO-模型"><a href="#网络-IO-模型" class="headerlink" title="网络 IO 模型"></a>网络 IO 模型</h2><p>UNIX 网络编程对 IO 模型分类， UNIX 提供 5 种 IO 模型</p>
+<p>在这 5 个 IO 模型之前，先看看这五个 IO 模型最后的关注点：</p>
+<h3 id="用户-amp-内核空间"><a href="#用户-amp-内核空间" class="headerlink" title="用户 &amp; 内核空间"></a>用户 &amp; 内核空间</h3><p>内核：操作系统的核心，独立于普通的应用程序，可以访问受保护的内存空间，有访问底层硬件设备的所有权限</p>
+<p>为了保证用户进程不能直接操作内核（kernel），保证内核的安全，操作系统将虚拟空间划分为两部分，一部分为内核空间，一部分为用户空间。</p>
+<h3 id="缓存-IO"><a href="#缓存-IO" class="headerlink" title="缓存 IO"></a>缓存 IO</h3><p>数据会先拷贝到操作系统内核的缓冲区，然后才从操作系统内核的缓冲区拷贝到应用程序的地址空间</p>
+<p>缺点：数据需要在应用程序空间和内核空间进行数据拷贝，影响效率</p>
+<p>有了上面几个基本概念下面看看网络 IO</p>
+<h2 id="网络-IO"><a href="#网络-IO" class="headerlink" title="网络 IO"></a>网络 IO</h2><p>IO 操作的本质是对数据的读写。因为 IO 缓存的缘故，一个 IO 操作需要分为两步，以读操作为例：</p>
+<ol>
+<li>等待数据准备</li>
+<li>将数据从内核空间拷贝到用户空间</li>
+</ol>
+<p>对网络 IO 而言，上面的两步可以更具象的表述为：</p>
+<ol>
+<li>等待网络数据分组到达，然后将其复制到内核缓冲区</li>
+<li>把数据从内核缓冲区复制到应用空间缓冲区</li>
+</ol>
+<p>由于网络传输的不确定性，第一步操作可能成为最耗时的过程（可能比后面的业务逻辑计算都更为耗时）。</p>
+<p>下面看 5 个 IO 模型是如何解决问题的，相关的图就不放了网上一大把：</p>
+<h3 id="阻塞-IO-模型"><a href="#阻塞-IO-模型" class="headerlink" title="阻塞 IO 模型"></a>阻塞 IO 模型</h3><p>这个模型下，其实就是不解决任何问题，第一步，第二部都是阻塞的。</p>
+<p>以 socket 操作为例，进程空间调用 recvfrom，其系统调用会直到数据包到达并且复制到应用进程缓冲区才返回。</p>
+<h3 id="非阻塞-IO-模型"><a href="#非阻塞-IO-模型" class="headerlink" title="非阻塞 IO 模型"></a>非阻塞 IO 模型</h3><p>使用轮询操作，避免第一步操作完全被阻塞。</p>
+<p>进程调用 recvfrom，如果缓冲区没有数据立即返回一个 EWOULDBLOCK，通过轮询操作检查内核缓冲区是否有数据到来。</p>
+<h3 id="IO-复用模型"><a href="#IO-复用模型" class="headerlink" title="IO 复用模型"></a>IO 复用模型</h3><p>Linux 提供系统调用，进程将文件描述符传递给系统调用，若第一步未就绪则阻塞在系统调用上。</p>
+<p>Linux对 IO 复用模型提供的系统调用：</p>
+<ul>
+<li>select：顺序描述所有文件描述符，文件描述符最多持有 1024 个</li>
+<li>poll：类似于select，只是去除了文件描述符数组长度的限制</li>
+<li>epoll：利用mmap技术避免了这些复制和遍历操作</li>
+</ul>
+<p><strong>Java NIO多路复用器 Selector 就是基于 epoll 的多路复用技术实现的</strong></p>
+<h3 id="信号驱动-IO-模型"><a href="#信号驱动-IO-模型" class="headerlink" title="信号驱动 IO 模型"></a>信号驱动 IO 模型</h3><p>应用进程建立 SIGIO 信号处理程序，调用 sigaction 后返回。IO 第一步完成后通知程序。</p>
+<h3 id="异步-IO"><a href="#异步-IO" class="headerlink" title="异步 IO"></a>异步 IO</h3><p>告知内核启动某个操作，并让内核在整个操作完成后通知我们。</p>
+<h3 id="IO-模型对比"><a href="#IO-模型对比" class="headerlink" title="IO 模型对比"></a>IO 模型对比</h3><p><img src="https://i.loli.net/2017/07/16/596b64fa04869.png" alt="1486392482597_6.png"></p>
+<h2 id="Java-对于-IO-模型的实现"><a href="#Java-对于-IO-模型的实现" class="headerlink" title="Java 对于 IO 模型的实现"></a>Java 对于 IO 模型的实现</h2><h3 id="JDK-支持"><a href="#JDK-支持" class="headerlink" title="JDK 支持"></a>JDK 支持</h3><ul>
+<li>JDK 1.0 ~ JDK 1.3：传统的 BIO，基于阻塞 IO 模型</li>
+<li>JDK 1.4 ~ JDK 1.5：加入 NIO，基于 IO 复用模型<ul>
+<li>JDK 1.4 ~ JDK 1.5 update10：Selector 基于 select/poll 模型实现</li>
+<li>JDK 1.5 update &amp; Linux core 2.6 以上：Selector 使用 epoll 模型实现</li>
+</ul>
+</li>
+<li>JDK 1.7 ~ JDK 1.8（目前）：加入 NIO 2.0（AIO），增加异步套接字通道</li>
+</ul>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><ul>
+<li><a href="https://github.com/zhanghTK/netty/tree/master/src/main/java/tk/zhangh/netty/ch1/bio" target="_blank" rel="external">阻塞 IO</a></li>
+<li><a href="https://github.com/zhanghTK/netty/tree/master/src/main/java/tk/zhangh/netty/ch1/paio" target="_blank" rel="external">伪异步 IO</a></li>
+<li><a href="https://github.com/zhanghTK/netty/tree/master/src/main/java/tk/zhangh/netty/ch1/nio" target="_blank" rel="external">非阻塞 IO</a></li>
+<li><a href="https://github.com/zhanghTK/netty/tree/master/src/main/java/tk/zhangh/netty/ch1/aio" target="_blank" rel="external">异步 IO</a></li>
+</ul>
+<hr>
+<p>参考：</p>
+<ol>
+<li>《Netty 权威指南》（第2版）：第1章，第2章</li>
+<li><a href="http://blog.leanote.com/post/joesay/Concurrency-Model-Part-1-IO-Concurrency" target="_blank" rel="external">聊聊并发，Part 1：IO模型</a></li>
+<li><a href="http://www.jianshu.com/p/486b0965c296" target="_blank" rel="external">聊聊Linux 五种IO模型</a></li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/Netty/" rel="tag">#Netty</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/16/【Spring】容器刷新/" rel="next" title="【Spring】容器刷新">
+                <i class="fa fa-chevron-left"></i> 【Spring】容器刷新
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/19/【重拾网络】基本概念/" rel="prev" title="【重拾网络】基本概念">
+                【重拾网络】基本概念 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#网络-IO-模型"><span class="nav-number">1.</span> <span class="nav-text">网络 IO 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户-amp-内核空间"><span class="nav-number">1.1.</span> <span class="nav-text">用户 & 内核空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存-IO"><span class="nav-number">1.2.</span> <span class="nav-text">缓存 IO</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络-IO"><span class="nav-number">2.</span> <span class="nav-text">网络 IO</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#阻塞-IO-模型"><span class="nav-number">2.1.</span> <span class="nav-text">阻塞 IO 模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#非阻塞-IO-模型"><span class="nav-number">2.2.</span> <span class="nav-text">非阻塞 IO 模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IO-复用模型"><span class="nav-number">2.3.</span> <span class="nav-text">IO 复用模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#信号驱动-IO-模型"><span class="nav-number">2.4.</span> <span class="nav-text">信号驱动 IO 模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异步-IO"><span class="nav-number">2.5.</span> <span class="nav-text">异步 IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IO-模型对比"><span class="nav-number">2.6.</span> <span class="nav-text">IO 模型对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-对于-IO-模型的实现"><span class="nav-number">3.</span> <span class="nav-text">Java 对于 IO 模型的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JDK-支持"><span class="nav-number">3.1.</span> <span class="nav-text">JDK 支持</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用"><span class="nav-number">3.2.</span> <span class="nav-text">使用</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/07/17/【Netty】IO模型/';
+      var disqus_title = "【Netty】IO模型";
+      var disqus_url = 'https://zhanghtk.github.io/2017/07/17/【Netty】IO模型/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,879 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="MQ," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="接触 MQ 之前简单的理解消息队列就是一个理论上无限大的线性表，接触后发现 MQ 支持的功能远不止这些。MQ 的功能可以概括为：削峰填谷，异步解耦。
+从模型上看，MQ 模型不是狭义上的 C/S 模型，而是消息服务投递模型：
+
+在程序角度：当程序连接到 RabbitMQ 时必须决定自己是发送者还是接受者
+在 MQ 角度：MQ 及接收消息，又发送消息
+
+AMQP（高级消息队列协议）是对 MQ 最抽象的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【MQ】初始MQ">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/12/08/【MQ】初始MQ/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="接触 MQ 之前简单的理解消息队列就是一个理论上无限大的线性表，接触后发现 MQ 支持的功能远不止这些。MQ 的功能可以概括为：削峰填谷，异步解耦。
+从模型上看，MQ 模型不是狭义上的 C/S 模型，而是消息服务投递模型：
+
+在程序角度：当程序连接到 RabbitMQ 时必须决定自己是发送者还是接受者
+在 MQ 角度：MQ 及接收消息，又发送消息
+
+AMQP（高级消息队列协议）是对 MQ 最抽象的">
+<meta property="og:image" content="http://www.rabbitmq.com/img/tutorials/python-one.png">
+<meta property="og:image" content="http://www.rabbitmq.com/img/tutorials/python-two.png">
+<meta property="og:image" content="http://www.rabbitmq.com/img/tutorials/direct-exchange.png">
+<meta property="og:image" content="http://www.rabbitmq.com/img/tutorials/exchanges.png">
+<meta property="og:image" content="http://www.rabbitmq.com/img/tutorials/python-five.png">
+<meta property="og:updated_time" content="2017-12-08T13:55:05.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【MQ】初始MQ">
+<meta name="twitter:description" content="接触 MQ 之前简单的理解消息队列就是一个理论上无限大的线性表，接触后发现 MQ 支持的功能远不止这些。MQ 的功能可以概括为：削峰填谷，异步解耦。
+从模型上看，MQ 模型不是狭义上的 C/S 模型，而是消息服务投递模型：
+
+在程序角度：当程序连接到 RabbitMQ 时必须决定自己是发送者还是接受者
+在 MQ 角度：MQ 及接收消息，又发送消息
+
+AMQP（高级消息队列协议）是对 MQ 最抽象的">
+<meta name="twitter:image" content="http://www.rabbitmq.com/img/tutorials/python-one.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/12/08/【MQ】初始MQ/"/>
+
+  <title> 【MQ】初始MQ | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【MQ】初始MQ
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-12-08T21:48:26+08:00" content="2017-12-08">
+              2017-12-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/MQ/" itemprop="url" rel="index">
+                    <span itemprop="name">MQ</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/12/08/【MQ】初始MQ/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/12/08/【MQ】初始MQ/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>接触 MQ 之前简单的理解消息队列就是一个理论上无限大的线性表，接触后发现 MQ 支持的功能远不止这些。MQ 的功能可以概括为：削峰填谷，异步解耦。</p>
+<p>从模型上看，MQ 模型不是狭义上的 C/S 模型，而是消息服务投递模型：</p>
+<ul>
+<li>在程序角度：当程序连接到 RabbitMQ 时必须决定自己是发送者还是接受者</li>
+<li>在 MQ 角度：MQ 及接收消息，又发送消息</li>
+</ul>
+<p>AMQP（高级消息队列协议）是对 MQ 最抽象的描述。</p>
+<h2 id="AMQP"><a href="#AMQP" class="headerlink" title="AMQP"></a>AMQP</h2><p>AMQP 定义了一个 MQ 的几个组件，官方的描述还是比较晦涩的，我以自己的理解描述所以可能不够准确：</p>
+<ul>
+<li>Server（broker）：MQ 服务器</li>
+<li>Exchange：一个功能强大 router，不做消息的存储，单纯转发给 MQ</li>
+<li>Message Queue：消息队列，具体存储未被消费的消息</li>
+<li>Message：消息</li>
+<li>Binding：关联 Exchange  和 Message Queeu 的路由表</li>
+<li>Connection：链接，TCP 链接</li>
+<li>Channel：子链接，复用 Connection</li>
+<li>Command：命令</li>
+<li>Virtual Host：服务器创建的 mini 版的 MQ</li>
+</ul>
+<h3 id="Exchange-amp-Binding"><a href="#Exchange-amp-Binding" class="headerlink" title="Exchange &amp; Binding"></a>Exchange &amp; Binding</h3><p>这两个东东算是 MQ 核心功能的实现组件，网上描述的我觉得不是很清楚。</p>
+<p>可以把 exchange 当路由器理解，把 binding 当路由表理解。路由器根据路由表把数据从路由器路由到一下节点，exchange 根据 binding 把消息从 exchange 路由到 queue。exchange 的核心功能是路由转发，而路由转发的依据是 binding。把 binding 当路由表的话，那么这个路由表有三项：</p>
+<ul>
+<li>exchange name</li>
+<li>queue name</li>
+<li>router key</li>
+</ul>
+<p>三者的关系需要在实际生产、消费消息之前完成绑定。而后消息到达 exchange 后根据 routing key 路由到指定 queue。而 exchange  有多种不同实现，不同实现的 exchange 根据 routing key 的路由方式不同，适用于不同场景。</p>
+<h2 id="典型场景"><a href="#典型场景" class="headerlink" title="典型场景"></a>典型场景</h2><p>以下例子从 Rabbit MQ 官网给搬运，<a href="http://www.rabbitmq.com/tutorials/tutorial-one-java.html" target="_blank" rel="external">传送门</a>。</p>
+<h3 id="direct"><a href="#direct" class="headerlink" title="direct"></a>direct</h3><p>direct 类型的交换器严格根据消息头的 exchange name, queue name, router key 将消息路由到对应的队列</p>
+<h4 id="消息投递到一个队列"><a href="#消息投递到一个队列" class="headerlink" title="消息投递到一个队列"></a>消息投递到一个队列</h4><p><img src="http://www.rabbitmq.com/img/tutorials/python-one.png" alt="direct1"></p>
+<p>所有消息由默认交换器根据消息头 queue name 投递到队列。没有声明交换器，自动将队列绑定到了默认交换器。下面代码的第二个参数很容易被当做 queue name，实际上这个字段是 routing key，发送方是不关心 queue 的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">channel.queueDeclare(QUEUE_NAME, <span class="keyword">false</span>, <span class="keyword">false</span>, <span class="keyword">false</span>, <span class="keyword">null</span>);  <span class="comment">// 声明队列</span></div><div class="line">channel.basicPublish(<span class="string">""</span>,  <span class="comment">// exchange name，空则投递到默认交换器</span></div><div class="line">                     QUEUE_NAME,  <span class="comment">// 以 queue_name 作为 routing key</span></div><div class="line">                     <span class="keyword">null</span>, </div><div class="line">                     message.getBytes());</div></pre></td></tr></table></figure>
+<h4 id="消息投递到一个队列由多个消费者消费"><a href="#消息投递到一个队列由多个消费者消费" class="headerlink" title="消息投递到一个队列由多个消费者消费"></a>消息投递到一个队列由多个消费者消费</h4><p><img src="http://www.rabbitmq.com/img/tutorials/python-two.png" alt="direct2"></p>
+<p>可以用于负载均衡的生产者消费者模型，每个消息正常只被消费一次。</p>
+<p>投递过程与上一个一样，队列的消息同时由多个消费者消费</p>
+<h4 id="消息有选择的分散到多个队列"><a href="#消息有选择的分散到多个队列" class="headerlink" title="消息有选择的分散到多个队列"></a>消息有选择的分散到多个队列</h4><p><img src="http://www.rabbitmq.com/img/tutorials/direct-exchange.png" alt="direct3"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">channel.exchangeDeclare(EXCHANGE_NAME, <span class="string">"direct"</span>);  <span class="comment">// 声明 direct 类型交换器</span></div><div class="line">String queueName = channel.queueDeclare().getQueue();  <span class="comment">// 声明随机队列，并获取该队列名字</span></div><div class="line">channel.queueBind(queueName, EXCHANGE_NAME, ROUTING_KEY);  <span class="comment">// 绑定</span></div><div class="line"></div><div class="line"><span class="comment">// 发送</span></div><div class="line">channel.basicPublish(EXCHANGE_NAME, </div><div class="line">                     ROUTING_KEY, </div><div class="line">                     <span class="keyword">null</span>, </div><div class="line">                     message.getBytes());</div></pre></td></tr></table></figure>
+<p>完整的交换器，队列声明并绑定，消息根据绑定信息投递到对应队列。</p>
+<p>一个交换器与多个队列使用相同的 routing key 进行绑定，当该 routing key 消息发送至交换器可以形成广播的形式。</p>
+<h3 id="fanout"><a href="#fanout" class="headerlink" title="fanout"></a>fanout</h3><p><img src="http://www.rabbitmq.com/img/tutorials/exchanges.png" alt="fanout"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">channel.exchangeDeclare(EXCHANGE_NAME, <span class="string">"fanout"</span>);  <span class="comment">// 声明 fanout 类型交换器</span></div><div class="line">String queueName = channel.queueDeclare().getQueue();  <span class="comment">// 创建非持久的，唯一的，自动删除的队列</span></div><div class="line">channel.queueBind(queueName, EXCHANGE_NAME, <span class="string">""</span>);  <span class="comment">// 绑定队列与交换器，不要 routing key</span></div><div class="line"></div><div class="line"><span class="comment">// 发送</span></div><div class="line">channel.basicPublish(EXCHANGE_NAME, </div><div class="line">                     <span class="string">""</span>,  <span class="comment">// routing key</span></div><div class="line">                     <span class="keyword">null</span>, </div><div class="line">                     message.getBytes());</div></pre></td></tr></table></figure>
+<p>交换器收到的消息广播至所有绑定的队列，绑定不需要给定 routing key</p>
+<h3 id="topic"><a href="#topic" class="headerlink" title="topic"></a>topic</h3><p><img src="http://www.rabbitmq.com/img/tutorials/python-five.png" alt="topic"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">channel.exchangeDeclare(EXCHANGE_NAME, <span class="string">"topic"</span>);  <span class="comment">// 声明 topic 类型交换器</span></div><div class="line">String queueName = channel.queueDeclare().getQueue();  <span class="comment">// 创建非持久的、唯一的、自动删除的队列</span></div><div class="line">channel.queueBind(queueName, EXCHANGE_NAME, ROUTING_KEY);  <span class="comment">// 绑定队列，交换器，路由键</span></div><div class="line"></div><div class="line"><span class="comment">// 发送</span></div><div class="line">channel.basicPublish(EXCHANGE_NAME, </div><div class="line">                     ROUTING_KEY, </div><div class="line">                     <span class="keyword">null</span>, </div><div class="line">                     msg.getBytes());</div></pre></td></tr></table></figure>
+<p>编码过程与使用 direct 交换器的完整过程一直，但是 routing key 可以使用通配符：</p>
+<ul>
+<li><code>*</code> 将 . 视为分隔符进行匹配</li>
+<li><code>#</code>将任意字符串视为关键字匹配</li>
+</ul>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><ul>
+<li>消息发后即忘：消息单向传递，默认并不会向发送方确认发送，也不会做持久化</li>
+<li>prefetch count：在 direct 的第二场景下，消息会被平均分配给各个消费者，而不考虑消费者的消费能力。可以使用设置 Prefetch count 保持各消费者负载均衡</li>
+<li>binding key：有的文章将 bindling 中使用的 routing key 也称作 binding key，我统一称为 binding key 了</li>
+<li>相关 demo <a href="https://github.com/zhanghTK/rabbit-mq" target="_blank" rel="external">传送门</a></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MQ/" rel="tag">#MQ</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/08/单例背后的技术细节/" rel="next" title="单例背后的技术细节">
+                <i class="fa fa-chevron-left"></i> 单例背后的技术细节
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/08/【MQ】可靠消息/" rel="prev" title="【MQ】可靠消息">
+                【MQ】可靠消息 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#AMQP"><span class="nav-number">1.</span> <span class="nav-text">AMQP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Exchange-amp-Binding"><span class="nav-number">1.1.</span> <span class="nav-text">Exchange & Binding</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#典型场景"><span class="nav-number">2.</span> <span class="nav-text">典型场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#direct"><span class="nav-number">2.1.</span> <span class="nav-text">direct</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#消息投递到一个队列"><span class="nav-number">2.1.1.</span> <span class="nav-text">消息投递到一个队列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息投递到一个队列由多个消费者消费"><span class="nav-number">2.1.2.</span> <span class="nav-text">消息投递到一个队列由多个消费者消费</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息有选择的分散到多个队列"><span class="nav-number">2.1.3.</span> <span class="nav-text">消息有选择的分散到多个队列</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fanout"><span class="nav-number">2.2.</span> <span class="nav-text">fanout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#topic"><span class="nav-number">2.3.</span> <span class="nav-text">topic</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他"><span class="nav-number">3.</span> <span class="nav-text">其他</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/12/08/【MQ】初始MQ/';
+      var disqus_title = "【MQ】初始MQ";
+      var disqus_url = 'https://zhanghtk.github.io/2017/12/08/【MQ】初始MQ/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

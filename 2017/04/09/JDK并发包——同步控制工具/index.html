@@ -1,0 +1,892 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,并发," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="为了弥补Java原生并发的各种不足，在并发包中提供了格式各样的工具，这篇先看看关于同步控制并法包的支持。
+可重入锁——ReentrantLockJava原生提供的synchronized主要有以下几个缺点：
+
+JDK5之前的synchronized的性能较差
+synchronized本身无法响应中断、无法限时等待、无法确保同步线程之间的公平性
+
+可重入锁既是为了解决以上问题提出的。
+但是关于这个可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JDK并发包——同步控制工具">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/04/09/JDK并发包——同步控制工具/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="为了弥补Java原生并发的各种不足，在并发包中提供了格式各样的工具，这篇先看看关于同步控制并法包的支持。
+可重入锁——ReentrantLockJava原生提供的synchronized主要有以下几个缺点：
+
+JDK5之前的synchronized的性能较差
+synchronized本身无法响应中断、无法限时等待、无法确保同步线程之间的公平性
+
+可重入锁既是为了解决以上问题提出的。
+但是关于这个可">
+<meta property="og:updated_time" content="2017-04-09T13:50:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JDK并发包——同步控制工具">
+<meta name="twitter:description" content="为了弥补Java原生并发的各种不足，在并发包中提供了格式各样的工具，这篇先看看关于同步控制并法包的支持。
+可重入锁——ReentrantLockJava原生提供的synchronized主要有以下几个缺点：
+
+JDK5之前的synchronized的性能较差
+synchronized本身无法响应中断、无法限时等待、无法确保同步线程之间的公平性
+
+可重入锁既是为了解决以上问题提出的。
+但是关于这个可">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/04/09/JDK并发包——同步控制工具/"/>
+
+  <title> JDK并发包——同步控制工具 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                JDK并发包——同步控制工具
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-04-09T21:46:11+08:00" content="2017-04-09">
+              2017-04-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/04/09/JDK并发包——同步控制工具/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/04/09/JDK并发包——同步控制工具/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>为了弥补Java原生并发的各种不足，在并发包中提供了格式各样的工具，这篇先看看关于同步控制并法包的支持。</p>
+<h2 id="可重入锁——ReentrantLock"><a href="#可重入锁——ReentrantLock" class="headerlink" title="可重入锁——ReentrantLock"></a>可重入锁——ReentrantLock</h2><p>Java原生提供的synchronized主要有以下几个缺点：</p>
+<ul>
+<li>JDK5之前的synchronized的性能较差</li>
+<li>synchronized本身无法响应中断、无法限时等待、无法确保同步线程之间的公平性</li>
+</ul>
+<p>可重入锁既是为了解决以上问题提出的。</p>
+<p>但是关于这个可重入的名字我觉得还是比较让人疑惑，synchronized本身也是支持一个线程的重入的。</p>
+<p>对于原生synchronized的缺陷，ReentrantLock提供了如下几个重要的方法以改善：</p>
+<ul>
+<li>lockInterruptibly()：获得锁，但优先响应中断</li>
+<li>tryLock()：尝试获得锁，成功返回true，失败立即返false，不等待</li>
+<li>tryLock(long time, TimeUnit unit)：在给定时间内尝试获得锁</li>
+<li>unlock()：释放锁</li>
+<li>ReentrantLock(boolean fair)：确保同步线程之间的访问公平</li>
+</ul>
+<p>除此还提供了最基本的lock()方法：获得，如果锁被占用则等待。</p>
+<p>ReentrantLock使用过程中需要注意的是无论何种方式获取锁，每次获取锁之后都要手动调用unlock方法释放锁。</p>
+<h2 id="wait-notify的替身——Condition"><a href="#wait-notify的替身——Condition" class="headerlink" title="wait/notify的替身——Condition"></a>wait/notify的替身——Condition</h2><p>Condition与ReentrantLock的关系如同synchronized与wait/notify方法的关系。</p>
+<p>为了配合ReentrantLock，Condition本身提供了与wait方法类似的await，与notif方法类似的singal，除此还补充了不响应中断的awaitUninterruptibly方法。</p>
+<p>关于Condition的使用：</p>
+<ul>
+<li>通过ReentrantLock实例的工厂方法获取Condition。</li>
+</ul>
+<ul>
+<li>调用await时必须持有线程的相关ReentrantLock，await调用后线程会释放锁，当再次被唤醒时重新持有锁</li>
+<li>调用signal时也必须持有线程的相关ReentrantLock，但是调用结束后需要手动释放锁，否则被唤醒线程无法获取锁</li>
+</ul>
+<h2 id="宽容的临界区——Semaphore"><a href="#宽容的临界区——Semaphore" class="headerlink" title="宽容的临界区——Semaphore"></a>宽容的临界区——Semaphore</h2><p>可以简单的理解信号量（Semaphore）是可以多个线程同时访问的临界区资源。</p>
+<p>在构造Semapho时必须制定多个线程的具体数量，还可以指定是否是否公平访问，对象的其它主要方法有：</p>
+<ul>
+<li>acquire()</li>
+<li>acquireUninterruptibly()</li>
+<li>tryAcquire()</li>
+<li>tryAcquire(long timeout, TimeUnit unit)</li>
+<li>release()</li>
+</ul>
+<p>方法的含义如同方法名，没有发现使用特别的地方。</p>
+<p>需要注意的是申请的信号量使用完毕后，需要release以避免资源越来越少。</p>
+<h2 id="读写锁——ReentrantReadWriteLock"><a href="#读写锁——ReentrantReadWriteLock" class="headerlink" title="读写锁——ReentrantReadWriteLock"></a>读写锁——ReentrantReadWriteLock</h2><p>说来惭愧，到目前为止在实际项目中并发包的各种工具我貌似只使用过读写锁。</p>
+<p>通常锁都是严格串行的，读写锁提供读写分离锁，对多个读操作不进行阻塞，以此来改善性能。</p>
+<p>具体使用中读锁和写锁需要从同一个ReentrantReadWriteLock对象获取：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ReentrantReadWriteLock readWriteLock = <span class="keyword">new</span> ReentrantReadWriteLock();</div><div class="line">Lock readLock = readWriteLock.readLock();</div><div class="line">Lock writeLock = readWriteLock.writeLock();</div></pre></td></tr></table></figure>
+<p>针对读操作使用读锁，针对写操作使用写锁。</p>
+<h2 id="倒计数器与循环栅栏"><a href="#倒计数器与循环栅栏" class="headerlink" title="倒计数器与循环栅栏"></a>倒计数器与循环栅栏</h2><p>倒计数器：CountDownLatch</p>
+<p>循环栅栏：CyclicBarrier</p>
+<p>这两个工具具体用法不好解释，我以一个场景考试举例，这个场景有如下特点：</p>
+<ul>
+<li>参加考试的人员是一定的</li>
+<li>使用一个线程表示一个参考人员</li>
+<li>不限时，考试结束的唯一标志是所有人员交卷</li>
+</ul>
+<p>使用倒计数器实现时：</p>
+<ul>
+<li>CountDownLatch定义多少人参加考试</li>
+<li>每次有人交卷CountDownLatch就减少一，交卷后人员自由离开考场</li>
+<li>当CountDownLatch减少到0时表示考试结束</li>
+</ul>
+<p>使用循环栅栏实现时：</p>
+<ul>
+<li>CyclicBarrier定义多少人参加考试，宣布考试结束</li>
+<li>每次有人交卷CyclicBarrier就减少一，但是交卷后人员不能离开考场</li>
+<li>当CyclicBarrier减少到0时表示考试结束，所有人统一离场，宣布考试结束</li>
+<li>当一场考试结束，下一场考试立即准备完毕</li>
+</ul>
+<p>可以看出CyclicBarrier还是更强大一些的。</p>
+<p>相较于CountDownLatch，CyclicBarrier可以定义完成事件，可以重复使用，控制线程的阻塞。</p>
+<hr>
+<p>以上并发工具的使用示例都可以在<a href="https://github.com/zhanghTK/Joolkit/tree/master/concurrent/src/test/java/tk/zhangh/java/concurrent/thread" target="_blank" rel="external">Joolkit</a>中找到。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/并发/" rel="tag">#并发</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/04/04/JDK中的Future模式/" rel="next" title="JDK中的Future模式">
+                <i class="fa fa-chevron-left"></i> JDK中的Future模式
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/04/16/Spring之数据访问/" rel="prev" title="Spring之数据访问">
+                Spring之数据访问 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#可重入锁——ReentrantLock"><span class="nav-number">1.</span> <span class="nav-text">可重入锁——ReentrantLock</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#wait-notify的替身——Condition"><span class="nav-number">2.</span> <span class="nav-text">wait/notify的替身——Condition</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#宽容的临界区——Semaphore"><span class="nav-number">3.</span> <span class="nav-text">宽容的临界区——Semaphore</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#读写锁——ReentrantReadWriteLock"><span class="nav-number">4.</span> <span class="nav-text">读写锁——ReentrantReadWriteLock</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#倒计数器与循环栅栏"><span class="nav-number">5.</span> <span class="nav-text">倒计数器与循环栅栏</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/04/09/JDK并发包——同步控制工具/';
+      var disqus_title = "JDK并发包——同步控制工具";
+      var disqus_url = 'https://zhanghtk.github.io/2017/04/09/JDK并发包——同步控制工具/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

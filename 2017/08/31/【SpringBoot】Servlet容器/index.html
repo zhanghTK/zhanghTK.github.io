@@ -1,0 +1,858 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Spring," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="记得自己看 Spring Boot 源码的初衷是对部署时不需要额外的 Servlet 容器的好奇，好像看着看着关注到了其他细节。挖了几个坑就跳过了，今天把之前关于 Spring Boot 与 Servlet 容器的坑填一下。
+先回（rang）顾（wo）一（xiang）下（xiang）之前与 Web 环境相关的内容：
+
+SpringBoot包文件执行分析，这里说到开启了新线程调用应用入口，该线程设置">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【SpringBoot】Servlet容器">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/08/31/【SpringBoot】Servlet容器/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="记得自己看 Spring Boot 源码的初衷是对部署时不需要额外的 Servlet 容器的好奇，好像看着看着关注到了其他细节。挖了几个坑就跳过了，今天把之前关于 Spring Boot 与 Servlet 容器的坑填一下。
+先回（rang）顾（wo）一（xiang）下（xiang）之前与 Web 环境相关的内容：
+
+SpringBoot包文件执行分析，这里说到开启了新线程调用应用入口，该线程设置">
+<meta property="og:updated_time" content="2017-08-31T13:27:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【SpringBoot】Servlet容器">
+<meta name="twitter:description" content="记得自己看 Spring Boot 源码的初衷是对部署时不需要额外的 Servlet 容器的好奇，好像看着看着关注到了其他细节。挖了几个坑就跳过了，今天把之前关于 Spring Boot 与 Servlet 容器的坑填一下。
+先回（rang）顾（wo）一（xiang）下（xiang）之前与 Web 环境相关的内容：
+
+SpringBoot包文件执行分析，这里说到开启了新线程调用应用入口，该线程设置">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/08/31/【SpringBoot】Servlet容器/"/>
+
+  <title> 【SpringBoot】Servlet容器 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【SpringBoot】Servlet容器
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-08-31T21:25:12+08:00" content="2017-08-31">
+              2017-08-31
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/31/【SpringBoot】Servlet容器/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/31/【SpringBoot】Servlet容器/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>记得自己看 Spring Boot 源码的初衷是对部署时不需要额外的 Servlet 容器的好奇，好像看着看着关注到了其他细节。挖了几个坑就跳过了，今天把之前关于 Spring Boot 与 Servlet 容器的坑填一下。</p>
+<p>先回（rang）顾（wo）一（xiang）下（xiang）之前与 Web 环境相关的内容：</p>
+<ul>
+<li><a href="http://zhangh.tk/2017/06/20/SpringBoot%E5%8C%85%E6%96%87%E4%BB%B6%E6%89%A7%E8%A1%8C%E5%88%86%E6%9E%90/" target="_blank" rel="external">SpringBoot包文件执行分析</a>，这里说到开启了新线程调用应用入口，该线程设置了上下文类加载器 LaunchedURLClassLoader</li>
+<li><a href="http://zhangh.tk/2017/07/05/%E3%80%90SpringBoot%E3%80%91SpringApplication%E5%AE%9E%E4%BE%8B%E5%88%9B%E5%BB%BA/" target="_blank" rel="external">【SpringBoot】SpringApplication实例创建</a>，这里说到根据 CLASSPTH 的包含的类推断当前是否是 web 环境</li>
+<li><a href="http://zhangh.tk/2017/07/10/%E3%80%90SpringBoot%E3%80%91%E5%AE%B9%E5%99%A8%E5%90%AF%E5%8A%A8/" target="_blank" rel="external">【SpringBoot】容器启动</a>，这里说到根据是否 web 环境创建做相关准备，创建处理 web 环境对应的 Spring容器</li>
+<li><a href="http://zhangh.tk/2017/07/16/%E3%80%90Spring%E3%80%91%E5%AE%B9%E5%99%A8%E5%88%B7%E6%96%B0/" target="_blank" rel="external">【Spring容器刷新】</a>，这里说到 Spring 容器生命周期的相关方法</li>
+</ul>
+<h2 id="Servlet-容器启动"><a href="#Servlet-容器启动" class="headerlink" title="Servlet 容器启动"></a>Servlet 容器启动</h2><p><a href="http://zhangh.tk/2017/07/10/%E3%80%90SpringBoot%E3%80%91%E5%AE%B9%E5%99%A8%E5%90%AF%E5%8A%A8/" target="_blank" rel="external">【SpringBoot】容器启动 </a>中提到的创建处理 web 环境对应的 Spring 容器实际创建的就是 AnnotationConfigEmbeddedWebApplicationContext，这个类是 ApplicationContext 的子类。其分别在 onRefresh 和 finishRefresh 方法中创建和启动 Servlet 容器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onRefresh</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">super</span>.onRefresh();</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">      createEmbeddedServletContainer();</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">catch</span> (Throwable ex) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> ApplicationContextException(<span class="string">"Unable to start embedded container"</span>, ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">finishRefresh</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="keyword">super</span>.finishRefresh();</div><div class="line">  EmbeddedServletContainer localContainer = startEmbeddedServletContainer();</div><div class="line">  <span class="keyword">if</span> (localContainer != <span class="keyword">null</span>) &#123;</div><div class="line">    publishEvent(</div><div class="line">	<span class="keyword">new</span> EmbeddedServletContainerInitializedEvent(<span class="keyword">this</span>, localContainer));</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在 Spring 容器生命周期里与 Servlet 容器相关的逻辑封装在以上两个方法，分别用以创建和启动 Servlet 容器。</p>
+<h2 id="Servlet-容器创建细节"><a href="#Servlet-容器创建细节" class="headerlink" title="Servlet 容器创建细节"></a>Servlet 容器创建细节</h2><p>上面说到 AnnotationConfigEmbeddedWebApplicationContext 中创建 Servlet 容器，具体的细节如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// AnnotationConfigEmbeddedWebApplicationContext</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">createEmbeddedServletContainer</span><span class="params">()</span> </span>&#123;</div><div class="line">   EmbeddedServletContainer localContainer = <span class="keyword">this</span>.embeddedServletContainer;</div><div class="line">   ServletContext localServletContext = getServletContext();</div><div class="line">   <span class="keyword">if</span> (localContainer == <span class="keyword">null</span> &amp;&amp; localServletContext == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="comment">// 获取 Servlet 容器工厂</span></div><div class="line">      EmbeddedServletContainerFactory containerFactory = getEmbeddedServletContainerFactory();</div><div class="line">      <span class="comment">// 获取 Servlet 容器初始化器</span></div><div class="line">      <span class="comment">// 使用 Servlet 容器初始化器创建 Servlet 容器</span></div><div class="line">      <span class="keyword">this</span>.embeddedServletContainer = </div><div class="line">        containerFactory.getEmbeddedServletContainer(getSelfInitializer());</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (localServletContext != <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">         getSelfInitializer().onStartup(localServletContext);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">catch</span> (ServletException ex) &#123;</div><div class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> ApplicationContextException(<span class="string">"Cannot initialize servlet context"</span>,</div><div class="line">               ex);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line">   initPropertySources();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>细节可以分为：</p>
+<ol>
+<li>获取 Servlet 容器工厂</li>
+<li>获取 Servlet 容器初始化器</li>
+<li>创建 Servlet 容器</li>
+</ol>
+<h3 id="获取-Servlet-容器工厂"><a href="#获取-Servlet-容器工厂" class="headerlink" title="获取 Servlet 容器工厂"></a>获取 Servlet 容器工厂</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// AnnotationConfigEmbeddedWebApplicationContext</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> EmbeddedServletContainerFactory <span class="title">getEmbeddedServletContainerFactory</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// Use bean names so that we don't consider the hierarchy</span></div><div class="line">   String[] beanNames = getBeanFactory()</div><div class="line">         .getBeanNamesForType(EmbeddedServletContainerFactory.class);</div><div class="line">   <span class="comment">// 省略异常</span></div><div class="line">   <span class="keyword">return</span> getBeanFactory().getBean(beanNames[<span class="number">0</span>],</div><div class="line">         EmbeddedServletContainerFactory.class);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>直接从 Spring 容器里获取 Servlet 容器工厂。一时之间卡住了不知道 EmbeddedServletContainerFactory 这个类时怎么注册到 Spring 容器中的。在网上查了一下发现是 META-INF/spring.factories 里指定了 EmbeddedServletContainerAutoConfiguration 这个配置类。而 EmbeddedServletContainerFactory 是 EmbeddedServletContainerAutoConfiguration 这个自动化配置类中被注册到 Spring 容器中的，关于配置类的注册我又要挖坑了。EmbeddedServletContainerAutoConfiguration：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@AutoConfigureOrder</span>(-<span class="number">2147483648</span>)</div><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="meta">@ConditionalOnWebApplication</span>  <span class="comment">// 在Web环境下起作用</span></div><div class="line"><span class="meta">@Import</span>(&#123;EmbeddedServletContainerAutoConfiguration.BeanPostProcessorsRegistrar.class&#125;)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EmbeddedServletContainerAutoConfiguration</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">EmbeddedServletContainerAutoConfiguration</span><span class="params">()</span> </span>&#123;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="comment">// 在 import 中导入该类</span></div><div class="line">    <span class="comment">// 主要作用是注册 EmbeddedServletContainerCustomizerBeanPostProcessor,</span></div><div class="line">    <span class="comment">// ErrorPageRegistrarBeanPostProcessor</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">BeanPostProcessorsRegistrar</span> </span></div><div class="line">      <span class="keyword">implements</span> <span class="title">ImportBeanDefinitionRegistrar</span>, <span class="title">BeanFactoryAware</span> &#123;</div><div class="line">        <span class="comment">// 省略</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerBeanDefinitions</span><span class="params">(AnnotationMetadata importingClassMetadata,</span></span></div><div class="line">                                            BeanDefinitionRegistry registry) &#123;</div><div class="line">            <span class="keyword">if</span>(<span class="keyword">this</span>.beanFactory != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="comment">// 注册 EmbeddedServletContainerCustomizerBeanPostProcessor</span></div><div class="line">                <span class="keyword">this</span>.registerSyntheticBeanIfMissing(</div><div class="line">                  registry, <span class="string">"embeddedServletContainerCustomizerBeanPostProcessor"</span>, </div><div class="line">                  EmbeddedServletContainerCustomizerBeanPostProcessor.class);</div><div class="line">                <span class="comment">// 注册 ErrorPageRegistrarBeanPostProcessor</span></div><div class="line">                <span class="keyword">this</span>.registerSyntheticBeanIfMissing(</div><div class="line">                  registry, <span class="string">"errorPageRegistrarBeanPostProcessor"</span>, </div><div class="line">                  ErrorPageRegistrarBeanPostProcessor.class);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">registerSyntheticBeanIfMissing</span><span class="params">(BeanDefinitionRegistry registry, </span></span></div><div class="line">                                                    String name, Class&lt;?&gt; beanClass) &#123;</div><div class="line">            <span class="keyword">if</span>(ObjectUtils.isEmpty(<span class="keyword">this</span>.beanFactory.getBeanNamesForType(beanClass, </div><div class="line">                                                                        <span class="keyword">true</span>, <span class="keyword">false</span>))) &#123;</div><div class="line">                RootBeanDefinition beanDefinition = <span class="keyword">new</span> RootBeanDefinition(beanClass);</div><div class="line">                beanDefinition.setSynthetic(<span class="keyword">true</span>);</div><div class="line">                registry.registerBeanDefinition(name, beanDefinition);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 省略 Jetty，Undertow 配置</span></div><div class="line"></div><div class="line">    <span class="meta">@Configuration</span></div><div class="line">    <span class="meta">@ConditionalOnClass</span>(&#123;Servlet.class, Tomcat.class&#125;)</div><div class="line">    <span class="meta">@ConditionalOnMissingBean</span>(</div><div class="line">        value = &#123;EmbeddedServletContainerFactory.class&#125;,</div><div class="line">        search = SearchStrategy.CURRENT</div><div class="line">    )</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">EmbeddedTomcat</span> </span>&#123;</div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">EmbeddedTomcat</span><span class="params">()</span> </span>&#123;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Bean</span></div><div class="line">        <span class="function"><span class="keyword">public</span> TomcatEmbeddedServletContainerFactory <span class="title">tomcatEmbeddedServletContainerFactory</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="comment">// 注册 EmbeddedServletContainerFactory 的实现类</span></div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> TomcatEmbeddedServletContainerFactory();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当满足特定条件时会注册具体的 EmbeddedServletContainerFactory 实现类，例如 TomcatEmbeddedServletContainerFactory。</p>
+<p>这里还看到 注册了 EmbeddedServletContainerCustomizerBeanPostProcessor 和 ErrorPageRegistrarBeanPostProcessor 。简单看了一下 EmbeddedServletContainerCustomizerBeanPostProcessor，这是一个基本的 BeanPostProcessor，具体作用是对 EmbeddedServletContainerCustomizer 的实例进行定制，具体的实现包括：ErrorPageCustomizer，TomcatWebSocketContainerCustomizer，ServerProperties 等。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// EmbeddedServletContainerCustomizerBeanPostProcessor </span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EmbeddedServletContainerCustomizerBeanPostProcessor</span></span></div><div class="line">      <span class="keyword">implements</span> <span class="title">BeanPostProcessor</span>, <span class="title">BeanFactoryAware</span> &#123;</div><div class="line"></div><div class="line">   <span class="keyword">private</span> ListableBeanFactory beanFactory;</div><div class="line"></div><div class="line">   <span class="keyword">private</span> List&lt;EmbeddedServletContainerCustomizer&gt; customizers;</div><div class="line"></div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span></span></div><div class="line">         <span class="keyword">throws</span> BeansException &#123;</div><div class="line">      <span class="keyword">if</span> (bean <span class="keyword">instanceof</span> ConfigurableEmbeddedServletContainer) &#123;</div><div class="line">         <span class="comment">// 处理ConfigurableEmbeddedServletContainer类型的bean</span></div><div class="line">         postProcessBeforeInitialization((ConfigurableEmbeddedServletContainer) bean);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> bean;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">postProcessBeforeInitialization</span><span class="params">(</span></span></div><div class="line">         ConfigurableEmbeddedServletContainer bean) &#123;</div><div class="line">      <span class="comment">// 对ConfigurableEmbeddedServletContainer类型的bean定制化处理</span></div><div class="line">      <span class="keyword">for</span> (EmbeddedServletContainerCustomizer customizer : getCustomizers()) &#123;</div><div class="line">         customizer.customize(bean);</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">private</span> Collection&lt;EmbeddedServletContainerCustomizer&gt; <span class="title">getCustomizers</span><span class="params">()</span> </span>&#123;</div><div class="line">      <span class="keyword">if</span> (<span class="keyword">this</span>.customizers == <span class="keyword">null</span>) &#123;</div><div class="line">         <span class="comment">// 从容器中找出所有EmbeddedServletContainerCustomizer类型的bean</span></div><div class="line">         <span class="keyword">this</span>.customizers = <span class="keyword">new</span> ArrayList&lt;EmbeddedServletContainerCustomizer&gt;(</div><div class="line">               <span class="keyword">this</span>.beanFactory.getBeansOfType(EmbeddedServletContainerCustomizer.class,</div><div class="line">                                               <span class="keyword">false</span>, <span class="keyword">false</span>).values());</div><div class="line">         Collections.sort(<span class="keyword">this</span>.customizers, AnnotationAwareOrderComparator.INSTANCE);</div><div class="line">         <span class="keyword">this</span>.customizers = Collections.unmodifiableList(<span class="keyword">this</span>.customizers);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.customizers;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="Servlet-容器初始化器"><a href="#Servlet-容器初始化器" class="headerlink" title="Servlet 容器初始化器"></a>Servlet 容器初始化器</h3><p>再回顾一下 Servlet 容器的创建核心逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">containerFactory.getEmbeddedServletContainer(getSelfInitializer());</div></pre></td></tr></table></figure>
+<p>先获取 Servlet 初始化器，然后创建 Servlet 容器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> org.springframework.boot.web.servlet.<span class="function">ServletContextInitializer <span class="title">getSelfInitializer</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">return</span> <span class="keyword">new</span> ServletContextInitializer() &#123;</div><div class="line">      <span class="meta">@Override</span></div><div class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onStartup</span><span class="params">(ServletContext servletContext)</span> <span class="keyword">throws</span> ServletException </span>&#123;</div><div class="line">         selfInitialize(servletContext);</div><div class="line">      &#125;</div><div class="line">   &#125;;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">selfInitialize</span><span class="params">(ServletContext servletContext)</span> <span class="keyword">throws</span> ServletException </span>&#123;</div><div class="line">   <span class="comment">// Servlet 容器准备</span></div><div class="line">   prepareEmbeddedWebApplicationContext(servletContext);</div><div class="line">   <span class="comment">// 初始 scopes</span></div><div class="line">   ConfigurableListableBeanFactory beanFactory = getBeanFactory();</div><div class="line">   ExistingWebApplicationScopes existingScopes = <span class="keyword">new</span> ExistingWebApplicationScopes(</div><div class="line">         beanFactory);</div><div class="line">   WebApplicationContextUtils.registerWebApplicationScopes(beanFactory,</div><div class="line">         getServletContext());</div><div class="line">   existingScopes.restore();</div><div class="line">   <span class="comment">// 注册 web 相关 bean</span></div><div class="line">   WebApplicationContextUtils.registerEnvironmentBeans(beanFactory,</div><div class="line">         getServletContext());</div><div class="line">   <span class="comment">// 初始化 servlet, filter, Listener 并注册</span></div><div class="line">   <span class="keyword">for</span> (ServletContextInitializer beans : getServletContextInitializerBeans()) &#123;</div><div class="line">      beans.onStartup(servletContext);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 获取 ServletContext 初始化 bean</span></div><div class="line"><span class="function"><span class="keyword">protected</span> Collection&lt;ServletContextInitializer&gt; <span class="title">getServletContextInitializerBeans</span><span class="params">()</span> </span>&#123;</div><div class="line">	<span class="keyword">new</span> ServletContextInitializerBeans(getBeanFactory());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">ServletContextInitializerBeans</span><span class="params">(ListableBeanFactory beanFactory)</span> </span>&#123;</div><div class="line">   <span class="keyword">this</span>.initializers = <span class="keyword">new</span> LinkedMultiValueMap&lt;Class&lt;?&gt;, ServletContextInitializer&gt;();</div><div class="line">   <span class="comment">// 添加 ServletContextInitializer 类型的 bean</span></div><div class="line">   addServletContextInitializerBeans(beanFactory);</div><div class="line">   addAdaptableBeans(beanFactory);</div><div class="line">   List&lt;ServletContextInitializer&gt; sortedInitializers = </div><div class="line">     <span class="keyword">new</span> ArrayList&lt;ServletContextInitializer&gt;();</div><div class="line">   <span class="keyword">for</span> (Map.Entry&lt;?, List&lt;ServletContextInitializer&gt;&gt; entry : <span class="keyword">this</span>.initializers.entrySet()) &#123;</div><div class="line">      AnnotationAwareOrderComparator.sort(entry.getValue());</div><div class="line">      sortedInitializers.addAll(entry.getValue());</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">this</span>.sortedList = Collections.unmodifiableList(sortedInitializers);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">addServletContextInitializerBeans</span><span class="params">(ListableBeanFactory beanFactory)</span> </span>&#123;</div><div class="line">   <span class="keyword">for</span> (Entry&lt;String, ServletContextInitializer&gt; initializerBean : getOrderedBeansOfType(</div><div class="line">         beanFactory, ServletContextInitializer.class)) &#123;</div><div class="line">      addServletContextInitializerBean(initializerBean.getKey(),</div><div class="line">            initializerBean.getValue(), beanFactory);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">addServletContextInitializerBean</span><span class="params">(String beanName,</span></span></div><div class="line">      ServletContextInitializer initializer, ListableBeanFactory beanFactory) &#123;</div><div class="line">   <span class="keyword">if</span> (initializer <span class="keyword">instanceof</span> ServletRegistrationBean) &#123;</div><div class="line">      <span class="comment">// servlet</span></div><div class="line">      Servlet source = ((ServletRegistrationBean) initializer).getServlet();</div><div class="line">      addServletContextInitializerBean(Servlet.class, beanName, initializer,</div><div class="line">            beanFactory, source);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (initializer <span class="keyword">instanceof</span> FilterRegistrationBean) &#123;</div><div class="line">      <span class="comment">// filter</span></div><div class="line">      Filter source = ((FilterRegistrationBean) initializer).getFilter();</div><div class="line">      addServletContextInitializerBean(Filter.class, beanName, initializer,</div><div class="line">            beanFactory, source);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (initializer <span class="keyword">instanceof</span> DelegatingFilterProxyRegistrationBean) &#123;</div><div class="line">      <span class="comment">// filter</span></div><div class="line">      String source = ((DelegatingFilterProxyRegistrationBean) initializer)</div><div class="line">            .getTargetBeanName();</div><div class="line">      addServletContextInitializerBean(Filter.class, beanName, initializer,</div><div class="line">            beanFactory, source);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (initializer <span class="keyword">instanceof</span> ServletListenerRegistrationBean) &#123;</div><div class="line">      <span class="comment">// listener</span></div><div class="line">      EventListener source = ((ServletListenerRegistrationBean&lt;?&gt;) initializer)</div><div class="line">            .getListener();</div><div class="line">      addServletContextInitializerBean(EventListener.class, beanName, initializer,</div><div class="line">            beanFactory, source);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">else</span> &#123;</div><div class="line">      addServletContextInitializerBean(ServletContextInitializer.class, beanName,</div><div class="line">            initializer, beanFactory, initializer);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="创建-Servlet-容器"><a href="#创建-Servlet-容器" class="headerlink" title="创建 Servlet 容器"></a>创建 Servlet 容器</h3><p>以 TomcatEmbeddedServletContainerFactory 的创建容器方法为例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> EmbeddedServletContainer <span class="title">getEmbeddedServletContainer</span><span class="params">(</span></span></div><div class="line">      ServletContextInitializer... initializers) &#123;</div><div class="line">   Tomcat tomcat = <span class="keyword">new</span> Tomcat();</div><div class="line">   File baseDir = (<span class="keyword">this</span>.baseDirectory != <span class="keyword">null</span> ? <span class="keyword">this</span>.baseDirectory</div><div class="line">         : createTempDir(<span class="string">"tomcat"</span>));</div><div class="line">   tomcat.setBaseDir(baseDir.getAbsolutePath());</div><div class="line">   Connector connector = <span class="keyword">new</span> Connector(<span class="keyword">this</span>.protocol);</div><div class="line">   tomcat.getService().addConnector(connector);</div><div class="line">   customizeConnector(connector);</div><div class="line">   tomcat.setConnector(connector);</div><div class="line">   tomcat.getHost().setAutoDeploy(<span class="keyword">false</span>);</div><div class="line">   configureEngine(tomcat.getEngine());</div><div class="line">   <span class="keyword">for</span> (Connector additionalConnector : <span class="keyword">this</span>.additionalTomcatConnectors) &#123;</div><div class="line">      tomcat.getService().addConnector(additionalConnector);</div><div class="line">   &#125;</div><div class="line">   prepareContext(tomcat.getHost(), initializers);</div><div class="line">   <span class="keyword">return</span> getTomcatEmbeddedServletContainer(tomcat);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上面的代码完成了 Servlet 容器启动前所有的创建，配置动作。</p>
+<h2 id="Servlet-容器启动-1"><a href="#Servlet-容器启动-1" class="headerlink" title="Servlet 容器启动"></a>Servlet 容器启动</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> EmbeddedServletContainer <span class="title">startEmbeddedServletContainer</span><span class="params">()</span> </span>&#123;</div><div class="line">   EmbeddedServletContainer localContainer = <span class="keyword">this</span>.embeddedServletContainer;</div><div class="line">   <span class="keyword">if</span> (localContainer != <span class="keyword">null</span>) &#123;</div><div class="line">      localContainer.start();</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> localContainer;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>启动的逻辑并不复杂，直接调用 Servlet 容器的 start 方法。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spring Boot 使用的内嵌 Servlet 容器启动过程：</p>
+<ol>
+<li>从 spring.factories 中读取并注册了 EmbeddedServletContainerAutoConfiguration 类</li>
+<li>EmbeddedServletContainerAutoConfiguration 注册了 Servlet 容器工厂类</li>
+<li>在 Spring 容器生命周期的 onRefresh 方法中开始创建 Servlet 容器<ol>
+<li>获取 Servlet 容器工厂</li>
+<li>获取 Servlet 相关初始化 bean</li>
+<li>配置并创建 Servlet 容器</li>
+</ol>
+</li>
+<li>在 Spring 容器生命周期的 finishRefresh 方法中调用 Servlet 容器的 start 方法启动容器</li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/Spring/" rel="tag">#Spring</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/14/Spring事件驱动模型与观察者模式/" rel="next" title="Spring事件驱动模型与观察者模式">
+                <i class="fa fa-chevron-left"></i> Spring事件驱动模型与观察者模式
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/18/【SpringBoot】配置加载/" rel="prev" title="【SpringBoot】配置加载">
+                【SpringBoot】配置加载 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Servlet-容器启动"><span class="nav-number">1.</span> <span class="nav-text">Servlet 容器启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Servlet-容器创建细节"><span class="nav-number">2.</span> <span class="nav-text">Servlet 容器创建细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取-Servlet-容器工厂"><span class="nav-number">2.1.</span> <span class="nav-text">获取 Servlet 容器工厂</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Servlet-容器初始化器"><span class="nav-number">2.2.</span> <span class="nav-text">Servlet 容器初始化器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建-Servlet-容器"><span class="nav-number">2.3.</span> <span class="nav-text">创建 Servlet 容器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Servlet-容器启动-1"><span class="nav-number">3.</span> <span class="nav-text">Servlet 容器启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/08/31/【SpringBoot】Servlet容器/';
+      var disqus_title = "【SpringBoot】Servlet容器";
+      var disqus_url = 'https://zhanghtk.github.io/2017/08/31/【SpringBoot】Servlet容器/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,933 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="容器," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="容器核心技术容器规范Open Container Initiative（OCI），制定开放的容器规范
+两个规范：runtime spec 和 image format spec
+容器runtime&amp;amp;管理工具容器的运行环境，容器只有在 runtime 中才能运行，主流容器：
+
+
+
+runtime
+管理工具
+备注
+
+
+
+
+lxc
+lxd
+Linux 上老牌的容器 runtime；Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="容器生态系统">
+<meta property="og:url" content="https://zhanghtk.github.io/2017/12/08/容器生态系统/index.html">
+<meta property="og:site_name" content="zhanghTk">
+<meta property="og:description" content="容器核心技术容器规范Open Container Initiative（OCI），制定开放的容器规范
+两个规范：runtime spec 和 image format spec
+容器runtime&amp;amp;管理工具容器的运行环境，容器只有在 runtime 中才能运行，主流容器：
+
+
+
+runtime
+管理工具
+备注
+
+
+
+
+lxc
+lxd
+Linux 上老牌的容器 runtime；Docker">
+<meta property="og:updated_time" content="2017-12-08T14:06:51.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="容器生态系统">
+<meta name="twitter:description" content="容器核心技术容器规范Open Container Initiative（OCI），制定开放的容器规范
+两个规范：runtime spec 和 image format spec
+容器runtime&amp;amp;管理工具容器的运行环境，容器只有在 runtime 中才能运行，主流容器：
+
+
+
+runtime
+管理工具
+备注
+
+
+
+
+lxc
+lxd
+Linux 上老牌的容器 runtime；Docker">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="https://zhanghtk.github.io/2017/12/08/容器生态系统/"/>
+
+  <title> 容器生态系统 | zhanghTk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', '105818980-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?60fcdf041a8b46c0c5c01cfb3f2a2e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">zhanghTk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                容器生态系统
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-12-08T22:02:16+08:00" content="2017-12-08">
+              2017-12-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/容器/" itemprop="url" rel="index">
+                    <span itemprop="name">容器</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/12/08/容器生态系统/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/12/08/容器生态系统/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="容器核心技术"><a href="#容器核心技术" class="headerlink" title="容器核心技术"></a>容器核心技术</h2><h3 id="容器规范"><a href="#容器规范" class="headerlink" title="容器规范"></a>容器规范</h3><p>Open Container Initiative（OCI），制定开放的容器规范</p>
+<p>两个规范：runtime spec 和 image format spec</p>
+<h3 id="容器runtime-amp-管理工具"><a href="#容器runtime-amp-管理工具" class="headerlink" title="容器runtime&amp;管理工具"></a>容器runtime&amp;管理工具</h3><p>容器的运行环境，容器只有在 runtime 中才能运行，主流容器：</p>
+<table>
+<thead>
+<tr>
+<th>runtime</th>
+<th>管理工具</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lxc</td>
+<td>lxd</td>
+<td>Linux 上老牌的容器 runtime；Docker 最初的 runtime</td>
+</tr>
+<tr>
+<td>runc</td>
+<td>docker engine</td>
+<td>Docker 开发的容器 runtime；符合 oci 规范；现在 Docker 的默认 runtime</td>
+</tr>
+<tr>
+<td>rkt</td>
+<td>rkt cli</td>
+<td>CoreOS 开发的容器 runtime，符合 oci 规范，能够运行 Docker 的容器</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Registry-amp-amp-容器OS"><a href="#Registry-amp-amp-容器OS" class="headerlink" title="Registry&amp;&amp;容器OS"></a>Registry&amp;&amp;容器OS</h3><ul>
+<li>Registry：Docker Registry、<a href="[https://hub.docker.com](">Docker Hub</a>)、<a href="https://quay.io/" target="_blank" rel="external">Quay.io</a></li>
+<li>容器OS：CoreOS、atomic、ubuntu core</li>
+</ul>
+<h2 id="容器平台技术"><a href="#容器平台技术" class="headerlink" title="容器平台技术"></a>容器平台技术</h2><h3 id="容器编排引擎"><a href="#容器编排引擎" class="headerlink" title="容器编排引擎"></a>容器编排引擎</h3><p>高效的管理（容器管理、调度、集群定义和服务发现等）容器集群</p>
+<ul>
+<li>docker swarm ： Docker 开发的容器编排引擎</li>
+<li>kubernetes ： Google 领导开发的开源容器编排引擎，同时支持 Docker 和 CoreOS 容器</li>
+<li>mesos 是一个通用的集群资源调度平台，mesos 与 marathon 一起提供容器编排引擎功能</li>
+</ul>
+<h3 id="容器管理平台-amp-amp-基于容器的PaaS"><a href="#容器管理平台-amp-amp-基于容器的PaaS" class="headerlink" title="容器管理平台&amp;&amp;基于容器的PaaS"></a>容器管理平台&amp;&amp;基于容器的PaaS</h3><p>容器管理平台：支持多种编排引擎，抽象了编排引擎的底层实现细节</p>
+<ul>
+<li>Rancher</li>
+<li>ContainerShip</li>
+</ul>
+<p>基于容器的PaaS：Deis、Flynn 和 Dokku</p>
+<h2 id="容器支持技术"><a href="#容器支持技术" class="headerlink" title="容器支持技术"></a>容器支持技术</h2><ul>
+<li>容器网络：docker network、flannel、weave 和 calico</li>
+<li>服务发现：etcd、consul 和 zookeeper</li>
+<li>监控：docker ps/top/stats、stats API、sysdig、cAdvisor/Heapster 和 Weave Scope</li>
+<li>数据管理：Flocker</li>
+<li>日志管理：docker logs、logspout</li>
+<li>安全性：OpenSCAP</li>
+</ul>
+<h2 id="运行容器——Hello-World"><a href="#运行容器——Hello-World" class="headerlink" title="运行容器——Hello World"></a>运行容器——Hello World</h2><ul>
+<li><p>环境：</p>
+<ol>
+<li>管理工具：Docker Engine</li>
+<li>runtime：runc</li>
+<li>操作系统：Ubuntu 16.04</li>
+</ol>
+</li>
+<li><p>安装&amp;运行：</p>
+<ol>
+<li><p>安装包，允许 <code>apt</code> 命令 HTTPS 访问 Docker 源</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get install \</div><div class="line">    apt-transport-https \</div><div class="line">    ca-certificates \</div><div class="line">    curl \</div><div class="line">    software-properties-common</div></pre></td></tr></table></figure>
+</li>
+<li><p>添加 Docker 官方的 GPG</p>
+<p><code>$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -</code></p>
+</li>
+<li><p>将 Docker 的源添加到 /etc/apt/sources.list</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ sudo add-apt-repository \</div><div class="line">  &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu \</div><div class="line">  $(lsb_release -cs) \</div><div class="line">  stable&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装Docker</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get update</div><div class="line">$ sudo apt-get install docker-ce</div></pre></td></tr></table></figure>
+</li>
+<li><p>运行httpd</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo docker run -d -p 80:80 httpd</div></pre></td></tr></table></figure>
+</li>
+<li><p>Docker适应非root用户</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ sudo groupadd docker</div><div class="line">$ sudo gpasswd -a $&#123;USER&#125; docker</div><div class="line">$ sudo service docker restart</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p><strong>NOTE</strong></p>
+<p>安装、使用Docker时注意权限是否足够</p>
+</li>
+</ul>
+<hr>
+<p>本文主要内容整理自<a href="https://mp.weixin.qq.com/s/7o8QxGydMTUe4Q7Tz46Diw" target="_blank" rel="external">每天5分钟玩转Docker容器技术</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/容器/" rel="tag">#容器</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/08/【MQ】使用扩展/" rel="next" title="【MQ】使用扩展">
+                <i class="fa fa-chevron-left"></i> 【MQ】使用扩展
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/08/Docker结构/" rel="prev" title="Docker结构">
+                Docker结构 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Zhang Hao" />
+          <p class="site-author-name" itemprop="name">Zhang Hao</p>
+          <p class="site-description motion-element" itemprop="description">Java Coder</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#容器核心技术"><span class="nav-number">1.</span> <span class="nav-text">容器核心技术</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#容器规范"><span class="nav-number">1.1.</span> <span class="nav-text">容器规范</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容器runtime-amp-管理工具"><span class="nav-number">1.2.</span> <span class="nav-text">容器runtime&管理工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Registry-amp-amp-容器OS"><span class="nav-number">1.3.</span> <span class="nav-text">Registry&&容器OS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器平台技术"><span class="nav-number">2.</span> <span class="nav-text">容器平台技术</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#容器编排引擎"><span class="nav-number">2.1.</span> <span class="nav-text">容器编排引擎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容器管理平台-amp-amp-基于容器的PaaS"><span class="nav-number">2.2.</span> <span class="nav-text">容器管理平台&&基于容器的PaaS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器支持技术"><span class="nav-number">3.</span> <span class="nav-text">容器支持技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行容器——Hello-World"><span class="nav-number">4.</span> <span class="nav-text">运行容器——Hello World</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Hao</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'zhanghtk';
+      var disqus_identifier = '2017/12/08/容器生态系统/';
+      var disqus_title = "容器生态系统";
+      var disqus_url = 'https://zhanghtk.github.io/2017/12/08/容器生态系统/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
