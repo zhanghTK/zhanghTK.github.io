@@ -3,6 +3,8 @@ node_js: stable
 
 install:
   - npm install --save bluebird
+  - npm install -g hexo
+  - npm install -g hexo-cli
 
 script:
   - hexo g
